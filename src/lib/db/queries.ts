@@ -5,6 +5,7 @@ import {
   examSessions,
   journalEntries,
   lessonProgress,
+  praxisSessions,
   settings,
   translations,
 } from "@/lib/db/schema";
@@ -104,6 +105,45 @@ export function getJournalForKapitel(kapitelSlug: string, userId = USER_ID) {
     )
     .all()
     .sort((a, b) => b.createdAt - a.createdAt)[0];
+}
+
+export function getPraxisForKapitel(kapitelSlug: string, userId = USER_ID) {
+  return db
+    .select()
+    .from(praxisSessions)
+    .where(
+      and(
+        eq(praxisSessions.userId, userId),
+        eq(praxisSessions.kapitelSlug, kapitelSlug),
+      ),
+    )
+    .all();
+}
+
+export function getPraxisSession(id: number, userId = USER_ID) {
+  return db
+    .select()
+    .from(praxisSessions)
+    .where(and(eq(praxisSessions.id, id), eq(praxisSessions.userId, userId)))
+    .get();
+}
+
+export function getActivePraxis(
+  kapitelSlug: string,
+  aufgabeId: string,
+  userId = USER_ID,
+) {
+  return db
+    .select()
+    .from(praxisSessions)
+    .where(
+      and(
+        eq(praxisSessions.userId, userId),
+        eq(praxisSessions.kapitelSlug, kapitelSlug),
+        eq(praxisSessions.aufgabeId, aufgabeId),
+      ),
+    )
+    .get();
 }
 
 export function getSetting(key: string): string | undefined {

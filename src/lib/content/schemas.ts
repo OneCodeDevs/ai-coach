@@ -7,6 +7,18 @@ export const examQuestionSchema = z.object({
   erwartet: z.array(z.string().min(1)).min(1),
 });
 
+export const praxisAufgabeSchema = z.object({
+  id: z.string().min(1),
+  titel: z.string().min(1),
+  typ: z.enum(["code", "repo-audit", "config", "freestyle"]),
+  schwierigkeit: z.number().int().min(1).max(3),
+  zeitMinuten: z.number().int().positive(),
+  beschreibung: z.string().min(1),
+  akzeptanzkriterien: z.array(z.string().min(1)).min(1),
+  abgabe: z.enum(["text", "file-upload", "screenshot", "url"]),
+  hinweis: z.string().optional(),
+});
+
 export const certificateSchema = z.object({
   title: z.string().min(1),
   url: z.string().url(),
@@ -22,6 +34,7 @@ export const kapitelMetaSchema = z.object({
   dauerMinuten: z.number().int().positive(),
   lernziele: z.array(z.string().min(1)).min(1),
   exam: z.array(examQuestionSchema).min(1),
+  praxis: z.array(praxisAufgabeSchema).min(1),
   zertifikate: z.array(certificateSchema).optional().default([]),
   artefakt: z.string().optional(),
 });
@@ -34,6 +47,7 @@ export const lessonFrontmatterSchema = z.object({
 });
 
 export type ExamQuestion = z.infer<typeof examQuestionSchema>;
+export type PraxisAufgabe = z.infer<typeof praxisAufgabeSchema>;
 export type Certificate = z.infer<typeof certificateSchema>;
 export type KapitelMeta = z.infer<typeof kapitelMetaSchema>;
 export type LessonFrontmatter = z.infer<typeof lessonFrontmatterSchema>;

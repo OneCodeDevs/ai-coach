@@ -59,5 +59,36 @@ exam:
       - Fehlerbehandlung und Logging an den Rändern
       - AGENTS.md, Rules, Skills
       - Gates bleiben, Vibe nur in unkritischen Flächen
+praxis:
+  - id: repo-audit
+    titel: Ein-Wochen-Audit gegen ein reales Repo
+    typ: repo-audit
+    schwierigkeit: 3
+    zeitMinuten: 60
+    beschreibung: |
+      Wähle ein öffentliches oder eigenes Repo (idealerweise eines, das „schnell gebaut" wurde) und führe ein Kurz-Audit durch.
+      Prüfe Architektur, Datenmodell, Auth/Secrets, Dependencies, Tests und CI.
+      Liefere eine priorisierte Risikoliste mit geschätztem Aufwand pro Punkt.
+    akzeptanzkriterien:
+      - Repo benannt und kurz beschrieben
+      - Mindestens fünf Prüfbereiche abgedeckt (Architektur, Daten, Auth, Deps, Tests/CI)
+      - Risikoliste priorisiert (Kritisch / Hoch / Mittel)
+      - Geschätzter Aufwand pro Risiko (T-Shirt-Größen oder Stunden)
+    abgabe: text
+  - id: dependency-audit
+    titel: Dependency-Audit mit npm audit und Risiko-Bewertung
+    typ: repo-audit
+    schwierigkeit: 2
+    zeitMinuten: 25
+    beschreibung: |
+      Führe npm audit (oder das Äquivalent deines Paketmanagers) gegen ein Repo aus.
+      Klassifiziere die Findings nach Risiko und dokumentiere, welche du fixen würdest, welche du akzeptierst und warum.
+      Prüfe zusätzlich auf unnötige Dependencies und halluzinierte Pakete.
+    akzeptanzkriterien:
+      - npm audit (oder Äquivalent) ausgeführt und Ergebnis dokumentiert
+      - Findings klassifiziert (fixen / akzeptieren / entfernen)
+      - Prüfung auf unnötige oder verdächtige Dependencies
+      - Begründung für jede Entscheidung
+    abgabe: text
 artefakt: Ein-Wochen-Audit-Checkliste gegen ein reales Repo anwenden (Architektur, Datenmodell, Auth, Secrets, Dependencies, Tests, CI). Ergebnis ist eine priorisierte Risikoliste mit Aufwand, kein Rewrite-Plan aus dem Bauch.
 zertifikate: []

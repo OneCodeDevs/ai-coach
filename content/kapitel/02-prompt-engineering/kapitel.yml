@@ -50,4 +50,33 @@ exam:
       - zu lang und verdrängt die Aufgabe
       - widersprüchliche Anweisungen
       - kein prüfbares Done
+praxis:
+  - id: prompt-review-raster
+    titel: Prompt-Review-Raster für ein Kundenrepo
+    typ: config
+    schwierigkeit: 2
+    zeitMinuten: 30
+    beschreibung: |
+      Erstelle ein Prompt-Review-Raster mit den vier Teilen (Rolle, Instruktion, Kontext, Format).
+      Wende es auf drei echte Prompts aus einem Repo oder Projekt an (eigene oder Beispiele).
+      Bewerte jeden Prompt gegen das Raster und formuliere je eine Verbesserung.
+    akzeptanzkriterien:
+      - Raster enthält alle vier Prompt-Teile mit Prüffragen
+      - Mindestens drei Prompts analysiert
+      - Für jeden Prompt eine konkrete Verbesserung formuliert
+    abgabe: text
+  - id: few-shot-structured
+    titel: Few-Shot-Prompt mit strukturierter Ausgabe
+    typ: code
+    schwierigkeit: 2
+    zeitMinuten: 20
+    beschreibung: |
+      Baue einen Prompt, der per Few-Shot und XML-Tags oder JSON-Schema eine strukturierte Ausgabe erzwingt.
+      Beispiel: Aus einer Fehlermeldung sollen Kategorie, Schweregrad und nächster Schritt extrahiert werden.
+      Teste den Prompt mit mindestens drei verschiedenen Inputs und dokumentiere die Ergebnisse.
+    akzeptanzkriterien:
+      - Prompt nutzt Few-Shot-Beispiele (mindestens 2)
+      - Ausgabe ist strukturiert (XML-Tags, JSON oder Schema)
+      - Drei verschiedene Inputs getestet, Ergebnisse dokumentiert
+    abgabe: text
 artefakt: Ein Prompt-Review-Raster für Kundenrepos (vier Teile, Beispiele, Gates)

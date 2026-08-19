@@ -50,4 +50,34 @@ exam:
       - Transparenz wenn Nutzer mit KI interagieren bzw. KI-Content (Art. 50-Richtung)
       - Hochrisiko nur bei Anhang-III-Kontext, nicht automatisch jedes SaaS
       - explizit keine Rechtsberatung, Verweis auf Text und Bitkom-Leitfaden
+praxis:
+  - id: discovery-simulation
+    titel: Discovery-Gespräch simulieren
+    typ: freestyle
+    schwierigkeit: 2
+    zeitMinuten: 40
+    beschreibung: |
+      Simuliere ein Discovery-Gespräch mit einem fiktiven CTO.
+      Formuliere mindestens 10 Discovery-Fragen, die den Kunden in den richtigen Offer-Slot führen.
+      Skizziere auf Basis der Antworten eine Angebotsskizze (welches der drei OneCode-Angebote und warum).
+    akzeptanzkriterien:
+      - Mindestens 10 Discovery-Fragen formuliert
+      - Fragen decken Pain, bestehende Tools, Team, Produkt-Status ab
+      - Angebotsskizze mit Begründung, welches Angebot passt
+      - Keine Feature-Listen, sondern Pain und Blast Radius
+    abgabe: text
+  - id: einwandbehandlung
+    titel: "Einwandbehandlung: 5 typische Einwände"
+    typ: freestyle
+    schwierigkeit: 2
+    zeitMinuten: 25
+    beschreibung: |
+      Formuliere fünf typische Kundeneinwände (z. B. „Wir haben schon Copilot", „KI ist zu teuer", „Unsere Devs machen das selbst") und schreibe zu jedem eine Antwort, die ohne Defensive funktioniert.
+      Nutze die OneCode-Angebote als Rahmen.
+    akzeptanzkriterien:
+      - Fünf verschiedene Einwände formuliert
+      - Jede Antwort ist konkret, nicht defensiv und bezieht sich auf ein Angebot
+      - Mindestens ein Einwand betrifft Kosten, einer betrifft Copilot
+      - Antworten sind gesprächstauglich (keine Slides-Sprache)
+    abgabe: text
 zertifikate: []

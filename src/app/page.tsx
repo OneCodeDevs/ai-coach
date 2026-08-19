@@ -1,5 +1,5 @@
 import { listKapitel } from "@/lib/content/loader";
-import { getCompletedLessons, getJournalEntries } from "@/lib/db/queries";
+import { getCompletedLessons, getJournalEntries, getPraxisForKapitel } from "@/lib/db/queries";
 import { CassetteTile } from "@/components/ui/cassette-tile";
 import { HorizonScene } from "@/components/ui/horizon-scene";
 import { Equalizer } from "@/components/ui/equalizer";
@@ -50,16 +50,25 @@ export default async function HomePage() {
           Lerneinheiten bist.
         </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {kapitel.map((item) => (
-            <CassetteTile
-              key={item.slug}
-              kapitel={item}
-              done={item.lessons.filter((lesson) =>
-                doneSet.has(`${item.slug}:${lesson.slug}`),
-              ).length}
-              examDone={examDone.has(item.slug)}
-            />
-          ))}
+          {kapitel.map((item) => {
+            const praxisSessions = getPraxisForKapitel(item.slug);
+            const praxisBestanden = item.praxis.filter((a) =>
+              praxisSessions.find(
+                (s) => s.aufgabeId === a.id && s.status === "bestanden",
+              ),
+            ).length;
+            return (
+              <CassetteTile
+                key={item.slug}
+                kapitel={item}
+                done={item.lessons.filter((lesson) =>
+                  doneSet.has(`${item.slug}:${lesson.slug}`),
+                ).length}
+                examDone={examDone.has(item.slug)}
+                praxisDone={praxisBestanden}
+              />
+            );
+          })}
         </div>
       </section>
     </div>

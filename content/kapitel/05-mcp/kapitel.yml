@@ -50,6 +50,37 @@ exam:
       - Tools als Grounding statt Halluzination
       - Regeln und Gates bleiben im Repo
       - Mehr Prompt ersetzt keine Werkzeuge
+praxis:
+  - id: mcp-server-anbinden
+    titel: Bestehenden MCP-Server anbinden und testen
+    typ: code
+    schwierigkeit: 2
+    zeitMinuten: 30
+    beschreibung: |
+      Binde einen bestehenden MCP-Server (z. B. filesystem, GitHub, Obsidian) in Cursor oder Claude Desktop an.
+      Konfiguriere die Server-Einstellungen, teste mindestens zwei Tools des Servers und dokumentiere die Ergebnisse.
+      Bewerte, welche Rechte der Server bekommt und ob Least Privilege eingehalten wird.
+    akzeptanzkriterien:
+      - MCP-Server in einer IDE oder Anwendung konfiguriert
+      - Mindestens zwei Tools getestet und Ergebnisse dokumentiert
+      - Bewertung der Berechtigungen (Roots, Allowlist, Least Privilege)
+    abgabe: text
+  - id: mcp-server-bauen
+    titel: Minimalen MCP-Server mit einem Tool bauen
+    typ: code
+    schwierigkeit: 3
+    zeitMinuten: 45
+    beschreibung: |
+      Baue einen minimalen MCP-Server (TypeScript oder Python) mit genau einem Tool.
+      Das Tool soll eine nützliche Funktion haben (z. B. Datei-Statistiken, Git-Log, API-Abfrage).
+      Teste den Server per stdio mit einem Client deiner Wahl.
+    akzeptanzkriterien:
+      - Funktionierender MCP-Server mit einem Tool
+      - Tool hat Schema, Beschreibung und Validierung
+      - Server wurde mit einem Client getestet (Cursor, Claude Desktop, MCP Inspector)
+      - Keine übermäßigen Berechtigungen
+    abgabe: text
+    hinweis: "Tipp: Starte mit @modelcontextprotocol/sdk (TypeScript) oder mcp (Python)."
 zertifikate:
   - title: Integrate MCP tools with agents in Microsoft Foundry (APL-3034)
     url: https://learn.microsoft.com/en-us/credentials/applied-skills/integrate-model-context-protocol-tools-with-agents-in-microsoft-foundry

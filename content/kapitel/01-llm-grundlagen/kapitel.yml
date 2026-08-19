@@ -50,6 +50,35 @@ exam:
       - langer Kontext treibt Input-Kosten
       - Prompt Caching senkt Wiederholungskosten
       - kleines Modell für Routine, großes für harte Stellen
+praxis:
+  - id: tokenizer-vergleich
+    titel: "Tokenizer-Vergleich: GPT vs. Llama"
+    typ: code
+    schwierigkeit: 1
+    zeitMinuten: 20
+    beschreibung: |
+      Öffne den OpenAI-Tokenizer (platform.openai.com/tokenizer) und ein Llama-Tokenizer-Tool (z. B. belladoreai/llama-tokenizer-js Playground).
+      Tokenisiere denselben deutschen Satz mit beiden — wähle einen Satz mit Umlauten und Fachbegriffen.
+      Dokumentiere Token-Anzahl, Splits und Unterschiede.
+    akzeptanzkriterien:
+      - Mindestens zwei Tokenizer verglichen (GPT und Llama-basiert)
+      - Token-Anzahl und konkrete Splits dokumentiert
+      - Erkenntnis formuliert, warum deutsche Umlaute und Fachbegriffe unterschiedlich behandelt werden
+    abgabe: text
+    hinweis: "Tipp: tiktoken läuft auch im Browser unter platform.openai.com/tokenizer"
+  - id: sampling-experiment
+    titel: "Sampling-Experiment: Temperature 0 vs. 1.5"
+    typ: code
+    schwierigkeit: 1
+    zeitMinuten: 15
+    beschreibung: |
+      Sende denselben Coding-Prompt (z. B. „Schreibe eine Fibonacci-Funktion in Python") fünfmal mit Temperature 0 und fünfmal mit Temperature 1.5 an ein Modell deiner Wahl (API, Playground oder Cursor).
+      Vergleiche die Ergebnisse: Varianz, Korrektheit, Stil.
+    akzeptanzkriterien:
+      - Mindestens 5 Durchläufe pro Temperature-Setting
+      - Varianz und Korrektheit dokumentiert
+      - Begründete Empfehlung, welche Temperature für Coding-Aufgaben sinnvoll ist
+    abgabe: text
 zertifikate:
   - title: Transformer-basierte Large Language Models verstehen
     url: https://ki-campus.org/

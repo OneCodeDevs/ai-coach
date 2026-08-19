@@ -73,4 +73,37 @@ zertifikate:
     url: https://learn.microsoft.com/en-us/credentials/applied-skills/secure-ai-solutions-in-the-cloud
     anbieter: Microsoft Applied Skills
     hinweis: Kostenloses Lab zu Guardrails und Härtung. Hoch wertvoll gegenüber unsicheren Kunden.
+praxis:
+  - id: drei-gates
+    titel: Drei Gates für ein Kundenrepo definieren
+    typ: config
+    schwierigkeit: 2
+    zeitMinuten: 40
+    beschreibung: |
+      Wähle ein Repo (eigenes oder hypothetisches Kundenprojekt) und definiere drei konkrete Quality Gates:
+      1. Eine Eval in CI (was wird geprüft, wann schlägt sie fehl?)
+      2. Ein Tool-Tripwire (welcher Tool-Call wird blockiert und warum?)
+      3. Ein Human-Approval-Gate (welcher Pfad erfordert menschliche Freigabe?)
+      Nenne für jedes Gate die Metrik, an der es scheitert.
+    akzeptanzkriterien:
+      - Drei Gates definiert (Eval, Tripwire, Human-Approval)
+      - Jedes Gate hat eine konkrete Metrik oder Bedingung zum Scheitern
+      - Gates passen zum gewählten Repo-Kontext
+      - Begründung, warum diese drei Gates und nicht andere
+    abgabe: text
+  - id: llm-judge-eval
+    titel: LLM-as-Judge Eval-Prompt schreiben und testen
+    typ: code
+    schwierigkeit: 3
+    zeitMinuten: 30
+    beschreibung: |
+      Schreibe einen LLM-as-Judge-Prompt mit konkreter Rubric (mindestens 3 Kriterien, je mit Punkteskala).
+      Teste den Judge gegen mindestens 3 Beispiel-Antworten (gut, mittel, schlecht).
+      Dokumentiere, ob der Judge konsistent bewertet und wo er abweicht.
+    akzeptanzkriterien:
+      - Eval-Prompt mit Rubric (mindestens 3 Kriterien und Skala)
+      - Gegen mindestens 3 Beispiele getestet
+      - Konsistenz dokumentiert (stimmen die Scores mit der eigenen Einschätzung überein?)
+      - Mindestens eine Schwäche des Judges benannt
+    abgabe: text
 artefakt: Skizziere für ein Kundenrepo drei konkrete Gates (Eval in CI, Tool-Tripwire, Human-Approval für einen Pfad) und nenne die Metrik, an der jedes Gate scheitert.

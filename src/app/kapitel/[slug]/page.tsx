@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getKapitel } from "@/lib/content/loader";
-import { getCompletedLessons, getJournalForKapitel } from "@/lib/db/queries";
+import { getCompletedLessons, getJournalForKapitel, getPraxisForKapitel } from "@/lib/db/queries";
 import { HorizonScene } from "@/components/ui/horizon-scene";
 import { Equalizer } from "@/components/ui/equalizer";
 import { CertificateList } from "@/components/ui/certificate-list";
@@ -29,6 +29,10 @@ export default async function KapitelPage({ params }: PageProps) {
       .map((row) => row.lessonSlug),
   );
   const journal = getJournalForKapitel(slug);
+  const praxisSessions = getPraxisForKapitel(slug);
+  const praxisBestanden = kapitel.praxis.filter((a) =>
+    praxisSessions.find((s) => s.aufgabeId === a.id && s.status === "bestanden"),
+  ).length;
   const done = kapitel.lessons.filter((lesson) => doneSet.has(lesson.slug)).length;
 
   return (
@@ -94,6 +98,14 @@ export default async function KapitelPage({ params }: PageProps) {
       <section className="mt-10 flex flex-wrap gap-3">
         <Link href={`/kapitel/${kapitel.slug}/pruefung`} className="btn btn-primary">
           Kapiteltest starten
+        </Link>
+        <Link href={`/kapitel/${kapitel.slug}/praxis`} className="btn btn-ghost">
+          Praxis-Aufgaben
+          {praxisBestanden > 0 ? (
+            <span className="ml-2 font-mono text-xs text-neon-lime">
+              {praxisBestanden}/{kapitel.praxis.length}
+            </span>
+          ) : null}
         </Link>
         {journal ? (
           <Link href={`/kapitel/${kapitel.slug}/tagebuch`} className="btn btn-ghost">

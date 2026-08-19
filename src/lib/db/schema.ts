@@ -47,6 +47,20 @@ export const journalEntries = sqliteTable("journal_entries", {
   createdAt: integer("created_at").notNull(),
 });
 
+export const praxisSessions = sqliteTable("praxis_sessions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull().default("me"),
+  kapitelSlug: text("kapitel_slug").notNull(),
+  aufgabeId: text("aufgabe_id").notNull(),
+  status: text("status").notNull().default("in_progress"),
+  abgabe: text("abgabe").notNull().default(""),
+  abgabeTyp: text("abgabe_typ").notNull().default("text"),
+  feedback: text("feedback").notNull().default(""),
+  versuche: integer("versuche").notNull().default(0),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+});
+
 export const translations = sqliteTable("translations", {
   hash: text("hash").primaryKey(),
   sourceLang: text("source_lang").notNull(),

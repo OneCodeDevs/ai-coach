@@ -42,4 +42,36 @@ exam:
       - ein Benchmark-Prompt gegen Cloud dokumentieren
       - lokal taugt für private Snippets und Demos, nicht als heimlicher Ersatz für Opus/GPT-Klasse im großen Repo
 zertifikate: []
+praxis:
+  - id: lokales-setup
+    titel: Lokales Modell mit Ollama aufsetzen und benchmarken
+    typ: code
+    schwierigkeit: 2
+    zeitMinuten: 45
+    beschreibung: |
+      Installiere Ollama (oder LM Studio) und lade ein Coding-Modell herunter (z. B. qwen3:8b, codellama).
+      Setze den Context-Window korrekt (num_ctx).
+      Sende denselben Benchmark-Prompt an das lokale Modell und an ein Cloud-Modell.
+      Dokumentiere Qualität, Geschwindigkeit und VRAM-Verbrauch.
+    akzeptanzkriterien:
+      - Lokales Modell läuft und ist erreichbar (API oder IDE)
+      - Context-Window explizit konfiguriert (nicht Default)
+      - Benchmark-Prompt gegen Cloud dokumentiert (Qualität, Speed, Kosten)
+      - Ehrliche Einschätzung, wofür das lokale Modell taugt und wofür nicht
+    abgabe: text
+  - id: quantisierung-vergleich
+    titel: "Quantisierung vergleichen: Q4 vs. Q8 vs. Cloud"
+    typ: code
+    schwierigkeit: 2
+    zeitMinuten: 30
+    beschreibung: |
+      Lade dasselbe Modell in zwei Quantisierungen (z. B. Q4_K_M und Q8_0) und vergleiche:
+      VRAM-Verbrauch, Tokens pro Sekunde, Ausgabe-Qualität bei einem Coding-Prompt.
+      Vergleiche zusätzlich mit der Cloud-Variante desselben Modells (falls verfügbar).
+    akzeptanzkriterien:
+      - Zwei Quantisierungen verglichen (VRAM, Speed, Qualität)
+      - Cloud-Vergleich dokumentiert (wenn verfügbar)
+      - Faustformel für VRAM-Bedarf formuliert
+      - Empfehlung, welche Quantisierung für welchen Einsatzzweck
+    abgabe: text
 artefakt: Dokumentiere ein lokales Setup (Modell, Quantisierung, Hardware, ein Benchmark-Prompt gegen Cloud) als internes Artefakt. Es gibt kein öffentliches Credential für lokale LLMs.

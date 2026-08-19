@@ -68,4 +68,33 @@ zertifikate:
     url: https://academy.claude.com/courses/introduction-to-agent-skills
     anbieter: Anthropic Academy
     hinweis: Passt zur Skills-Lektion.
+praxis:
+  - id: agents-md-rules
+    titel: AGENTS.md und Rules für ein Beispiel-Repo
+    typ: config
+    schwierigkeit: 2
+    zeitMinuten: 40
+    beschreibung: |
+      Wähle ein Repo (eigenes oder öffentliches) und schreibe eine AGENTS.md plus mindestens zwei .cursor/rules-Dateien.
+      Die AGENTS.md soll Build, Test, Lint, Architektur-Überblick und verbotene Muster enthalten.
+      Die Rules sollen glob-basiert auf bestimmte Dateitypen oder Pfade matchen.
+    akzeptanzkriterien:
+      - AGENTS.md mit Build/Test/Lint-Befehlen, Architektur-Überblick und mindestens einem verbotenen Muster
+      - Mindestens zwei .cursor/rules-Dateien mit Description und Globs
+      - Keine Widersprüche zwischen AGENTS.md und Rules
+    abgabe: text
+  - id: skill-erstellen
+    titel: Skill-Datei erstellen und testen
+    typ: code
+    schwierigkeit: 2
+    zeitMinuten: 30
+    beschreibung: |
+      Erstelle eine SKILL.md für einen wiederkehrenden Workflow (z. B. Komponente anlegen, API-Endpoint scaffolden, Review-Checkliste).
+      Die Skill-Datei muss Name, Description und einen mehrstufigen Body enthalten.
+      Teste den Skill einmal in Cursor oder Claude Code und dokumentiere das Ergebnis.
+    akzeptanzkriterien:
+      - SKILL.md mit Name, Description und Body (mehrstufiger Workflow)
+      - Skill wurde mindestens einmal ausgelöst und das Ergebnis dokumentiert
+      - Erklärung, warum dieser Workflow als Skill und nicht als Rule passt
+    abgabe: text
 artefakt: Übergabe-Paket (AGENTS.md, Rules, Skills, Testgate, Glossar)

@@ -6,9 +6,10 @@ type CassetteTileProps = {
   kapitel: Kapitel;
   done: number;
   examDone: boolean;
+  praxisDone?: number;
 };
 
-export function CassetteTile({ kapitel, done, examDone }: CassetteTileProps) {
+export function CassetteTile({ kapitel, done, examDone, praxisDone = 0 }: CassetteTileProps) {
   const total = kapitel.lessons.length;
   const locked = Boolean(kapitel.error);
 
@@ -20,9 +21,16 @@ export function CassetteTile({ kapitel, done, examDone }: CassetteTileProps) {
         <span className="font-mono text-xs tracking-widest text-neon-cyan">
           CH-{String(kapitel.nummer).padStart(2, "0")}
         </span>
-        {examDone ? (
-          <span className="ml-auto font-mono text-xs text-neon-lime">TEST OK</span>
-        ) : null}
+        <span className="ml-auto flex gap-2">
+          {examDone ? (
+            <span className="font-mono text-xs text-neon-lime">TEST OK</span>
+          ) : null}
+          {praxisDone > 0 && kapitel.praxis?.length ? (
+            <span className="font-mono text-xs text-neon-lime">
+              PRAXIS {praxisDone}/{kapitel.praxis.length}
+            </span>
+          ) : null}
+        </span>
       </div>
       <h3 className="font-display text-xl text-fg">{kapitel.titel}</h3>
       <p className="mt-2 line-clamp-2 text-sm text-fg-muted">{kapitel.untertitel}</p>

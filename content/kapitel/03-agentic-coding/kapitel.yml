@@ -64,4 +64,34 @@ zertifikate:
     url: https://learn.microsoft.com/en-us/credentials/applied-skills/accelerate-app-development-by-using-github-copilot/
     anbieter: Microsoft Applied Skills
     hinweis: Kostenloses Lab. Englisch. Gute Aufwärmrunde für Copilot, weniger agentic als das Issue-Lab.
+praxis:
+  - id: entscheidungsraster
+    titel: Entscheidungsraster Modus / Tool / Gate
+    typ: freestyle
+    schwierigkeit: 2
+    zeitMinuten: 25
+    beschreibung: |
+      Erstelle ein Entscheidungsraster (Tabelle), das für typische Kundenszenarien den passenden Modus (Autocomplete, Chat, Agent), das Tool (Cursor, Claude Code, Copilot, Aider) und das Gate (Test, Review, CI) zuordnet.
+      Decke mindestens fünf Szenarien ab (z. B. Bugfix, neues Feature, Refactoring, Security-Patch, Migration).
+    akzeptanzkriterien:
+      - Tabellenformat mit Spalten Szenario, Modus, Tool, Gate
+      - Mindestens fünf verschiedene Szenarien abgedeckt
+      - Begründung, warum Agent nicht immer die richtige Wahl ist
+    abgabe: text
+  - id: cursor-feature
+    titel: "Cursor: Feature mit Plan-Modus und Rules"
+    typ: code
+    schwierigkeit: 3
+    zeitMinuten: 45
+    beschreibung: |
+      Setze ein kleines Feature in einem eigenen Repo mit Cursor um.
+      Nutze dabei bewusst den Plan-Modus, definiere mindestens eine Rule (.cursor/rules) und dokumentiere den Ablauf.
+      Zeige den Diff und beschreibe, wo du eingreifen musstest.
+    akzeptanzkriterien:
+      - Feature wurde mit Cursor im Plan-Modus umgesetzt
+      - Mindestens eine Cursor-Rule definiert und im Repo abgelegt
+      - Ablauf dokumentiert (Plan, Agent-Schritte, manuelle Eingriffe)
+      - Diff oder Commit-History als Nachweis
+    abgabe: text
+    hinweis: "Alternativ kann der Diff als Screenshot oder URL zu einem Commit eingereicht werden."
 artefakt: Entscheidungsraster für Kundengespräche (Modus, Tool, Gate)

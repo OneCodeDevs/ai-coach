@@ -59,6 +59,38 @@ exam:
       - Defekte nach Merge und Rollback
       - Token- und Actions-Kosten pro erledigtem Issue
       - Sterne in Chat oder LOC sind keine Erfolgskriterien
+praxis:
+  - id: workflow-skizze
+    titel: Orchestrator-Worker-Pattern skizzieren und begründen
+    typ: freestyle
+    schwierigkeit: 2
+    zeitMinuten: 30
+    beschreibung: |
+      Wähle ein reales Problem (z. B. Multi-Datei-Refactoring, Issue-Triage, Test-Generierung) und skizziere ein Workflow-Pattern dafür.
+      Begründe, warum du dieses Pattern gewählt hast und nicht ein einfacheres (oder komplexeres).
+      Zeichne den Datenfluss zwischen den Komponenten (Text oder Diagramm).
+    akzeptanzkriterien:
+      - Problem und Pattern klar benannt
+      - Datenfluss zwischen Orchestrator und Workern skizziert (Text oder Diagramm)
+      - Begründung, warum nicht ein einfacheres oder komplexeres Pattern
+      - Mindestens ein Human Quality Gate eingezeichnet
+    abgabe: text
+  - id: agent-ci
+    titel: Agent-in-CI mit GitHub Actions
+    typ: code
+    schwierigkeit: 3
+    zeitMinuten: 45
+    beschreibung: |
+      Erstelle eine GitHub Action (Workflow-YAML), die einen Coding-Agenten bei einem Issue-Label oder PR-Event auslöst.
+      Der Agent soll eine definierte Aufgabe erledigen (z. B. Lint-Fix, Test-Generierung, Dokumentation).
+      Definiere das Human Quality Gate (z. B. Review-Pflicht, Auto-Merge nur bei grüner CI).
+    akzeptanzkriterien:
+      - GitHub Actions YAML mit Agent-Trigger (Issue-Label oder PR-Event)
+      - Agent hat eine klar definierte Aufgabe
+      - Human Quality Gate definiert (kein Auto-Merge ohne Review)
+      - CI-Checks als required vor Merge
+    abgabe: text
+    hinweis: "Kann als Pseudocode oder funktionales YAML eingereicht werden — ein echtes Repo ist nicht Pflicht."
 zertifikate:
   - title: Resolve GitHub issues by using GitHub Copilot
     url: https://learn.microsoft.com/en-us/credentials/applied-skills/resolve-github-issues-by-using-github-copilot

@@ -20,7 +20,7 @@ for (const folder of folders.sort()) {
   }
   lessons += files.length;
   console.log(
-    `OK ${String(meta.nummer).padStart(2, "0")} ${meta.slug} ${files.length} Lektionen ${meta.exam.length} Fragen`,
+    `OK ${String(meta.nummer).padStart(2, "0")} ${meta.slug} ${files.length} Lektionen ${meta.exam.length} Fragen ${meta.praxis.length} Praxis`,
   );
 }
 
