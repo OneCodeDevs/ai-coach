@@ -1,0 +1,57 @@
+slug: ki-grundlagen
+nummer: 0
+titel: Was ist Künstliche Intelligenz?
+untertitel: Von der Idee „denkender Maschinen" bis zum heutigen Stand — Grundbegriffe, die du für alles Weitere brauchst.
+dauerMinuten: 90
+lernziele:
+  - Den Begriff Künstliche Intelligenz definieren und von einfacher Automatisierung abgrenzen können
+  - Machine Learning, Deep Learning und Large Language Models als aufeinander aufbauende Stufen erklären können
+  - Die Transformer-Architektur in eigenen Worten vereinfacht beschreiben können
+  - Realistische Erwartungen an LLMs formulieren — was sie können und was nicht
+  - Die wichtigsten Anbieter und Modelle benennen und grob einordnen können
+exam:
+  - id: ki-definition
+    topic: Was ist Künstliche Intelligenz?
+    frage: Was unterscheidet Künstliche Intelligenz von einer einfachen Wenn-Dann-Regel in einem Programm?
+    erwartet:
+      - KI lernt Muster aus Daten statt fest programmiert zu werden
+      - Klassische Programme folgen expliziten Regeln, KI generalisiert aus Beispielen
+      - KI kann mit neuen, unbekannten Eingaben umgehen, die nicht vorab definiert wurden
+  - id: ml-dl-llm-stufen
+    topic: Machine Learning, Deep Learning, LLMs
+    frage: Erkläre den Zusammenhang zwischen Machine Learning, Deep Learning und Large Language Models.
+    erwartet:
+      - ML ist die Oberkategorie — Lernen aus Daten
+      - Deep Learning ist ML mit tiefen neuronalen Netzen
+      - LLMs sind Deep-Learning-Modelle, die auf riesigen Textmengen trainiert wurden
+      - Jede Stufe baut auf der vorherigen auf
+  - id: transformer-vereinfacht
+    topic: Wie ein LLM funktioniert
+    frage: Was macht ein LLM, wenn es einen Text generiert? Beschreibe den Kern-Mechanismus vereinfacht.
+    erwartet:
+      - Das Modell sagt das nächste Wort (Token) vorher
+      - Es betrachtet den gesamten bisherigen Kontext dafür
+      - Attention erlaubt dem Modell, relevante Stellen im Kontext stärker zu gewichten
+      - Es wurde auf Milliarden von Texten trainiert, um diese Vorhersage zu lernen
+  - id: grenzen-llm
+    topic: Fähigkeiten und Grenzen
+    frage: Nenne drei Dinge, die ein LLM nicht kann, obwohl es so wirkt als könnte es alles.
+    erwartet:
+      - Kein echtes Verständnis oder Bewusstsein
+      - Kein Zugriff auf aktuelle Informationen (Trainingsschnitt)
+      - Kann sich nicht an vorherige Gespräche erinnern (kein Langzeitgedächtnis)
+      - Rechnet nicht zuverlässig und kann halluzinieren
+praxis:
+  - id: ki-im-alltag
+    titel: "KI im Alltag erkennen"
+    typ: freestyle
+    schwierigkeit: 1
+    zeitMinuten: 20
+    beschreibung: |
+      Finde fünf Beispiele aus deinem Alltag, in denen du mit KI interagierst (z. B. Sprachassistenten, Empfehlungssysteme, Übersetzungs-Apps).
+      Beschreibe für jedes Beispiel: Was tut die KI? Warum ist das keine einfache Wenn-Dann-Programmierung?
+    akzeptanzkriterien:
+      - Mindestens 5 Alltagsbeispiele genannt
+      - Für jedes Beispiel erklärt, warum es KI ist und keine klassische Programmierung
+      - Mindestens ein Beispiel bezieht sich auf ein LLM (z. B. ChatGPT, Übersetzung)
+    abgabe: text

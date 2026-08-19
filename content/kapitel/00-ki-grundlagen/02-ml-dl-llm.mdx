@@ -1,0 +1,77 @@
+---
+titel: Machine Learning, Deep Learning und LLMs
+dauerMinuten: 20
+zusammenfassung: KI ist der Oberbegriff — darunter gibt es Stufen. Hier lernst du, wie sie aufeinander aufbauen.
+reihenfolge: 2
+---
+
+## Die drei Stufen
+
+Stell dir KI als ein Gebäude mit mehreren Etagen vor:
+
+- **Erdgeschoss: Machine Learning** — die breiteste Kategorie
+- **Erste Etage: Deep Learning** — eine spezielle Form von Machine Learning
+- **Dachgeschoss: Large Language Models** — eine spezielle Anwendung von Deep Learning
+
+Jede Etage baut auf der darunterliegenden auf. Ein LLM *ist* Deep Learning, und Deep Learning *ist* Machine Learning. Aber nicht jedes Machine-Learning-System ist ein LLM.
+
+## Machine Learning: Lernen aus Daten
+
+**Machine Learning (ML)** — auf Deutsch „maschinelles Lernen" — ist der Teil der KI, bei dem ein System aus Beispieldaten lernt, statt explizit programmiert zu werden.
+
+Ein Beispiel: Du willst ein System, das erkennt, ob ein Foto eine Katze zeigt. Statt Regeln wie „Katzen haben spitze Ohren und Schnurrhaare" zu definieren (was bei jeder ungewöhnlichen Katze scheitern würde), zeigst du dem System 10.000 Fotos mit dem Label „Katze" und 10.000 ohne. Das System findet selbst heraus, welche Muster relevant sind.
+
+Diesen Prozess nennt man **Training**. Das Ergebnis — die gelernten Muster — nennt man ein **Modell**. Ein Modell ist also kein Programm im klassischen Sinn, sondern eine mathematische Struktur, die Muster kodiert.
+
+Es gibt verschiedene Arten von Machine Learning:
+- **Supervised Learning (überwachtes Lernen):** Das System bekommt Beispiele mit korrekten Antworten (Labels). „Das ist Spam, das nicht."
+- **Unsupervised Learning (unüberwachtes Lernen):** Das System findet Strukturen in Daten ohne vorgegebene Antworten. „Diese Kunden verhalten sich ähnlich."
+- **Reinforcement Learning (verstärkendes Lernen):** Das System lernt durch Belohnung und Bestrafung. „Dieser Spielzug hat gewonnen."
+
+## Deep Learning: Neuronale Netze mit vielen Schichten
+
+**Deep Learning** ist Machine Learning mit einer bestimmten Technik: tiefen neuronalen Netzen.
+
+Ein **neuronales Netz** ist — vereinfacht — ein mathematisches Modell, das grob von der Struktur des Gehirns inspiriert ist. Es besteht aus Schichten (Layers) von Recheneinheiten (Neuronen), die miteinander verbunden sind. Jede Verbindung hat ein Gewicht — eine Zahl, die bestimmt, wie stark ein Signal weitergegeben wird.
+
+Während des Trainings werden diese Gewichte angepasst, bis das Netz die Trainingsaufgabe gut löst. „Tief" (deep) bedeutet einfach: viele Schichten hintereinander. Mehr Schichten erlauben es dem Netz, komplexere Muster zu erkennen.
+
+Warum wurde Deep Learning erst in den 2010ern praktisch nützlich? Drei Dinge kamen zusammen:
+1. **Mehr Daten** — das Internet produziert Milliarden von Texten und Bildern
+2. **Mehr Rechenleistung** — Grafikkarten (GPUs) können die nötigen Berechnungen parallel ausführen
+3. **Bessere Architekturen** — Forscher fanden Strukturen, die besonders gut funktionieren
+
+## Large Language Models: Text-Spezialisten
+
+Ein **Large Language Model (LLM)** — auf Deutsch „großes Sprachmodell" — ist ein Deep-Learning-Modell, das auf riesigen Textmengen trainiert wurde und deshalb Sprache verarbeiten und erzeugen kann.
+
+„Large" bezieht sich auf zwei Dinge:
+- Die **Trainings-Daten**: Hunderte Milliarden bis Billionen von Wörtern aus dem Internet, Büchern, Code, Wikipedia und mehr.
+- Die **Modellgröße**: Milliarden von Parametern (die Gewichte im neuronalen Netz). GPT-4 hat schätzungsweise über eine Billion Parameter, Llama 3 hat Varianten mit 8 bis 405 Milliarden.
+
+Was ein LLM im Kern tut: Es sagt das nächste Wort (genauer: das nächste Token — dazu mehr im nächsten Kapitel) vorher. Immer und immer wieder. Daraus entsteht Text, der flüssig und sinnvoll wirkt.
+
+Das klingt simpel — und der Grundmechanismus *ist* simpel. Aber wenn ein System so groß ist und auf so vielen Daten trainiert wurde, entstehen Fähigkeiten, die überraschen: Zusammenfassen, Übersetzen, Code schreiben, Fragen beantworten, Aufgaben planen.
+
+## Wie hängt das alles zusammen?
+
+```
+KI (Künstliche Intelligenz)
+└── Machine Learning (Lernen aus Daten)
+    └── Deep Learning (tiefe neuronale Netze)
+        └── Large Language Models (Sprache als Spezialgebiet)
+```
+
+Für diesen Kurs ist die wichtigste Ebene die unterste: LLMs. Alles, was du in den folgenden Kapiteln über Prompts, Kontext, Tools und Agents lernst, dreht sich um die Arbeit mit diesen Modellen. Aber es hilft zu wissen, worauf sie aufbauen — denn ihre Stärken *und* Schwächen ergeben sich aus dieser Architektur.
+
+<Merksatz>
+Machine Learning lernt aus Daten. Deep Learning nutzt dafür tiefe neuronale Netze. LLMs sind Deep-Learning-Modelle, die auf Sprache spezialisiert sind. Jede Stufe baut auf der vorherigen auf.
+</Merksatz>
+
+<Quelle
+  url="https://learn.microsoft.com/de-de/agent-framework/journey/llm-fundamentals"
+  lang="de"
+  typ="Microsoft Learn — Grundlagen von LLMs"
+  dauer="30 Min"
+  account={false}
+/>

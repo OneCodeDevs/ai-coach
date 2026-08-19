@@ -1,27 +1,87 @@
 ---
 titel: Halluzinationen und ihre Ursachen
-dauerMinuten: 15
-zusammenfassung: Warum Modelle überzeugend falsche APIs erfinden — und was dagegen sticht.
+dauerMinuten: 18
+zusammenfassung: Warum Modelle überzeugend falsche Dinge behaupten — und was man dagegen tun kann.
 reihenfolge: 4
 ---
 
-Halluzination ist kein Lügen. Das Modell maximiert lokale Plausibilität Token für Token. Wenn die wahrscheinlichste Fortsetzung eine Methode `UserService.findByMail()` ist, kommt sie — unabhängig davon, ob sie im Repo existiert.
+## Was sind Halluzinationen?
 
-## Drei häufige Ursachen
+Wenn ein LLM etwas behauptet, das nicht stimmt — aber so tut, als wäre es sich sicher — nennt man das eine **Halluzination**. Der Begriff ist bewusst gewählt: Das Modell „sieht" etwas, das nicht da ist.
 
-1. **Kein Grounding.** Die Information war nicht im Context und nicht zuverlässig im Training. Das Netz interpoliert.
-2. **Trainingsschnitt.** Framework-Versionen drehen sich schneller als Gewichte. „Klassische“ Antworten sind oft ein Jahr zu alt.
-3. **Belohnungsdruck auf Hilfsbereitschaft.** Viele Modelle sind darauf trainiert, *eine* Antwort zu geben. „Ich weiß es nicht“ ist unterrepräsentiert, außer du erzwingst es im Prompt oder per Tool.
+Beispiele aus der Praxis:
+- Das Modell empfiehlt eine API-Funktion `UserService.findByMail()`, die in deinem Projekt nicht existiert
+- Es zitiert eine Studie mit Autor, Titel und Jahreszahl — die es nie gegeben hat
+- Es behauptet, ein bestimmtes npm-Paket löse genau dein Problem — das Paket gibt es nicht
+- Es nennt eine Konfigurationsoption, die in der aktuellen Version des Frameworks entfernt wurde
 
-Im Agent-Setup ist das gefährlich, weil der Text selbstbewusst klingt und als Nächstes in eine Datei geschrieben wird. Deshalb sind Tests, Compiler, Retriever und MCP-Tools nicht Komfort — sie sind die Wahrheitsquelle.
+Das Tückische: Der Text klingt genauso selbstbewusst wie bei korrekten Aussagen. Es gibt kein Warnsignal, keinen Vorbehalt. Deshalb ist es so wichtig zu verstehen, *warum* das passiert.
 
-## Was du im Kundengespräch sagst
+## Warum halluzinieren LLMs?
 
-Nicht: „Wir nehmen das beste Modell, dann halluziniert es nicht.“  
-Sondern: „Wir geben dem Agenten Werkzeuge und Gates, die Falschbehauptungen auffangen. Das Modell darf vorschlagen, das System darf mergen.“
+Halluzination ist kein Bug im herkömmlichen Sinn. Es ist eine direkte Konsequenz davon, wie LLMs funktionieren. Drei Hauptursachen:
+
+### 1. Das Modell optimiert auf Plausibilität, nicht auf Wahrheit
+
+Ein LLM wurde trainiert, das nächste Token vorherzusagen — also Text zu erzeugen, der *plausibel klingt*. „Plausibel" und „wahr" sind aber nicht dasselbe. Wenn der wahrscheinlichste nächste Token eine erfundene Methode ist (weil ähnliche Methoden in den Trainingsdaten häufig vorkamen), dann wird genau diese erfundene Methode erzeugt.
+
+Das Modell hat keinen internen Fakt-Checker. Es hat kein Konzept von „stimmt" vs. „stimmt nicht". Es hat nur: „passt das statistisch zum bisherigen Text?"
+
+### 2. Trainingsschnitt: Wissen endet an einem Datum
+
+Jedes Modell hat einen **Trainingsschnitt** (englisch: *knowledge cutoff*). Das ist das Datum, bis zu dem Trainingsdaten gesammelt wurden. Alles danach existiert für das Modell nicht.
+
+- Framework-Versionen ändern sich schneller als Modelle aktualisiert werden
+- APIs werden umbenannt, Parameter werden entfernt, neue Features kommen dazu
+- Nachrichtenlagen ändern sich
+
+Wenn das Modell nach etwas gefragt wird, das nach seinem Trainingsschnitt passiert ist, *rät* es — basierend auf Mustern aus der Vergangenheit. Das Ergebnis sieht aus wie Wissen, ist aber Interpolation.
+
+### 3. Fehlender Kontext (kein Grounding)
+
+Wenn die Information, die das Modell bräuchte, weder in seinem Training noch im aktuellen Kontext (dem Prompt) vorhanden ist, füllt es die Lücke mit dem Wahrscheinlichsten. Das Modell kann nicht sagen „Ich habe diese Information nicht" — oder genauer: Es *kann*, aber es wurde stärker darauf trainiert, hilfreich zu sein als ehrlich über Wissenslücken.
+
+**Grounding** bedeutet: dem Modell die relevanten Informationen im Kontext mitzugeben, damit es nicht raten muss. Eine Datei, ein Stacktrace, eine API-Dokumentation — alles, was als „Wahrheitsquelle" dient.
+
+### Die Kombination macht es gefährlich
+
+In einem Coding-Agent kommen oft alle drei zusammen: Das Modell soll Code für ein Framework schreiben, das sich seit dem Trainingsschnitt geändert hat, ohne dass die aktuelle Dokumentation im Kontext liegt. Ergebnis: selbstbewusst formulierter Code, der nicht kompiliert.
+
+## Halluzination erkennen und abfangen
+
+Du kannst Halluzinationen nicht verhindern — aber du kannst Systeme bauen, die sie auffangen:
+
+### Tests als Wahrheitsquelle
+
+Code, den ein LLM schreibt, muss durch den Compiler und durch Tests. Wenn `UserService.findByMail()` nicht existiert, schlägt der Build fehl. Das ist kein Workaround — das ist die Architektur.
+
+### Retrieval / RAG statt Bauchgefühl
+
+Statt das Modell aus dem Gedächtnis antworten zu lassen, gibst du ihm die aktuelle Dokumentation als Kontext. Das reduziert Halluzinationen drastisch — eliminiert sie aber nicht vollständig.
+
+### MCP-Tools und Werkzeuge
+
+In einem Agent-Setup hat das Modell Zugang zu Werkzeugen: Dateien lesen, Suchen ausführen, Tests starten, Dokumentation abrufen. Jedes Werkzeug ist eine Chance, Vermutungen durch Fakten zu ersetzen.
+
+### „Ich weiß es nicht" erzwingen
+
+In System-Prompts oder Rules kannst du explizit formulieren: „Wenn du dir nicht sicher bist, sage das. Erfinde keine APIs, Funktionsnamen oder Konfigurationsoptionen." Das hilft — ist aber nicht wasserdicht.
+
+### Human-in-the-Loop
+
+Für kritische Entscheidungen: Ein Mensch prüft, bevor etwas übernommen wird. Das Modell *vorschlägt*, der Mensch *entscheidet*. In einem Agent-Setup heißt das: Der Agent darf nicht automatisch mergen, deployen oder veröffentlichen.
+
+## Im Gespräch richtig einordnen
+
+Wenn du mit Kollegen oder Kunden über LLMs sprichst, ist die richtige Framing-Ebene:
+
+**Nicht:** „Wir nehmen das beste Modell, dann halluziniert es nicht."
+**Sondern:** „Halluzination ist erwartbares Verhalten. Wir bauen Werkzeuge und Prüfschritte ein, die falsche Behauptungen auffangen, bevor sie Schaden anrichten."
+
+Das ist keine Schwäche der Technologie — das ist die Realität jedes Systems, das auf statistischer Vorhersage basiert. Der professionelle Umgang damit unterscheidet einen effektiven KI-Einsatz von einem naiven.
 
 <Merksatz>
-Halluzination ist das Default-Verhalten eines Next-Token-Samplers ohne Grounding. Du bekämpfst sie mit Kontext, Tools und Tests, nicht mit Appellen an die Ehrlichkeit.
+Halluzination ist das Default-Verhalten eines Next-Token-Samplers ohne Grounding. Du bekämpfst sie nicht mit Appellen an die Ehrlichkeit, sondern mit Kontext, Tools, Tests und menschlicher Prüfung.
 </Merksatz>
 
 <Quelle

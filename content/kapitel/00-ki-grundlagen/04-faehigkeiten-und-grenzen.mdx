@@ -1,0 +1,86 @@
+---
+titel: Was ein LLM kann und was nicht
+dauerMinuten: 15
+zusammenfassung: Realistische Erwartungen statt Hype — was Sprachmodelle gut können, wo sie scheitern und warum.
+reihenfolge: 4
+---
+
+## Was LLMs gut können
+
+Sprachmodelle sind beeindruckend vielseitig. Hier die Bereiche, in denen sie wirklich nützlich sind:
+
+### Texte erzeugen und umformulieren
+
+LLMs können flüssige Texte schreiben, zusammenfassen, übersetzen, umformulieren und in verschiedene Stile oder Zielgruppen anpassen. Das ist ihre Kernkompetenz — sie wurden schließlich auf Text trainiert.
+
+### Code schreiben und erklären
+
+Weil ein großer Teil der Trainingsdaten Code aus Open-Source-Projekten enthält, können LLMs in vielen Programmiersprachen Code erzeugen, bestehenden Code erklären, Bugs finden und Refactoring-Vorschläge machen.
+
+### Wissen abrufen
+
+LLMs haben während des Trainings Milliarden von Texten „gelesen". Sie können Fragen zu vielen Themen beantworten — von Geschichte über Naturwissenschaften bis zu Programmierdokumentation. Allerdings mit einer wichtigen Einschränkung (siehe unten: Trainingsschnitt).
+
+### Muster erkennen und Strukturen schaffen
+
+Aus unstrukturiertem Text Informationen extrahieren, Daten kategorisieren, Tabellen aus Fließtext erzeugen — das können LLMs gut, weil es letztlich Pattern-Matching auf Text ist.
+
+### Aufgaben planen und in Schritte zerlegen
+
+Besonders große Modelle können komplexe Aufgaben in kleinere Schritte zerlegen und einen Plan erstellen. Das ist die Grundlage für „Agenten", die mehrere Werkzeuge koordinieren.
+
+## Was LLMs *nicht* können
+
+Hier wird es wichtig. Viele Fehler im Umgang mit LLMs entstehen, weil man ihnen Fähigkeiten zuschreibt, die sie nicht haben.
+
+### Nicht: Denken oder Verstehen
+
+Ein LLM hat kein Verständnis im menschlichen Sinn. Es erzeugt Text, der *wie* Verstehen aussieht, weil es gelernt hat, welche Wortfolgen in bestimmten Kontexten statistisch plausibel sind. Es hat keine innere Vorstellung der Welt, kein Ziel, kein Bewusstsein.
+
+Praktische Konsequenz: Wenn ein LLM sagt „Ich verstehe dein Problem", dann ist das eine statistische Fortführung — keine Aussage über einen inneren Zustand.
+
+### Nicht: Aktuelle Informationen liefern
+
+Ein LLM weiß nur, was in seinen Trainingsdaten steht. Diese Daten haben einen **Trainingsschnitt** (englisch: *knowledge cutoff*) — ein Datum, nach dem nichts mehr berücksichtigt wurde. Wenn du fragst „Wer hat gestern das Spiel gewonnen?", kann es nur raten.
+
+Das lässt sich umgehen: durch Werkzeuge, die dem Modell aktuelle Informationen zuführen (Websuche, Datenbank-Abfragen, APIs). Aber von sich aus hat das Modell keinen Zugang zur Gegenwart.
+
+### Nicht: Sich erinnern
+
+Jedes Gespräch beginnt für das Modell bei null. Es hat kein Langzeitgedächtnis. Was du ihm vor drei Tagen gesagt hast, existiert nicht — es sei denn, ein System (eine Anwendung drumherum) speichert es und fügt es wieder in den Kontext ein.
+
+### Nicht: Zuverlässig rechnen
+
+LLMs können einfache Mathematik oft korrekt lösen — nicht weil sie rechnen, sondern weil sie genug Rechenbeispiele im Training gesehen haben. Bei komplexeren Berechnungen oder ungewöhnlichen Zahlen liegen sie regelmäßig falsch. Sie *tippen* das plausible Ergebnis, statt es zu berechnen.
+
+### Nicht: Garantiert korrekt sein
+
+LLMs **halluzinieren** — sie erzeugen Aussagen, die plausibel klingen, aber falsch sind. Eine API-Funktion, die es nicht gibt. Ein Zitat, das niemand gesagt hat. Eine Statistik, die erfunden ist. Das ist kein Bug, sondern eine Eigenschaft des Systems: Es optimiert auf Plausibilität, nicht auf Wahrheit.
+
+## Die richtige Haltung: Werkzeug, nicht Orakel
+
+Die produktivste Einstellung gegenüber einem LLM ist: **Es ist ein extrem vielseitiger Assistent, der manchmal lügt.** Nicht aus Böswilligkeit — sondern weil „plausibel klingt" und „stimmt" für das Modell dasselbe Optimierungsziel sind.
+
+Das bedeutet:
+- Ergebnisse prüfen, bevor man sie übernimmt
+- Für kritische Fakten eine zweite Quelle heranziehen
+- Für Berechnungen echte Werkzeuge (Code, Taschenrechner) nutzen
+- Das Modell als Denk-Partner einsetzen, nicht als letzte Instanz
+
+## Warum sind LLMs trotzdem so nützlich?
+
+Weil die Bereiche, in denen sie gut sind, riesig sind. Text erzeugen, Code scaffolden, Ideen brainstormen, Dokumentation schreiben, Fehler erklären, Konzepte vereinfachen — das alles spart enorm Zeit, wenn man die Grenzen kennt und entsprechend damit umgeht.
+
+Der Schlüssel liegt nicht darin, dem Modell blind zu vertrauen — sondern darin, es so einzusetzen, dass seine Schwächen durch Werkzeuge, Prüfung und Struktur aufgefangen werden. Genau das lernst du in den kommenden Kapiteln.
+
+<Merksatz>
+Ein LLM optimiert auf Plausibilität, nicht auf Wahrheit. Es ist ein mächtiges Werkzeug für Textaufgaben — aber kein Ersatz für Faktenprüfung, echte Berechnungen oder aktuelles Wissen.
+</Merksatz>
+
+<Quelle
+  url="https://learn.microsoft.com/de-de/agent-framework/journey/llm-fundamentals"
+  lang="de"
+  typ="Microsoft Learn — Grundlagen von LLMs"
+  dauer="30 Min"
+  account={false}
+/>

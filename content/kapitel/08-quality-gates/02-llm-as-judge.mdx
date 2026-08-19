@@ -1,51 +1,110 @@
 ---
 titel: LLM-as-a-Judge und Rubrics
-dauerMinuten: 16
+dauerMinuten: 28
 zusammenfassung: Wann ein zweites Modell bewerten darf — und warum eine vage Rubric teuren Zufall erzeugt.
 reihenfolge: 2
 ---
 
-Deterministische Grader beantworten „laufen die Tests?“. Sie beantworten nicht „hat der Agent die Rule befolgt, den User nicht belogen und den Auth-Flow nicht ‚elegant‘ in drei Services zerlegt?“. Dafür braucht ihr einen **Judge**: ein Modell, das Transcript oder Diff gegen eine Rubric scored. Das ist legitim — und gefährlich, wenn die Rubric so weich ist wie ein Jahresgespräch.
+## Das Problem: Nicht alles lässt sich automatisch testen
 
-## Wann der Judge darf, wann nicht
+In der vorigen Lektion hast du gelernt, was ein Eval ist und dass es verschiedene Grader (Bewerter) gibt. Deterministische Grader — also solche, die immer dasselbe Ergebnis liefern — beantworten Fragen wie „Laufen die Tests?" oder „Ist das JSON (ein Datenformat) gültig?". Klare Ja/Nein-Fragen.
 
-| Frage | Grader |
+Aber es gibt Fragen, die ein automatischer Test nicht beantworten kann:
+
+- Hat der Agent die Projektregeln befolgt?
+- Hat er den Benutzer belogen?
+- Hat er den Login-Prozess „elegant" in drei getrennte Dienste aufgeteilt, obwohl einer gereicht hätte (sogenanntes **Überengineering** — unnötige Komplexität)?
+- Ist die Erklärung in der Code-Beschreibung verständlich?
+
+Für solche Fragen braucht ihr einen **Judge** (Richter): ein *zweites* KI-Modell, das den Verlauf oder die Code-Änderungen des ersten Modells gegen eine **Rubric** (Bewertungskriterienliste) bewertet.
+
+Das ist ein legitimes Werkzeug — und gleichzeitig gefährlich, wenn die Rubric so vage formuliert ist wie die Bewertung in einem schlechten Jahresgespräch („macht gute Arbeit").
+
+## Was ist ein LLM-as-a-Judge?
+
+**LLM** steht für „Large Language Model" — ein großes Sprachmodell, also die KI-Technologie hinter Werkzeugen wie ChatGPT, Claude oder Gemini. „LLM-as-a-Judge" bedeutet wörtlich: Ein Sprachmodell wird als Richter eingesetzt, um die Arbeit eines anderen Sprachmodells zu bewerten.
+
+Stell dir vor, du schreibst einen Aufsatz (das ist die Arbeit des ersten Modells). Dann gibst du den Aufsatz einem zweiten, unabhängigen Lehrer zur Bewertung (das ist der Judge). Dieser Lehrer bekommt einen Bewertungsbogen mit klaren Kriterien (die Rubric).
+
+## Wann darf der Judge bewerten, wann nicht?
+
+Nicht alles sollte von einem KI-Richter bewertet werden. Hier die Faustregel:
+
+| Frage | Richtiger Bewerter |
 | --- | --- |
-| Kompiliert es? Tests grün? Secret im Diff? JSON valide? | Code, Schema, Scanner |
-| Ton, Vollständigkeit, Instruction-Following, „nicht überengineered“ | LLM-Judge mit Rubric |
-| Ist das rechtlich oder fachlich korrekt in einer Nische? | Mensch (SME), Judge höchstens vorfiltern |
+| Kompiliert der Code? Tests grün? Passwörter im Code? JSON gültig? | **Automatischer Code-Check** (schnell, zuverlässig, billig) |
+| Tonalität, Vollständigkeit, Regelbefolgung, „nicht überengineered"? | **LLM-Judge mit Rubric** (flexibel, braucht Kalibrierung) |
+| Ist das rechtlich oder fachlich korrekt in einer Nische? | **Mensch** (Fachexperte), Judge darf höchstens vorfiltern |
 
-Anthropic unterscheidet drei Grader-Familien: **code-based** (schnell, reproduzierbar, spröde), **model-based** (flexibel, nicht-deterministisch, kalibrierungsbedürftig) und **human** (Goldstandard, teuer). Ein Coding-Eval, das *nur* den Judge fragt „guter Code?“, ist Theater. Ein Coding-Eval, das Tests erzwingt und den Judge auf vier harte Kriterien ansetzt, ist ein Gate.
+Anthropic unterscheidet drei Grader-Familien:
 
-Claude-Docs formulieren Erfolgskriterien als SMART: spezifisch, messbar, erreichbar, relevant. „Safe outputs“ ist kein Kriterium. „Unter 0,1 Prozent der 10.000 Trials vom Toxicity-Filter getroffen“ ist eines.
+1. **Code-based** (automatisch): Schnell, reproduzierbar, aber starr — kann nur prüfen, wofür eine Regel programmiert wurde.
+2. **Model-based** (KI-Richter): Flexibel und kann Nuancen erkennen, aber nicht-deterministisch (gibt nicht immer dieselbe Antwort) und muss kalibriert werden.
+3. **Human** (Mensch): Der Goldstandard — die beste Qualität, aber teuer und langsam.
 
-## Eine Rubric, die ein CTO unterschreiben kann
+Ein Coding-Eval, das *nur* den Judge fragt „Ist das guter Code?", ist **Theater** — es sieht nach Qualitätssicherung aus, liefert aber keine belastbaren Ergebnisse. Ein Coding-Eval, das erst automatische Tests erzwingt und dann den Judge auf vier **konkrete** Kriterien ansetzt, ist ein echtes **Gate** (eine Prüfstation, die bestanden werden muss).
 
-Schreib die Rubric so, dass zwei Senior-Devs unabhängig dieselbe Note geben würden. Schlechte Rubric: „Der Code ist sauber und sicher.“ Brauchbare Rubric, Beispiel Auth-Fix:
+## Was ist eine Rubric — und warum muss sie scheitern können?
 
-1. **Korrektheit (blockierend):** bestehende und neue Tests grün; leeres Passwort wird abgewiesen.
-2. **Scope:** Diff rührt nur Auth und Tests an, keine Drive-by-Refactors.
-3. **Secrets:** keine Keys, keine Connection-Strings, keine Produktions-URLs.
-4. **Erklärung:** die PR-Beschreibung nennt den Failure Mode in einem Satz.
+Eine **Rubric** ist ein Bewertungsbogen mit klaren, nachprüfbaren Kriterien. Wie die Bewertungskriterien einer Prüfung: Was muss enthalten sein? Was ist ein Fehler? Wie wird gewichtet?
 
-Jedes Kriterium braucht eine Skala oder ein Binär-Pass. Gewichtete Summe plus Schwelle, oder „alle blockierenden Kriterien müssen sitzen“. Hybrid ist in der Praxis am ehrlichsten: Tests binär, Stil gewichtet.
+### Schlechte Rubric (zu vage)
 
-Techniken, die du kennen musst:
+> „Der Code ist sauber und sicher."
 
-- **Rubric-Scoring** — Kriterien einzeln, dann aggregieren.
-- **Natural-language assertions** — „Der Agent darf `rm -rf` nicht vorschlagen.“
-- **Pairwise** — A gegen B, wenn absolute Scores driften.
-- **Multi-Judge** — zwei Modelle, Dissens eskaliert zum Menschen.
+Das Problem: Zwei verschiedene Entwickler würden das unterschiedlich interpretieren. Was heißt „sauber"? Was heißt „sicher"? Wenn alles durchkommt, ist die Rubric wertlos.
 
-Der Judge selbst braucht Structured Output (JSON mit Feldern pro Kriterium), niedrige Temperature und denselben Prompt in CI wie lokal. Sonst vergleichst du Äpfel mit Prompt-Drift.
+### Brauchbare Rubric (konkret, scheiterfähig)
 
-## Kalibrierung ist das eigentliche Gate
+Beispiel für die Bewertung eines Auth-Fixes (eine Reparatur am Login-/Authentifizierungssystem):
 
-Ohne Gold-Labels misst du den Geschmack des Judges. Nimm 30 bis 50 Fälle, die ein Mensch bewertet hat — inklusive klarer Fails. Miss **Agreement** (wie oft Judge und Mensch übereinstimmen) und schau dir die False-Negatives an: ein Judge, der alles durchwinkt, ist schlimmer als keiner, weil er dem Team Sicherheit vorspielt.
+1. **Korrektheit (blockierend):** Bestehende und neue Tests sind grün; ein leeres Passwort wird abgewiesen.
+2. **Scope (Umfang):** Der geänderte Code betrifft nur den Login-Bereich und die Tests, keine ungefragten Änderungen an anderen Stellen (sogenannte „Drive-by-Refactors").
+3. **Secrets (Geheimnisse):** Keine API-Schlüssel, keine Datenbank-Verbindungsdaten, keine Produktions-URLs im Code.
+4. **Erklärung:** Die Beschreibung der Änderung nennt in einem Satz, welches Problem behoben wurde.
 
-Kalibriere regelmäßig neu, besonders nach Modell-Upgrades des Judges. Ein smarteres Judge-Modell kann plötzlich strenger oder nachsichtiger sein. Das ist eine Regression der *Messlatte*, nicht des Agenten.
+Jedes Kriterium braucht entweder eine **Skala** (1–5) oder ein **Binär-Urteil** (bestanden/nicht bestanden). Dann wird entweder eine gewichtete Summe gebildet und gegen eine Schwelle geprüft, oder alle als „blockierend" markierten Kriterien müssen bestanden werden.
 
-Im Verkauf von Angebot 3 sagst du nicht „wir lassen GPT den Code bewerten“. Du sagst: „Tests entscheiden Korrektheit. Ein kalibrierter Judge prüft die weichen Rules. Ein Mensch bleibt auf den Pfaden, wo ein Irrtum Geld oder Vertrauen kostet.“
+In der Praxis funktioniert ein **Hybrid** am ehrlichsten: Tests binär (bestanden oder nicht), Stilfragen gewichtet (kann Punkte verlieren, blockiert aber nicht sofort).
+
+## Bewertungs-Techniken, die du kennen musst
+
+- **Rubric-Scoring** — Jedes Kriterium wird einzeln bewertet, dann werden die Ergebnisse zusammengefasst. Wie eine Klassenarbeit, bei der du Punkte pro Aufgabe vergibst und dann die Gesamtnote berechnest.
+
+- **Natural-language assertions** (natürlichsprachliche Behauptungen) — Regeln in Alltagssprache, die das Modell prüfen muss. Beispiel: „Der Agent darf `rm -rf` (einen Löschbefehl) nicht vorschlagen." Der Judge prüft das Transcript auf Verstöße.
+
+- **Pairwise** (paarweiser Vergleich) — Ergebnis A wird direkt gegen Ergebnis B verglichen, wenn absolute Bewertungen schwanken. Wie ein Blindtest: Welcher Kaffee schmeckt besser? Das ist oft zuverlässiger als „gib diesem Kaffee eine Note von 1 bis 10".
+
+- **Multi-Judge** — Zwei verschiedene Modelle bewerten dasselbe Ergebnis. Stimmen sie nicht überein, wird der Fall an einen Menschen eskaliert. Wie ein Berufungsgericht.
+
+## Den Judge richtig einrichten
+
+Damit die Bewertungen vergleichbar und zuverlässig sind, braucht der Judge:
+
+- **Structured Output** (strukturierte Ausgabe): Der Judge gibt seine Bewertung als JSON zurück — mit einem Feld pro Kriterium. Nicht als Freitext, der erst interpretiert werden muss.
+- **Niedrige Temperature**: Temperature ist ein Parameter, der bestimmt, wie „kreativ" (also zufällig) das Modell antwortet. Für Bewertungen willst du möglichst konsistente Antworten, also eine niedrige Temperature.
+- **Identischer Prompt überall**: Derselbe Bewertungs-Prompt in der automatischen CI-Pipeline (Continuous Integration — das System, das Code-Änderungen automatisch testet und zusammenführt) wie auf dem Entwickler-Laptop. Sonst vergleichst du Äpfel mit Birnen.
+
+## Kalibrierung: Das eigentliche Gate
+
+Ohne Kalibrierung misst du den Geschmack des Judges, nicht die Qualität des Agenten.
+
+**Kalibrierung** bedeutet: Du nimmst 30 bis 50 Fälle, die ein **Mensch** bereits bewertet hat — inklusive klarer Fehlerfälle. Dann lässt du den Judge dieselben Fälle bewerten und vergleichst:
+
+- **Agreement** (Übereinstimmung): Wie oft kommen Judge und Mensch zum selben Ergebnis?
+- **False Negatives** (falsch negative Ergebnisse): Fälle, bei denen der Judge „bestanden" sagt, der Mensch aber „durchgefallen". Ein Judge, der alles durchwinkt, ist **schlimmer als keiner**, weil er dem Team eine falsche Sicherheit vorspielt.
+
+Stell dir eine Alarmanlage vor, die nie auslöst: Sie sieht aus wie Sicherheit, aber sie schützt nicht.
+
+Kalibriere **regelmäßig** neu — besonders nach einem Modell-Upgrade des Judges. Ein neueres, schlaueres Judge-Modell kann plötzlich strenger oder nachsichtiger sein. Das ist eine Verschiebung der *Messlatte*, nicht des Agenten. Wie wenn du den Maßstab wechselst, mit dem du Miss: Die Wand hat sich nicht bewegt, aber die Zahl auf dem Band ist anders.
+
+## Was du im Verkaufsgespräch sagst
+
+Nicht: „Wir lassen GPT den Code bewerten."
+
+Sondern: „Tests entscheiden über Korrektheit — das ist automatisch und eindeutig. Ein kalibrierter Judge prüft die weichen Regeln, die Tests nicht abdecken können. Und für Entscheidungen, bei denen ein Irrtum Geld oder Vertrauen kostet, bleibt ein Mensch in der Kette."
+
+Das ist die Dreierkette: automatische Tests → kalibrierter KI-Richter → Mensch für das Kritische.
 
 <Merksatz>
 Ein LLM-Judge ohne Rubric und ohne menschliche Kalibrierung ist ein zweiter Vibe-Check. Die Rubric muss scheitern können — sonst ist sie Marketing.

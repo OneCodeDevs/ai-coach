@@ -1,54 +1,146 @@
 ---
 titel: Plan- und Review-Schleifen
-dauerMinuten: 16
+dauerMinuten: 28
 zusammenfassung: Zuerst der Plan, dann der Patch, dann der Diff und der Check — Kontext nur für den aktuellen Schritt.
 reihenfolge: 6
 ---
 
-Agenten scheitern selten an Syntax. Sie scheitern an der falschen Aufgabe, am vollen Fenster und am Merge ohne Gate. Die Gegenmechanik ist langweilig und verkaufbar: eine **Plan-Schleife**, eine **Review-Schleife**, und Context als Budget (Kapitel 1), das du pro Schritt neu schneidest.
+Agenten scheitern selten daran, dass sie falschen Code schreiben. Die Syntax (also die „Grammatik" der Programmiersprache) stimmt fast immer. Woran sie scheitern:
 
-## Plan, bevor Bytes fallen
+1. **Sie lösen das falsche Problem**, weil der Auftrag unklar war
+2. **Das Context Window läuft über**, weil zu viele Informationen gleichzeitig darin stecken
+3. **Niemand prüft das Ergebnis**, bevor es in die Hauptversion fließt
 
-Große oder unklare Arbeit startet read-only. Der Agent nennt:
+Die Gegenmechanik ist nicht spektakulär. Sie ist sogar langweilig. Aber sie ist verkaufbar, weil sie funktioniert: eine **Plan-Schleife**, eine **Review-Schleife**, und Kontext als Budget, das du pro Arbeitsschritt neu zuteilst.
 
-- betroffene Dateien und warum
-- Annahmen, die falsch sein können
-- was bewusst *nicht* geändert wird
-- welcher Befehl hinterher grün sein muss
+## Die Plan-Schleife: Erst denken, dann schreiben
 
-Du streichst. Erst dann Schreibrechte. Claude Code nennt das Plan Mode, Cursor hat denselben Rhythmus, Aider trennt Architect und Code. Der Name ist egal. Der Stopp vor dem ersten Patch ist es nicht.
+### Warum ist ein Plan so wichtig?
 
-Wenn der Plan schon drei unzusammenhängende Refactors enthält, ist der Auftrag zu groß. Schneiden wie ein Ticket: ein Invariant, ein PR.
+Stell dir vor, du beauftragst einen Handwerker: „Mach mal das Bad neu." Wenn er sofort anfängt, die Fliesen abzuschlagen, ohne zu fragen, welche Farbe die neuen haben sollen, ob die Dusche bleibt oder eine Badewanne reinkommt, und ob das Budget für beides reicht, dann hast du ein Problem. Genau so arbeitet ein Agent ohne Plan.
 
-## Review am Diff, nicht am Geschwätz
+### Wie sieht ein guter Plan aus?
 
-Der Chat erzählt, dass alles sicher sei. Du liest `git diff` und die Tesausgabe. Punkt. Findings kommen in die nächste Message als Liste, nicht als Stimmung. Ein zweiter Agent (Review-Subagent, Copilot Code Review) darf denselben Diff sehen. Er darf nicht denselben verseuchten Chat-Verlauf sehen, sonst bestätigt er die eigene Geschichte.
+Große oder unklare Arbeit startet im **Read-only-Modus**. Das bedeutet: Der Agent darf das Projekt durchsuchen und lesen, aber **nichts verändern**. Er erstellt dann eine Übersicht:
 
-Human Quality Gate, OneCode-Sprache: der Mensch gibt nicht „LGTM auf den Roman“ sondern Merge-Recht auf einen Diff plus grüne Checks. Angebot 1 verdrahtet das in CI. Angebot 3 misst es.
+- **Betroffene Dateien** und warum sie geändert werden müssen
+- **Annahmen**, die falsch sein könnten („Ich gehe davon aus, dass die Datenbank PostgreSQL ist")
+- Was bewusst **nicht geändert** wird (das ist genauso wichtig wie das, was geändert wird)
+- Welcher **Befehl hinterher grün sein muss** (z.B. `pnpm test`, `pnpm build`)
+
+Du liest diesen Plan wie ein kurzes Design-Dokument. Du streichst, was nicht passt. Du ergänzt, was fehlt. **Erst dann** gibst du die Schreibrechte frei.
+
+### Was die verschiedenen Tools diesen Modus nennen
+
+- **Claude Code** nennt es „Plan Mode"
+- **Cursor** hat denselben Rhythmus (erst vorschlagen, dann implementieren)
+- **Aider** trennt in „Architect" (Entwurf) und „Code" (Implementierung)
+
+Der Name ist egal. Der **Stopp vor dem ersten Patch** ist es nicht.
+
+### Wann ist der Auftrag zu groß?
+
+Eine gute Faustregel: Wenn der Plan schon drei unzusammenhängende Refactorings (Umstrukturierungen) enthält, ist der Auftrag zu groß für eine Runde. Dann schneidest du wie ein Ticket: **eine Aufgabe, ein Pull Request**. Lieber drei kleine, saubere Schritte als ein großer, der alles auf einmal versucht.
+
+Stell dir das wie einen Umzug vor: Du packst nicht alle Zimmer gleichzeitig. Du räumst die Küche ein, prüfst ob alles steht, dann das Wohnzimmer.
+
+## Die Review-Schleife: Vertraue dem Diff, nicht dem Chat
+
+### Was ist ein Review?
+
+Ein **Review** (Codeüberprüfung) ist der Moment, in dem jemand die Änderungen des Agenten kontrolliert, bevor sie in die Hauptversion des Projekts fließen. Beim manuellen Programmieren macht das ein Kollege. Beim Agentic Coding bist du (oder ein zweiter Agent) der Reviewer.
+
+### Was ist ein Diff?
+
+Ein **Diff** (Kurzform von „Difference") ist eine Darstellung, die zeigt, welche Zeilen hinzugefügt, gelöscht oder verändert wurden. Stell dir das wie die „Änderungen nachverfolgen"-Funktion in Word vor: Durchgestrichener Text ist gelöscht, farbig markierter Text ist neu.
+
+Du siehst den Diff mit `git diff` im Terminal oder in der grafischen Oberfläche deiner IDE oder auf GitHub.
+
+### Warum „am Diff" und nicht „am Chat"?
+
+Der Agent erzählt im Chat gerne, dass alles sicher und korrekt sei. Er klingt überzeugend, weil er so gebaut ist: KI-Modelle generieren flüssigen, selbstbewussten Text. Aber **der Chat ist keine Beweisführung**.
+
+Die Wahrheit liegt im Diff und in der Testausgabe:
+
+- Was steht tatsächlich im `git diff`? Welche Zeilen wurden geändert?
+- Laufen die Tests durch? Was sagt die Ausgabe?
+
+Findings (gefundene Probleme) kommen als **konkrete Liste** in die nächste Nachricht, nicht als vages Bauchgefühl: „Zeile 42: Du hast den Fehlerfall nicht abgefangen." Nicht: „Sieht gut aus, aber ich bin mir nicht sicher."
+
+### Der Review-Subagent
+
+Ein mächtiges Muster: Ein **zweiter Agent** reviewt den Diff des ersten. Zum Beispiel:
+
+- **Copilot Code Review** auf GitHub prüft automatisch Pull Requests
+- Ein **Claude Code Subagent** bekommt nur den Diff und die Testausgabe, nicht den gesamten Chatverlauf
+
+Warum darf der Reviewer nicht den Chat sehen? Weil er sonst von der **gleichen Geschichte beeinflusst** wird, die der erste Agent sich selbst erzählt hat. Der Reviewer muss unvoreingenommen sein.
+
+### Das Human Quality Gate
+
+In der Sprache dieses Kurses: Der Mensch gibt nicht „LGTM" (Looks Good To Me) auf den Roman, den der Agent geschrieben hat. Er gibt **Merge-Recht** auf einen Diff plus grüne Checks.
+
+**Merge** bedeutet: Die Änderungen werden in die Hauptversion des Codes übernommen. **Grüne Checks** bedeuten: Alle automatisierten Tests und Prüfungen sind bestanden.
 
 ## Kontext gezielt setzen, nicht horten
 
-Pro Schritt nur das Material dieses Schritts:
+### Kontext als Budget
 
-1. Plan: Architektur-Skizze, zwei Einstiegsdateien, das Ticket
-2. Implementierung: die Dateien aus dem Plan, nicht den Nachbar-Service
-3. Review: der Diff, die Testlogs, die Invariante
+Stell dir dein Context Window wie ein **Tagesbudget** vor. Du hast eine bestimmte Menge an Aufmerksamkeit (Token), die du pro Arbeitsschritt verteilen kannst. Gibst du alles auf einmal aus, ist nichts mehr übrig für den wichtigen Teil.
 
-Was du nicht tust: Session 4 Stunden am Leben halten und hoffen. Compaction, neuer Chat, Sub-Agent mit eigenem Fenster. Rules und AGENTS.md bleiben die Konstante, der Chat ist Wegwerf.
+### Kontext pro Phase zuteilen
 
-Wenn der Agent sucht, gib ihm den Suchbegriff und den Teilbaum. „Lies das Repo“ ist eine Aufforderung, das Budget zu verbrennen.
+Für jeden Arbeitsschritt brauchst du **anderes Material**:
 
-## Das Standard-Skript für Kunden
+**Phase 1: Plan**
+- Die Architektur-Skizze oder Übersicht des Projekts
+- Zwei Einstiegsdateien, die relevant sind
+- Das Ticket (die Aufgabenbeschreibung)
 
-So sieht der Arbeitstag aus, den ihr verkauft:
+**Phase 2: Implementierung**
+- Die Dateien aus dem Plan
+- **Nicht** den Nachbar-Service, der gerade nicht betroffen ist
 
-1. Ticket mit Akzeptanz und Testbefehl
-2. Agent plant, Mensch bestätigt
-3. Agent implementiert gegen den Check
-4. Mensch oder zweiter Agent reviewt den Diff
-5. CI ist die letzte Wahrheit, nicht der Chat
+**Phase 3: Review**
+- Der Diff (was hat sich geändert?)
+- Die Testlogs (was sagen die Tests?)
+- Die Invariante (was muss immer gelten?)
 
-Wer Schritt 2 und 4 streicht, hat Vibe Coding. Wer sie versioniert in Rules und CI legt, hat ein Delivery-System. Das ist die Brücke in Kapitel 4.
+### Was du nicht tust
+
+- **Session vier Stunden am Leben halten** und hoffen, dass der Agent sich noch an die erste Anweisung erinnert. Stattdessen: Kompaktierung (`/compact` bei Claude Code), neuer Chat, oder Sub-Agent mit eigenem Fenster.
+- **Rules und AGENTS.md** sind die Konstante (sie werden bei jeder neuen Unterhaltung geladen). Der Chat ist **Wegware**, also kurzlebig und austauschbar.
+- Dem Agenten sagen: **„Lies das ganze Repo."** Das ist eine Aufforderung, das gesamte Budget auf einen Schlag zu verbrennen. Gib ihm stattdessen den Suchbegriff und den Teilbaum: „Suche nach `validatePayment` in `src/billing/`."
+
+## Das Standard-Skript für Kundenprojekte
+
+So sieht der Arbeitstag aus, den du verkaufst. Jeder Schritt hat einen Grund:
+
+### 1. Ticket mit Akzeptanzkriterien und Testbefehl
+
+Das Ticket beschreibt nicht nur, **was** gebaut werden soll, sondern auch, **woran man erkennt, dass es fertig ist** (Akzeptanzkriterien) und **welcher Befehl das beweist** (Testbefehl). Ohne das rät der Agent.
+
+### 2. Agent plant, Mensch bestätigt
+
+Der Agent analysiert das Ticket, liest die relevanten Dateien und schlägt einen Plan vor. Der Mensch prüft und bestätigt. Kein Code wird geschrieben, bevor der Plan steht.
+
+### 3. Agent implementiert gegen den Check
+
+Der Agent schreibt Code und lässt nach jeder Änderung den Testbefehl laufen. Rot? Reparieren. Grün? Weitermachen. Der Check ist sein Kompass.
+
+### 4. Mensch oder zweiter Agent reviewt den Diff
+
+Nicht den Chat, den der Agent geschrieben hat. Den **Diff** und die **Testausgabe**. Findings als Liste, nicht als Stimmung.
+
+### 5. CI ist die letzte Wahrheit
+
+**CI** steht für Continuous Integration, also das System, das bei jedem Code-Update automatisch Tests, Builds und Prüfungen durchführt. Wenn die CI rot ist, wird nicht gemergt. Egal was der Chat sagt.
+
+### Was passiert, wenn du Schritt 2 und 4 streichst?
+
+Dann hast du **Vibe Coding**: Der Agent schreibt, niemand prüft, es wird gemergt und gehofft. Das kann bei persönlichen Projekten funktionieren. Bei Kundenprojekten ist es ein Risiko.
+
+Wer Schritt 2 und 4 dagegen **in Rules und CI verdrahtet**, hat ein **Delivery-System**: Ein wiederholbarer, überprüfbarer Prozess, den du einem Kunden übergeben kannst. Das ist die Brücke in Kapitel 4 (Kontext-Engineering).
 
 <Merksatz>
 Plan bestätigen, dann patchen. Review am Diff und am Check, nicht am Selbstlob. Context pro Phase neu schneiden. Der Mensch mergt, der Agent schlägt vor.

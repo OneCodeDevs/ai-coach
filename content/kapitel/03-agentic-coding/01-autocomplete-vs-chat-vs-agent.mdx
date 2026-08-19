@@ -1,45 +1,115 @@
 ---
 titel: Autocomplete vs Chat vs Agent
-dauerMinuten: 14
+dauerMinuten: 25
 zusammenfassung: Drei Interaktionsmodi, drei Risikoklassen — wer sie vermischt, verkauft dem Kunden das falsche Produkt.
 reihenfolge: 1
 ---
 
-Kunden sagen „wir haben Copilot“ und meinen drei verschiedene Dinge. Deine Aufgabe ist, den Modus zu benennen, bevor ihr über Modelle, Lizenzen oder Magie redet. Die Achse ist nicht Intelligenz. Die Achse ist **wie weit das System allein in die Codebasis greifen darf**.
+Wenn Kunden sagen „wir haben KI im Editor", meinen sie oft drei völlig verschiedene Dinge, ohne es zu wissen. Bevor du mit jemandem über Modelle, Lizenzen oder „Magie" redest, musst du klären: **Welcher Modus ist gemeint?**
 
-## Autocomplete (Tab, Ghost Text)
+Die entscheidende Achse ist nicht, wie schlau das KI-Modell ist. Die Achse ist: **Wie weit darf das System eigenständig in die Codebasis eingreifen?**
 
-Das Modell sieht den Cursor, ein paar offene Dateien, oft den nahen AST. Es schlägt die nächsten Token vor. Du akzeptierst zeilenweise. Kein Plan, kein Terminal, kein Multi-File-Auftrag aus eigenem Antrieb.
+Stell dir das wie drei Stufen vor. Stufe 1 flüstert dir etwas ins Ohr. Stufe 2 schreibt dir einen Vorschlag auf einen Zettel. Stufe 3 setzt sich an deinen Schreibtisch und arbeitet los.
 
-Das ist der niedrigste Blast Radius. Typische Fehler: veraltete APIs, falsche Imports, Pattern aus einem anderen File. Typische Stärke: Boilerplate, Tests nach einem sichtbaren Muster, das Weiterdenken einer Funktion, die du selbst angefangen hast.
+## Was ist ein Code-Editor (IDE)?
 
-Wichtig für Cursor-Nutzer: **Project Rules gelten nicht für Tab.** Wer Policy über Completions erwartet, hat den falschen Kanal gewählt.
+Kurz vorweg, falls der Begriff neu ist: Eine **IDE** (Integrated Development Environment) ist das Programm, in dem Entwickler ihren Code schreiben. Bekannte Beispiele sind **VS Code** (von Microsoft, kostenlos), **Cursor** (basiert auf VS Code, mit eingebauter KI) oder **JetBrains**-Produkte wie IntelliJ oder WebStorm. Stell dir die IDE als die Werkbank vor, auf der die ganze Arbeit passiert. Der Code steht links, rechts ist vielleicht ein Terminal (eine Kommandozeile), und überall drumherum sind Werkzeuge.
 
-## Chat
+## Modus 1: Autocomplete (Tab, Ghost Text)
 
-Du formulierst eine Frage oder einen Auftrag. Das Modell antwortet in der Seitenleiste. Kontext kommt, weil du Dateien anhängst, `@` nutzt oder der Client ein paar Editor-Buffers mitschickt. Der Chat **schlägt vor**. Ob er schreibt, hängt vom Produkt ab: reiner Chat ändert nichts, „Apply“ oder Inline-Edit ändert genau das, was du bestätigt.
+### Was passiert hier?
 
-Risiko: du übernimmst einen Patch, den niemand gebaut hat. Kontrolle: der Mensch ist noch der Scheduler. Ein Chat, der 400 Zeilen in die Zwischenablage legt, ist kein Agent. Er ist ein schneller Kollege ohne Checkout.
+Du tippst Code, und das KI-Modell schlägt dir in Echtzeit die nächsten Wörter oder Zeilen vor. Dieser Vorschlag erscheint als „Ghost Text", also als blassen, grauen Text, den du noch nicht geschrieben hast. Drückst du die **Tab-Taste**, wird der Vorschlag übernommen. Drückst du einfach weiter, ignoriert die IDE den Vorschlag.
 
-## Agent
+Das ist wie die **Textvorschläge auf deinem Smartphone**: Während du tippst, erscheinen über der Tastatur Wörter, die als Nächstes kommen könnten. Du tippst darauf oder ignorierst sie.
 
-Ein Agent hat Werkzeuge und eine Schleife: lesen, suchen, terminaln, patchen, Tests laufen lassen, den Output lesen, weitermachen. Er hält ein Ziel über viele Schritte. Genau deshalb skaliert er in beide Richtungen: Features in Stunden, oder ein halbes Repo in den Graben, weil ein früher Irrtum verdoppelt wurde.
+### Was sieht das Modell?
 
-Drei Eigenschaften, die du im Pitch trennen musst:
+Wenig. Es sieht die Stelle, an der dein Cursor steht, ein paar geöffnete Dateien in der Umgebung und manchmal die grobe Struktur (den sogenannten **AST**, Abstract Syntax Tree, also den „Bauplan" deines Codes). Es hat kein großes Bild vom Projekt. Es rät lokal.
 
-1. **Werkzeuge.** Dateisystem, Shell, Browser, MCP. Ohne Tool ist es Chat mit Marketing.
-2. **Autonomie.** Wie viele Schritte, bevor ein Mensch ja sagt? Cline defaultet auf Freigabe pro Aktion. Claude Code und Cursor Agent können lange laufen. Copilot Cloud Agent öffnet selbst einen PR.
-3. **Verifikation.** Ob die Schleife an Tests, Builds, Screenshots hängt oder nur am selbstbewussten „done“.
+### Was kann schiefgehen?
 
-## Was du verkaufst
+Der **Blast Radius** (Schadensradius) ist gering. Im schlimmsten Fall übernimmst du eine falsche Zeile, merkst es beim Testen, korrigierst es. Typische Fehler:
 
-OneCode baut keine Autocomplete-Schulung. OneCode baut das System um den Agenten: Regeln, Kontext, Gates. Im Gespräch:
+- Das Modell schlägt eine **API** vor, die es in der aktuellen Version deiner Bibliothek gar nicht mehr gibt (eine API ist eine Schnittstelle, über die Programme miteinander reden)
+- Es importiert etwas aus der falschen Datei
+- Es kopiert ein Muster aus einer anderen Stelle im Projekt, das hier nicht passt
 
-- Autocomplete beschleunigt Tipp-Arbeit. Es ändert eure Lieferfähigkeit kaum.
-- Chat beschleunigt Verstehen und kleine Patches. Review bleibt komplett beim Menschen.
-- Agent beschleunigt Durchsatz **nur wenn** Plan, Context und Checks sitzen. Sonst beschleunigt er Defects.
+### Was kann es gut?
 
-Wer „AI im Editor“ als eine Zahl in der Lizenzmatrix führt, hat die Risikoklassen nicht verstanden. Du führst sie.
+- **Boilerplate** schreiben: das ist repetitiver, strukturell immer gleicher Code (wie Formulare, die sich nur in den Feldnamen unterscheiden)
+- Tests nach einem sichtbaren Muster fortsetzen
+- Eine Funktion weiterdenken, die du selbst angefangen hast
+
+### Wichtig für Cursor-Nutzer
+
+**Project Rules gelten nicht für Tab-Completions.** Das bedeutet: Wenn du Regeln für den KI-Agenten definiert hast (dazu gleich mehr), werden die beim Autocomplete ignoriert. Wer erwartet, dass der Autocomplete-Vorschlag sich an Projektrichtlinien hält, hat den falschen Kanal gewählt.
+
+## Modus 2: Chat
+
+### Was passiert hier?
+
+Du öffnest ein Chatfenster in deiner IDE (meist in einer Seitenleiste) und schreibst eine Frage oder einen Auftrag in natürlicher Sprache. Das Modell antwortet mit Text, Code-Snippets oder Erklärungen.
+
+Das ist wie **einem Kollegen eine Frage per Chat stellen**: Du beschreibst dein Problem, und der Kollege antwortet. Ob er direkt in deinem Code herumschreibt, ist eine andere Frage.
+
+### Wie kommt der Kontext ins Spiel?
+
+**Kontext** (Context) ist das Wissen, das dem Modell zur Verfügung steht, wenn es deine Frage beantwortet. Im Chat-Modus kommt Kontext auf verschiedenen Wegen:
+
+- Du **hängst Dateien an** (zum Beispiel per `@dateiname` in Cursor)
+- Der Editor schickt automatisch die gerade geöffneten Dateien mit
+- Du kopierst relevanten Code in deine Nachricht
+
+Je besser der Kontext, desto besser die Antwort. Ohne Kontext rät das Modell ins Blaue.
+
+### Was ist der Unterschied zu Autocomplete?
+
+Beim Autocomplete reagiert das Modell automatisch auf dein Tippen. Im Chat **stellst du aktiv eine Frage** und bekommst eine vollständige Antwort. Der Chat schlägt vor. Was dann passiert, hängt vom Tool ab:
+
+- **Reiner Chat** zeigt dir nur die Antwort. Du kopierst den Code selbst.
+- **Apply / Inline-Edit** lässt dich den Vorschlag direkt in deinen Code übernehmen, aber erst nach deiner Bestätigung.
+
+### Risiko und Kontrolle
+
+Das Risiko ist höher als bei Autocomplete, aber du bist noch der **Scheduler** (also derjenige, der entscheidet, was wann passiert). Du übernimmst einen Patch, den du nicht selbst geschrieben hast. Du musst ihn lesen und verstehen, bevor du auf „Apply" klickst.
+
+Ein Chat, der 400 Zeilen Code in die Zwischenablage legt, ist kein Agent. Er ist ein schneller Kollege, der dir einen Vorschlag gibt, aber selbst nichts am Projekt ändert.
+
+## Modus 3: Agent
+
+### Was passiert hier?
+
+Ein Agent ist ein KI-System, das nicht nur antwortet, sondern **selbstständig handelt**. Er kann Dateien lesen und schreiben, Befehle im Terminal ausführen, Suchanfragen starten, Tests laufen lassen, die Ergebnisse lesen und dann weitermachen. Er verfolgt ein Ziel über **mehrere Schritte** hinweg.
+
+Stell dir das so vor: Autocomplete ist ein Flüsterer. Chat ist ein Berater. Der Agent ist ein **Praktikant, der an deinem Computer sitzt und arbeitet**. Er kann großartige Ergebnisse liefern. Er kann aber auch Schaden anrichten, wenn niemand hinschaut.
+
+### Warum ist das mächtig und riskant zugleich?
+
+Genau weil der Agent mehrere Schritte autonom durchführt, skaliert er in beide Richtungen:
+
+- **Im besten Fall:** Er erledigt ein Feature in Stunden, das manuell Tage gedauert hätte
+- **Im schlimmsten Fall:** Ein früher Denkfehler wird über viele Schritte verdoppelt, und am Ende liegt ein halbes Projekt in Trümmern
+
+### Drei Eigenschaften, die du im Kundengespräch trennen musst
+
+Wenn jemand „Agent" sagt, frag nach diesen drei Dimensionen:
+
+1. **Werkzeuge.** Welche Tools hat der Agent? Dateisystem, Shell (Kommandozeile), Browser, MCP (Model Context Protocol, eine standardisierte Schnittstelle, über die der Agent mit externen Diensten reden kann)? Ein System ohne Werkzeuge ist Chat mit Marketing-Aufschlag.
+
+2. **Autonomie.** Wie viele Schritte darf der Agent machen, bevor ein Mensch zustimmen muss? Bei Cline (einem Tool, das wir in Lektion 5 kennenlernen) muss der Mensch **jede einzelne Aktion** freigeben. Bei Claude Code oder Cursor Agent kann der Agent lange autonom laufen. Bei GitHub Copilot Cloud Agent öffnet die KI selbstständig einen Pull Request (das ist ein Vorschlag für eine Codeänderung, der dann von Menschen überprüft wird).
+
+3. **Verifikation.** Hängt der Agent an echten Tests und Build-Ergebnissen? Oder sagt er nur selbstbewusst „fertig"? Ein Agent ohne Verifikation ist wie ein Praktikant, der nach einer Stunde „alles erledigt" sagt, aber niemand hat nachgeschaut.
+
+## Was bedeutet das für dich?
+
+Dieses Kapitel handelt von **Agentic Coding**, also der Arbeit mit KI-Agenten. Aber du musst die drei Modi kennen, weil Kunden sie ständig verwechseln:
+
+- **Autocomplete** beschleunigt Tipp-Arbeit. Es ändert die Lieferfähigkeit eines Teams kaum.
+- **Chat** beschleunigt das Verstehen von Code und kleine Patches. Review (also die Überprüfung) bleibt komplett beim Menschen.
+- **Agent** beschleunigt den Durchsatz **nur wenn** Plan, Kontext und Checks (automatisierte Prüfungen) stimmen. Sonst beschleunigt er Defekte.
+
+Wer „KI im Editor" als eine einzige Zeile in der Lizenzübersicht führt, hat die Risikoklassen nicht verstanden. Du führst sie durch diese Unterscheidung.
 
 <Merksatz>
 Autocomplete vervollständigt. Chat erklärt und schlägt vor. Agent handelt über Schritte und Tools. Das Risiko folgt dem Schreib- und Terminalzugriff, nicht dem Produktnamen auf der Invoice.

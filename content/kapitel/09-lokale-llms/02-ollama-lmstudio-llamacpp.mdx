@@ -1,40 +1,97 @@
 ---
 titel: Ollama, LM Studio, llama.cpp — Wer macht was
-dauerMinuten: 15
+dauerMinuten: 26
 zusammenfassung: Engine, Runtime, GUI. Drei Schichten, ein Dateiformat — und ein Default für Dev-Teams.
 reihenfolge: 2
 ---
 
-Im Kundengespräch fallen die Namen durcheinander. Jemand „hat LM Studio installiert“, jemand „macht Ollama“, jemand zitiert llama.cpp wie ein Produkt. Es sind Schichten. Wenn du die nicht trennst, empfiehlst du Tools, die dasselbe Problem zweimal lösen oder keins.
+## Warum du die drei Namen auseinanderhalten musst
 
-## Die drei Rollen
+Im Kundengespräch fallen die Begriffe durcheinander: Jemand „hat LM Studio installiert", jemand „macht Ollama", jemand zitiert llama.cpp wie ein Produkt. Tatsächlich sind es **drei verschiedene Schichten** — wie Motor, Getriebe und Armaturenbrett in einem Auto. Wenn du die nicht trennst, empfiehlst du Werkzeuge, die dasselbe Problem zweimal lösen — oder keins.
 
-**llama.cpp** ist die Engine: C/C++-Inferenz für GGUF-Modelle, CPU und GPU, der Unterbau, den fast alle Desktop-Runtimes am Ende rufen. Du fasst sie an, wenn du Flags, Server-Modus, ungewöhnliche Backends oder reproduzierbare Pipelines brauchst. Du fasst sie nicht an, wenn ein Dev nur chatten will.
+## Die drei Rollen erklärt
 
-**Ollama** ist die Runtime, die ihr Teams empfehlt: Modell pullen, REST-API auf `127.0.0.1:11434`, OpenAI-kompatible Endpunkte, Integration in Apps, Aider, eigene Scripts. Wenig GUI, viel „läuft als Dienst“. Für Agent-Verdrahtung ist eine HTTP-API Gold. Ollama kann inzwischen auch Cloud-Modelle anbieten — das ist ein anderes Produktversprechen; für *dieses* Kapitel zählt der lokale Pfad.
+### llama.cpp — Die Engine (der Motor)
 
-**LM Studio** ist die Desktop-GUI: Modelle browsen, Chat, Server mit einem Klick, gut für Ausprobieren und für Stakeholder, die kein Terminal wollen. Für CI und Headless-Agents ist sie die zweite Wahl. Für den CTO-Laptop am Freitagnachmittag die erste.
+**llama.cpp** ist ein Stück Software, geschrieben in den Programmiersprachen C und C++, das KI-Modelle auf deinem Computer ausführen kann. Es ist die **Rechenmaschine** — der Motor, der die eigentliche Arbeit macht.
 
-Grobe Landkarte:
+Stell dir vor, du willst ein Bild drucken. llama.cpp ist der Druckkopf: Er versteht das Dateiformat und setzt es in Ergebnisse um. Er versteht das Format **GGUF** (GPT-Generated Unified Format — das Standard-Dateiformat für lokale KI-Modelle, mehr dazu in Lektion 3).
+
+llama.cpp kann sowohl auf der **CPU** (dem Hauptprozessor deines Computers) als auch auf der **GPU** (der Grafikkarte, die für parallele Berechnungen optimiert ist) laufen. Fast alle anderen Programme, mit denen du lokale KI-Modelle nutzt, verwenden im Hintergrund llama.cpp.
+
+**Wann du llama.cpp direkt anfasst:**
+- Wenn du spezielle Konfigurationsflags brauchst
+- Wenn du einen Server-Modus für reproduzierbare Pipelines (automatisierte Arbeitsabläufe) einrichten willst
+- Wenn du ungewöhnliche Hardware-Backends (Grafikkarten-Typen) nutzt
+
+**Wann nicht:**
+- Wenn ein Entwickler einfach nur mit einem lokalen Modell chatten will — dafür gibt es bequemere Werkzeuge.
+
+### Ollama — Die Runtime (das Getriebe)
+
+**Ollama** ist das Werkzeug, das ihr **Dev-Teams empfehlt**. Es ist eine Schicht über llama.cpp, die das Arbeiten mit lokalen Modellen komfortabel macht.
+
+Was Ollama tut:
+- **Modell herunterladen** mit einem einzigen Befehl: `ollama pull llama3` (wie `apt install` oder `brew install` — ein Paketmanager für KI-Modelle)
+- **REST-API** auf `127.0.0.1:11434` bereitstellen — das ist eine Schnittstelle, über die andere Programme mit dem Modell kommunizieren können (REST = ein Standard für Web-Schnittstellen; `127.0.0.1` = „dieser Computer hier"; `11434` = die Portnummer, wie eine Telefondurchwahl)
+- **OpenAI-kompatible Endpunkte** — das bedeutet, Programme, die für die OpenAI-API (die Schnittstelle von ChatGPT) geschrieben wurden, können oft ohne Änderung mit Ollama sprechen
+- **Integration** in andere Tools, Programmier-Assistenten und eigene Skripte
+
+Ollama hat wenig grafische Oberfläche, aber läuft zuverlässig als **Dienst** (ein Programm, das im Hintergrund läuft und auf Anfragen wartet). Für die Verbindung mit KI-Agenten ist eine HTTP-API (eine Web-Schnittstelle) Gold wert — Programme können einfach Anfragen schicken und Antworten empfangen.
+
+### LM Studio — Die GUI (das Armaturenbrett)
+
+**LM Studio** ist eine **Desktop-Anwendung mit grafischer Oberfläche**. Du kannst Modelle browsen (durchsuchen und herunterladen), chatten, und mit einem Klick einen lokalen Server starten.
+
+**Gut für:**
+- Ausprobieren verschiedener Modelle
+- Stakeholder, die kein Terminal (Kommandozeile) benutzen wollen
+- Den Freitagnachmittag, an dem der CTO auf seinem Laptop „mal KI testen" will
+
+**Weniger gut für:**
+- CI und Headless-Agents (automatisierte Systeme ohne Bildschirm)
+- Automatisierte Pipelines im Team
+
+## Die Landkarte auf einen Blick
 
 | Bedürfnis | Werkzeug |
 | --- | --- |
-| Verstehen, was Inferenz wirklich tut | llama.cpp |
-| Team-Default, API, Aider, Scripts | Ollama |
-| Klicken, vergleichen, Demo | LM Studio |
-| Dieselbe `.gguf` Datei | alle drei, wenn die Quantisierung passt |
+| Verstehen, wie lokale KI-Inferenz (Textgenerierung) wirklich funktioniert | llama.cpp |
+| Team-Standard, API-Anbindung, Programmier-Assistenten, Skripte | Ollama |
+| Klicken, vergleichen, Demo für Nicht-Techniker | LM Studio |
+| Dieselbe `.gguf`-Datei verwenden | Alle drei — wenn die Quantisierung (Komprimierung) passt |
 
-## Was du nicht vermischt
+## Häufige Verwechslungen und Fallen
 
-- Ein Modell aus Hugging Face als ganzes fp16-Safetensors-Repo ist nicht automatisch in Ollama. Irgendwer hat quantisiert und in GGUF (oder Ollamas Bibliothek) gebracht.
-- „Wir hosten Llama 70B“ ohne GPU-Klasse ist eine Lüge in Zeitlupe. Die Engine startet vielleicht auf CPU — die UX stirbt.
-- Zwei Runtimes parallel auf denselben Ports sind ein Samstagabend. Ein Default pro Maschine.
+### Modelle sind nicht automatisch überall verfügbar
 
-Im Gespräch mit Admins taucht oft Docker auf. Ollama im Container ist legitim, solange GPU-Passthrough wirklich sitzt — sonst habt ihr eine CPU-NAS im Frack. LM Studio auf einem Shared-CI-Runner ist meist die falsche Abstraktion: headless Ollama oder llama.cpp-server, Modellversion gepinnt, Quantisierung im Artefakt.
+Ein Modell aus Hugging Face (der größten Plattform für KI-Modelle) als ganzes fp16-Safetensors-Repo (das Modell in voller Genauigkeit, in einem bestimmten Dateiformat) ist **nicht automatisch** in Ollama nutzbar. Irgendjemand muss es vorher **quantisiert** (komprimiert) und in das GGUF-Format umgewandelt haben — oder es muss bereits in Ollamas Bibliothek verfügbar sein.
 
-Lizenz und Herkunft: ein gepulltes Modell ist nicht „open“, nur weil es lokal läuft. Gewichte haben eigene Terms (Llama, Qwen, Mistral). Für Kunden-Demos die Model Card lesen, bevor jemand den Namen auf eine Folie druckt. Das ist Supply Chain aus der OWASP-Liste, nur ohne Cloud-Vendor dazwischen.
+### „Wir hosten Llama 70B" ohne GPU ist eine Lüge in Zeitlupe
 
-Empfehlung für OneCode-Demos: Ollama als Daemon, ein Coder-Modell das auf die VRAM-Lage des Laptops passt, LM Studio nur wenn der Kunde GUI verlangt. llama.cpp dann, wenn ihr reproduzierbare Server-Flags oder spezielle Backends braucht. Im Artefakt dieses Kapitels steht genau ein Stack, nicht drei konkurrierende.
+Das Modell **startet** vielleicht auf einer CPU — aber die Benutzererfahrung ist katastrophal. Bei großen Modellen ohne GPU wartest du Minuten statt Sekunden auf eine Antwort. „Hosten" und „nutzbar sein" sind zwei verschiedene Dinge.
+
+### Zwei Runtimes auf denselben Ports sind Chaos
+
+Ollama und LM Studio gleichzeitig auf demselben Port zu betreiben ist ein Rezept für einen verlorenen Samstagabend. Ein Default pro Maschine.
+
+## Docker und Ollama
+
+Bei Administratoren taucht oft **Docker** (eine Plattform, um Software in isolierten Containern auszuführen) auf. Ollama im Docker-Container ist legitim — solange **GPU-Passthrough** (die Durchreichung der Grafikkarte in den Container) wirklich funktioniert. Sonst habt ihr eine CPU-NAS (ein Netzwerkspeicher) im Frack: sieht professionell aus, liefert aber keine brauchbare Geschwindigkeit.
+
+LM Studio auf einem geteilten CI-Runner (einem automatischen Build-Server) ist meist die falsche Wahl: Besser ein headless (ohne Bildschirm laufender) Ollama oder llama.cpp-Server, Modellversion fest gepinnt (fixiert), Quantisierung als Artefakt (Build-Ergebnis).
+
+## Lizenzen und Herkunft
+
+Ein gepulltes Modell ist **nicht „open"** (offen/frei nutzbar), nur weil es lokal läuft. Die Modell-Gewichte (die trainierten Parameter des Modells) haben eigene Lizenzbedingungen — Llama hat andere als Qwen, die wiederum andere als Mistral. Für Kunden-Demos unbedingt die **Model Card** (die Beschreibung und Lizenzbedingungen des Modells) lesen, bevor jemand den Namen auf eine Folie druckt.
+
+Das ist **Supply Chain** (Lieferkette) aus der OWASP-Liste, nur ohne Cloud-Anbieter dazwischen: Woher kommt das Modell? Wer hat es trainiert? Unter welchen Bedingungen darf ich es nutzen?
+
+## Empfehlung für Demos
+
+Für Demonstrations-Setups: **Ollama als Daemon** (Hintergrunddienst), dazu ein Coder-Modell, das auf die VRAM-Ausstattung (Grafikartenspeicher) des Laptops passt. LM Studio nur, wenn der Kunde eine grafische Oberfläche verlangt. llama.cpp direkt, wenn ihr reproduzierbare Server-Konfigurationen oder spezielle Hardware-Backends braucht.
+
+Im Artefakt dieses Kapitels steht genau **ein** Stack, nicht drei konkurrierende Religionen.
 
 <Merksatz>
 llama.cpp rechnet, Ollama liefert die API, LM Studio zeigt eine Oberfläche. Teams brauchen eine Runtime — nicht drei Religionen.

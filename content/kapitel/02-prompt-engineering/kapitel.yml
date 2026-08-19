@@ -2,7 +2,7 @@ slug: prompt-engineering
 nummer: 2
 titel: Prompt Engineering für Entwickler
 untertitel: Rolle, Instruktion, Kontext und Format so setzen, dass ein Modell lieferbar arbeitet — nicht rätselt.
-dauerMinuten: 75
+dauerMinuten: 96
 lernziele:
   - Die vier Teile eines Prompts (Rolle, Instruktion, Kontext, Format) bewusst setzen
   - Few-Shot und Chain-of-Thought begründet einsetzen, nicht als Ritual

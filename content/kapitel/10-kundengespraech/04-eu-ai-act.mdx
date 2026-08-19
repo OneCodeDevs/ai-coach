@@ -1,42 +1,128 @@
 ---
 titel: EU AI Act und Compliance-Grundlagen für Devs
-dauerMinuten: 18
+dauerMinuten: 30
 zusammenfassung: Art. 4, Risikoklassen, Transparenz — was ein Softwarehaus wirklich trifft. Keine Rechtsberatung.
 reihenfolge: 4
 ---
 
-Dieses Kapitel macht dich gesprächsfähig, nicht zur Kanzlei. Sag den Satz früh: **„Das ist keine Rechtsberatung; die Quelle ist die Verordnung und euer Counsel.“** Dann darfst du trotzdem präzise sein. CTOs hassen zwei Sorten: den, der „AI Act“ als Nebelkerze zündet, und den, der Hochrisiko-Medizinprodukte auf jedes CRUD-SaaS stülpt.
+## Was ist der EU AI Act?
 
-Verordnung (EU) 2024/1689 steht im Amtsblatt. Bitkom hat einen Umsetzungsleitfaden. artificialintelligenceact.eu hilft beim Navigieren. Du zitierst Artikel, du verkaufst keine Zertifikatsmagie.
+Der **EU AI Act** (offiziell: Verordnung (EU) 2024/1689, auch **KI-Verordnung** genannt) ist das erste umfassende Gesetz weltweit, das den Einsatz von Künstlicher Intelligenz reguliert. Er wurde von der Europäischen Union verabschiedet und gilt für alle Unternehmen, die KI-Systeme in der EU anbieten oder einsetzen.
 
-## Art. 4 — KI-Kompetenz, und die trifft euch
+Stell dir Verkehrsregeln vor: Bevor es sie gab, durfte jeder fahren wie er wollte. Der AI Act ist das Verkehrsrecht für KI — er legt fest, was erlaubt ist, was verboten ist, und welche Sicherheitsmaßnahmen für welche Art von KI-System gelten.
 
-Seit Februar 2025 gilt Art. 4: **Anbieter und Betreiber** ergreifen Maßnahmen, dass Personal und andere, die in ihrem Auftrag KI-Systeme betreiben oder nutzen, ein **ausreichendes Maß an KI-Kompetenz** haben — angepasst an Kenntnisse, Kontext und betroffene Personen. Das gilt **nicht nur für Hochrisiko**. Ein Softwarehaus, das Agents in Kundenrepos legt oder intern Copilot fährt, ist in diesem Satz drin.
+### Der wichtigste Satz zuerst
 
-Was Art. 4 *nicht* ist: eine vorgeschriebene ISO-Schulung, ein behördlicher Examenstermin, „wir brauchen euer Zertifikat“. Was es praktisch ist: dokumentierte Enablement (genau das tut diese Plattform intern), Bewusstsein für Halluzination, Injection, Agency — und dass ein Mangel an Kompetenz bei Schaden nach Sorgfalt aussieht. Bundesnetzagentur-Hinweispapiere sagen sinngemäß: dokumentieren, was ihr tut.
+**„Das ist keine Rechtsberatung; die Quelle ist die Verordnung und euer Counsel (Rechtsabteilung / Anwalt)."**
 
-Im Pitch: OneCode-Enablement *adressiert* Literacy für genau die Leute, die Agent-Code mergen. Das ist ein ehrlicher Anker, kein „AI-Act-compliant Stempel“.
+Sag diesen Satz früh im Gespräch. Dann darfst du trotzdem **präzise** sein. CTOs hassen zwei Sorten von Gesprächspartnern:
+1. Den, der „AI Act" als Nebelkerze zündet, um Angst zu schüren
+2. Den, der Anforderungen für Hochrisiko-Medizinprodukte auf jede normale Software stülpt
 
-## Risikoklassen — nicht jedes Produkt ist Anhang III
+Die Verordnung steht im **Amtsblatt der EU** (EUR-Lex). Bitkom (der deutsche Digitalverband) hat einen Umsetzungsleitfaden. Die Website artificialintelligenceact.eu hilft beim Navigieren. Du zitierst Artikel, du verkaufst keine Zertifikatsmagie.
 
-Die Logik der Verordnung ist risiko-basiert: unannehmbares Risiko (verboten), Hochrisiko (Anhang III und eingebettete Sicherheitsbauteile), Transparenzpflichten, Rest. **Ein typisches B2B-SaaS oder ein internes Coding-Agent-Setup ist nicht automatisch Hochrisiko.** Hochrisiko wird es in den gelisteten Bereichen (u. a. bestimmte HR-, Credit-, Critical-Infrastructure-, Law-Enforcement-Kontexte) oder wenn ihr KI als Sicherheitsbestandteil eines regulierten Produkts in Verkehr bringt.
+## Art. 4 — KI-Kompetenz: Das trifft euch
 
-Sag das, bevor jemand „wir müssen ein QM-System wie ein Medizinproduktehersteller aufsetzen“ in den Steckbrief schreibt. Wenn der Kunde in Anhang III unterwegs ist: Counsel, nicht dieses Kapitel.
+Seit Februar 2025 gilt **Artikel 4** der KI-Verordnung. Er ist kurz, aber weitreichend:
 
-GPAI-Modellpflichten treffen vor allem **Modell-Anbieter**, die auf den Markt bringen — nicht jedes Haus, das eine API aufruft. Downstream-Dokumentation der großen Provider lesen, nicht nachbauen wollen, was OpenAI schon liefern muss.
+**Anbieter und Betreiber** von KI-Systemen müssen Maßnahmen ergreifen, damit ihr Personal und andere Personen, die in ihrem Auftrag KI-Systeme betreiben oder nutzen, ein **ausreichendes Maß an KI-Kompetenz** haben.
+
+### Was bedeuten diese Begriffe?
+
+- **Anbieter** (Provider) — Wer ein KI-System entwickelt und auf den Markt bringt oder in Betrieb nimmt. Z. B. ein Softwarehaus, das einen KI-gestützten Support-Bot für Kunden baut.
+- **Betreiber** (Deployer) — Wer ein KI-System nutzt, auch wenn er es nicht selbst gebaut hat. Z. B. ein Unternehmen, das seinen Entwicklern Copilot zur Verfügung stellt oder KI-Agenten in seinen CI/CD-Pipelines einsetzt.
+- **KI-Kompetenz** — angepasst an Kenntnisstand, Erfahrung, Aufgabe und den Kontext, in dem die KI eingesetzt wird.
+
+### Was Art. 4 *nicht* ist
+
+- **Keine** vorgeschriebene ISO-Schulung mit Prüfungstermin
+- **Kein** behördliches Examen
+- **Kein** „Wir brauchen euer Zertifikat"
+
+### Was Art. 4 praktisch bedeutet
+
+- **Dokumentiertes Enablement** (Befähigung) — genau das tut eine Lernplattform wie diese: Sie stellt sicher, dass die Menschen, die KI-Agenten einsetzen, verstehen, was sie tun.
+- **Bewusstsein** für die Risiken: Halluzination (wenn das Modell Dinge erfindet), Prompt Injection (eingeschleuste Anweisungen), Excessive Agency (übermäßige Handlungsmacht)
+- **Dokumentation** dessen, was ihr tut — die Bundesnetzagentur (die Marktüberwachungsbehörde für KI in Deutschland) sagt sinngemäß: Dokumentiert eure Maßnahmen.
+
+Wichtig: Art. 4 gilt **nicht nur für Hochrisiko-Anwendungen**. Er gilt für alle KI-Systeme.
+
+### Im Pitch
+
+OneCode-Enablement *adressiert* KI-Kompetenz für genau die Leute, die Agent-Code mergen. Das ist ein ehrlicher Anker, kein „AI-Act-compliant Stempel".
+
+## Risikoklassen — Nicht jedes Produkt ist Hochrisiko
+
+Die Logik der Verordnung ist **risikobasiert**. Stell dir eine Pyramide vor:
+
+### Stufe 1: Unannehmbares Risiko (verboten)
+
+KI-Systeme, die manipulieren, social scoring betreiben oder biometrische Echtzeit-Fernidentifizierung im öffentlichen Raum durchführen (mit Ausnahmen). Diese sind schlicht **verboten**.
+
+### Stufe 2: Hochrisiko (streng reguliert)
+
+KI-Systeme in bestimmten Bereichen, die in **Anhang III** der Verordnung aufgelistet sind:
+- Bestimmte HR-Anwendungen (Personalauswahl, Beförderung)
+- Kreditwürdigkeitsprüfung
+- Kritische Infrastruktur
+- Strafverfolgung
+- Bestimmte Bereiche im Gesundheits- und Bildungswesen
+
+Oder: KI als **Sicherheitsbestandteil** eines regulierten Produkts (z. B. ein Medizingerät, ein Auto).
+
+Für diese Systeme gelten strenge Anforderungen: Qualitätsmanagementsystem, Risikomanagement, Datenverwaltung, technische Dokumentation, menschliche Aufsicht, Genauigkeit, Robustheit.
+
+### Stufe 3: Transparenzpflichten
+
+Bestimmte KI-Systeme müssen sich als KI zu erkennen geben (z. B. Chatbots) oder ihre Inhalte als KI-generiert kennzeichnen.
+
+### Stufe 4: Minimales Risiko (kaum Auflagen)
+
+Die meisten KI-Anwendungen. Keine spezifischen Anforderungen über Art. 4 (Kompetenz) hinaus.
+
+### Die entscheidende Botschaft für den Kunden
+
+**Ein typisches B2B-SaaS (Business-to-Business Software-as-a-Service) oder ein internes Coding-Agent-Setup ist nicht automatisch Hochrisiko.**
+
+Sag das, bevor jemand „wir müssen ein Qualitätsmanagementsystem wie ein Medizinproduktehersteller aufsetzen" in den Maßnahmenplan schreibt.
+
+Wenn der Kunde *tatsächlich* in einem Anhang-III-Bereich unterwegs ist (z. B. HR-Software mit KI-gestützter Bewerbervorauswahl): **Counsel einbeziehen**, nicht dieses Kapitel als Grundlage nehmen.
+
+### GPAI-Modellpflichten
+
+**GPAI** steht für „General-Purpose AI" (KI-Modelle für allgemeine Zwecke) — also Modelle wie GPT, Claude oder Llama, die für viele verschiedene Aufgaben einsetzbar sind.
+
+Die GPAI-Pflichten treffen vor allem **Modell-Anbieter** (also OpenAI, Anthropic, Meta etc.), die Modelle auf den Markt bringen — nicht jedes Unternehmen, das eine API aufruft. Lest die Downstream-Dokumentation (die Nutzungsdokumentation) der großen Provider, statt nachzubauen, was OpenAI bereits liefern muss.
 
 ## Transparenz, die Softwareanbieter spüren
 
-Art. 50-Richtung (gestaffelt in Kraft): Menschen müssen wissen, wenn sie mit einem KI-System interagieren, soweit nicht offensichtlich. KI-generierte oder manipulierte Inhalte — je nach Modalität — maschinenlesbar kennzeichnen. Für einen Support-Bot, der sich als Mensch ausgibt, ist das relevant. Für einen intern dokumentierten Coding-Agenten mit Label `agent` im PR oft schon erfüllt, sobald ihr nicht so tut, als hätte ein Mensch jede Zeile getippt.
+Art. 50 und verwandte Artikel (gestaffelt in Kraft tretend) regeln:
 
-Praktisch für OneCode: Agent-PRs kennzeichnen, Logs/Traces mit Modellnamen, keine Deepfake-Features ohne Kennzeichnung, Kunden nicht anlügen „das hat der Senior selbst geschrieben“.
+- **Menschen müssen wissen, wenn sie mit einem KI-System interagieren** — soweit das nicht offensichtlich ist. Ein Support-Bot, der sich als Mensch ausgibt, ist relevant.
+- **KI-generierte oder manipulierte Inhalte** müssen je nach Art maschinenlesbar gekennzeichnet werden.
 
-## Was du im CTO-Interview sagst
+### Was das für euch praktisch bedeutet
 
-- Pflicht, die sitzt: **Art. 4 Literacy** für alle, die die Systeme nutzen oder betreiben.
-- Pflicht, die oft sitzt: **Transparenz der Interaktion / Kennzeichnung**, wenn ihr KI gegenüber Nutzern versteckt.
-- Pflicht, die meist *nicht* automatisch sitzt: volles Hochrisiko-Regime für ein normales Produkt.
-- Angebot 3 (Gates, Logging, HITL) ist gute Engineering-Praxis und hilft, Sorgfalt zu *zeigen* — es ist trotzdem kein Freibrief.
+- **Agent-PRs kennzeichnen** — Labels wie `agent`, Modellname, Eval-Score
+- **Logs und Traces mit Modellnamen** — in der Observability-Schicht (Kapitel 8) festhalten, welches Modell gearbeitet hat
+- **Keine Deepfake-Features** ohne Kennzeichnung
+- **Kunden nicht anlügen**: „Das hat der Senior-Entwickler selbst geschrieben" → wenn ein Agent den Code geschrieben hat, sagt das
+
+Für einen intern dokumentierten Coding-Agenten mit Label `agent` im PR ist die Transparenzpflicht oft schon erfüllt.
+
+## Was du im CTO-Gespräch sagst
+
+Vier Aussagen, nach Relevanz sortiert:
+
+1. **Pflicht, die sitzt:** Art. 4 — KI-Kompetenz für alle, die KI-Systeme nutzen oder betreiben. Gilt seit Februar 2025. Gilt für alle, nicht nur Hochrisiko.
+
+2. **Pflicht, die oft sitzt:** Transparenz der Interaktion / Kennzeichnung, wenn ihr KI gegenüber Nutzern einsetzt.
+
+3. **Pflicht, die meist *nicht* automatisch sitzt:** Das volle Hochrisiko-Regime. Ein normales B2B-SaaS oder ein internes Coding-Setup fällt nicht automatisch darunter.
+
+4. **Verbindung zu euren Angeboten:** Angebot 3 (Gates, Logging, HITL) ist gute Engineering-Praxis und hilft, Sorgfalt zu *zeigen*. Es ist trotzdem **kein Freibrief** — die Verordnung zu erfüllen erfordert mehr als ein CI-Gate.
+
+Und immer: **„Dazu sagt im Zweifel euer Counsel etwas Verbindliches, nicht ich."**
 
 <Merksatz>
 Art. 4 gilt jetzt und trifft Anbieter wie Betreiber. Hochrisiko ist Anhang III, nicht jedes Repo. Du zitierst die Verordnung — du verkaufst keine Rechtsmeinung.

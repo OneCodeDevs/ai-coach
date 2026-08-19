@@ -1,51 +1,124 @@
 ---
 titel: Anatomie eines Prompts
-dauerMinuten: 16
+dauerMinuten: 20
 zusammenfassung: Rolle, Instruktion, Kontext und Format sind vier getrennte Jobs, keine Stilfrage.
 reihenfolge: 1
 ---
 
-Ein Prompt ist kein Spruch, den man „gut formuliert“. Es ist eine Schnittstelle. Was du nicht spezifizierst, füllt das Modell mit Plausibilität. Bei Coding-Aufgaben ist Plausibilität oft der Bug.
+## Was ist ein Prompt?
 
-Die Hersteller sagen dasselbe mit anderen Worten. OpenAI: klarer Auftrag, Referenz, aufgeteilte Schritte. Anthropic: Claude wie eine brillante Neue, der die Hausregeln fehlen. Google: Strategie statt Magie. Für den Kundengespräch reicht ein Raster mit vier Teilen.
+Ein **Prompt** ist der Text, den du an ein Sprachmodell schickst — also deine Eingabe, auf die das Modell reagiert. Das kann eine einfache Frage sein („Was ist die Hauptstadt von Frankreich?"), aber in der professionellen Arbeit mit LLMs ist ein Prompt deutlich mehr: Er ist eine **Schnittstelle** zwischen dir und dem Modell.
 
-## Die vier Teile
+Der entscheidende Punkt: Was du nicht spezifizierst, füllt das Modell mit dem Wahrscheinlichsten. Bei einer Quizfrage ist das harmlos. Bei einer Coding-Aufgabe ist „das Wahrscheinlichste" oft der Bug.
 
-1. **Rolle.** Wer spricht, mit welcher Policy. Nicht Cosplay.
-2. **Instruktion.** Was genau jetzt zu tun ist, in welcher Reihenfolge, mit welchem Stopp.
-3. **Kontext.** Das Material, auf dem die Antwort stehen soll: Datei, Fehler, Ticket, API-Vertrag.
-4. **Format.** Die Gestalt der Ausgabe, sodass ein Mensch oder ein Parser sie prüfen kann.
+## Warum ist Prompt-Struktur wichtig?
 
-Wenn einer der Teile fehlt, rät das Modell. Raten sieht in einem Chat höflich aus und in einem Diff teuer.
+Stell dir vor, du gibst einem neuen Kollegen eine Aufgabe — aber ohne zu sagen, welche Codebase er verwenden soll, welche Konventionen gelten, was das gewünschte Ergebnis-Format ist, und wann er fertig ist. Er wird *irgendwas* liefern, und es wird wahrscheinlich nicht das sein, was du wolltest.
 
-## Rolle ist Policy, nicht Theater
+Genau so verhält sich ein LLM bei einem vagen Prompt. Es ist nicht faul oder dumm — es hat schlicht nicht genug Information, um die richtige Entscheidung zu treffen.
 
-`Du bist ein Senior-Entwickler` ändert fast nichts. Modelle sind bereits auf Hilfsbereitschaft und Code trainiert. Die Rolle wird nützlich, wenn sie **Verbote, Prioritäten und Qualitätstore** trägt:
+Die großen Anbieter beschreiben dasselbe Problem mit verschiedenen Metaphern:
+- **Anthropic:** „Denk an Claude wie eine brillante neue Kollegin, der die Hausregeln fehlen."
+- **OpenAI:** „Klare Instruktionen, Referenzmaterial, aufgeteilte Schritte."
+- **Google:** „Prompten ist Strategie, nicht Magie."
 
-- keine neuen Dependencies ohne Begründung
-- bestehende Patterns im Repo schlagen Greenfield
-- bei Unklarheit nachfragen statt erfinden
-- Tests vor dem Behaupten von „fertig“
+## Die vier Teile eines Prompts
 
-Das ist System-Verhalten. Es gehört oft in den System-Prompt oder in Rules, nicht in jeden Task neu.
+Ein gut strukturierter Prompt hat vier Bereiche. Nicht jeder Prompt braucht alle vier — aber wenn einer fehlt, solltest du wissen, dass das Modell diesen Teil *raten* wird.
 
-## Instruktion als Auftrag
+### 1. Rolle (Wer?)
 
-Die Instruktion ist ein Ticket, kein Mood. Schlecht: „Mach die Auth sauberer.“ Besser: „Ersetze Session-Cookies durch das bestehende JWT-Middleware in `src/auth`. Keine neuen Pakete. Danach `npm test` ausführen und nur mergen, wenn grün.“
+Die **Rolle** definiert, *aus welcher Perspektive* und *mit welchen Regeln* das Modell antworten soll. Aber Achtung: „Du bist ein Senior-Entwickler" allein ändert fast nichts. Modelle sind bereits auf Hilfsbereitschaft und Code trainiert.
 
-Nummerierte Schritte helfen, wenn die Reihenfolge zählt. Ein Satz reicht, wenn der Auftrag klein ist. Anthropics Faustregel ist brutal und brauchbar: zeig den Prompt einem Kollegen ohne Projektwissen. Wenn der ratlos ist, ist es das Modell auch.
+Die Rolle wird nützlich, wenn sie **konkrete Verhaltensregeln** trägt:
+- Keine neuen Dependencies ohne Begründung einführen
+- Bestehende Patterns im Repo haben Vorrang vor Greenfield-Lösungen
+- Bei Unklarheit nachfragen statt erfinden
+- Tests müssen grün sein, bevor etwas als „fertig" gilt
 
-## Kontext als Grounding
+Das ist keine Persönlichkeit — das ist Policy. Und Policy gehört oft in den System-Prompt (dazu mehr in einer späteren Lektion), nicht in jeden einzelnen Auftrag.
 
-Kontext ist nicht „möglichst viel Repo“. Kontext ist das, ohne das die Instruktion unterbestimmt bleibt: die Datei mit dem Bug, der Stacktrace, der OpenAPI-Ausschnitt, zwei Gegenbeispiele. Alles andere ist Lärm und kostet Token in jedem Turn.
+### 2. Instruktion (Was?)
 
-Im Agent-Setup kommt Kontext oft über Tools (Lesen, Grep, Tests). Der Prompt muss dann sagen, **wonach** zu suchen ist, nicht den ganzen Baum einkopieren.
+Die **Instruktion** ist der eigentliche Auftrag. Sie sagt dem Modell, was es *jetzt, konkret* tun soll.
 
-## Format als Vertrag
+**Schlecht:** „Mach die Auth sauberer."
+**Besser:** „Ersetze die Session-Cookies durch die bestehende JWT-Middleware in `src/auth`. Keine neuen Pakete. Danach `npm test` ausführen und nur als fertig markieren, wenn grün."
 
-Ohne Format bekommst du Prosa, gemischt mit Code, gemischt mit Entschuldigungen. Mit Format bekommst du etwas, das CI, ein Reviewer oder der nächste Prompt-Schritt schlucken kann: Diff-only, JSON mit festen Keys, eine Liste von Dateipfaden, „PATCH dann TEST-OUTPUT“.
+Der Unterschied: Die zweite Version ist ein Ticket. Die erste ist ein Wunsch.
 
-Format ist keine Schönheit. Es ist die Stelle, an der du den Output maschinenlesbar und damit testbar machst.
+Tipps für gute Instruktionen:
+- Nummerierte Schritte helfen, wenn die Reihenfolge zählt
+- Ein Satz reicht, wenn der Auftrag klein ist
+- Anthropics Faustregel: Zeig den Prompt einem Kollegen ohne Projektwissen. Wenn der ratlos ist, ist es das Modell auch.
+
+### 3. Kontext (Womit?)
+
+Der **Kontext** ist das Material, auf dem die Antwort stehen soll. Ohne Kontext muss das Modell aus dem Gedächtnis (den Trainingsdaten) antworten — und dort lauern veraltete Informationen und Halluzinationen.
+
+Was guter Kontext sein kann:
+- Die Datei mit dem Bug
+- Der Stacktrace
+- Ein relevanter Ausschnitt der API-Dokumentation
+- Zwei Gegenbeispiele (wie es *nicht* aussehen soll)
+- Das Ticket oder die User-Story
+
+Was Kontext *nicht* ist: „möglichst viel Repo". Alles, was nicht zur aktuellen Aufgabe beiträgt, ist Lärm — und Lärm kostet Token in jedem Turn (wie du im Kapitel über das Context Window gelernt hast).
+
+In einem Agent-Setup kommt Kontext oft über Werkzeuge: Der Agent liest eine Datei, führt einen Grep aus, startet einen Test. Der Prompt muss dann sagen, *wonach* zu suchen ist — nicht den ganzen Dateibaum einkopieren.
+
+### 4. Format (Wie soll die Antwort aussehen?)
+
+Das **Format** definiert die Gestalt der Ausgabe. Ohne Format-Angabe bekommst du einen frei fließenden Absatz — gemischt aus Code, Erklärungen, Entschuldigungen und Vorschlägen. Das ist in einem Chat manchmal okay, aber in einer Pipeline oder einem Review-Prozess ein Problem.
+
+Beispiele für Format-Angaben:
+- „Antworte nur mit dem geänderten Code, keine Erklärung."
+- „Gib die Antwort als JSON mit den Feldern `verdict`, `files` und `risk`."
+- „Erst ein `<plan>`-Tag mit drei Sätzen, dann der Patch, dann `<test_output>`."
+- „Liste nur die Dateipfade, die geändert werden müssen."
+
+Format ist keine Ästhetik. Es ist die Stelle, an der du den Output **prüfbar** machst — ob von einem Menschen oder von einem automatisierten System.
+
+## Zusammenspiel der vier Teile
+
+| Teil | Frage | Wenn fehlt... |
+|------|-------|---------------|
+| Rolle | Wer bin ich, welche Regeln gelten? | Modell folgt seinem Default-Verhalten |
+| Instruktion | Was soll ich jetzt tun? | Modell rät den Auftrag aus dem Kontext |
+| Kontext | Auf welcher Basis? | Modell antwortet aus dem Gedächtnis (Halluzinationsgefahr) |
+| Format | Wie soll die Antwort aussehen? | Modell liefert unstrukturierte Prosa |
+
+Je mehr Teile du bewusst füllst, desto weniger muss das Modell interpolieren. Und Interpolation — also das Auffüllen von Lücken mit dem Wahrscheinlichsten — ist in Produktionscode ein Defect.
+
+## Ein vollständiges Beispiel
+
+```
+[Rolle]
+Du bist ein Code-Reviewer. Du prüfst nur auf Korrektheit und
+bestehende Konventionen. Keine Style-Vorschläge, keine Refactoring-Ideen.
+
+[Instruktion]
+Prüfe den folgenden Diff auf Bugs, fehlende Edge Cases und
+Verletzungen der Projekt-Konventionen.
+
+[Kontext]
+<diff>
+... (der zu prüfende Diff) ...
+</diff>
+
+<conventions>
+- Error Handling: immer HttpError aus src/errors verwenden
+- Keine neuen Dependencies ohne Abstimmung
+- Tests für jede öffentliche Funktion
+</conventions>
+
+[Format]
+Antworte als JSON-Array:
+[{"file": "...", "line": ..., "severity": "bug|convention|edge-case", "finding": "..."}]
+Wenn alles in Ordnung ist: leeres Array [].
+```
+
+Dieses Beispiel trennt klar: Wer prüft (Rolle), was geprüft wird (Instruktion), auf welcher Basis (Kontext), und wie die Antwort aussehen muss (Format).
 
 <Merksatz>
 Rolle setzt die Regeln, Instruktion den Auftrag, Kontext das Material, Format den Vertrag. Fehlt ein Teil, interpoliert das Modell — und Interpolation ist in Produktionscode ein Defect.

@@ -1,29 +1,92 @@
 ---
 titel: Sampling und Temperature
-dauerMinuten: 12
-zusammenfassung: Warum Coding-Aufgaben fast immer kühl gesampelt werden sollten.
+dauerMinuten: 18
+zusammenfassung: Wie das Modell aus Wahrscheinlichkeiten ein konkretes Wort auswählt — und warum der Zufall manchmal hilft.
 reihenfolge: 3
 ---
 
-Nach der Vorwärtsrechnung steht über dem Vokabular eine Wahrscheinlichkeitsverteilung. Sampling entscheidet, welcher Token als nächstes kommt. Temperature, Top-p und Top-k verdrehen diese Verteilung.
+## Von Wahrscheinlichkeiten zum fertigen Text
 
-## Temperature
+In der vorherigen Lektion hast du gelernt, dass ein LLM Token für Token arbeitet und ein Kontextfenster hat. Aber *wie* wählt es das nächste Token aus? Nach jedem Verarbeitungsschritt steht über dem gesamten Vokabular (alle ~100.000 Token) eine **Wahrscheinlichkeitsverteilung** — also eine Liste, die jedem möglichen nächsten Token eine Wahrscheinlichkeit zuweist.
 
-Temperature 0 (oder sehr nah dran) nimmt fast immer den wahrscheinlichsten Token. Das ist der Default für Code, Refactorings, Structured Output und alles, wo „kreativ“ teuer ist.
+Beispiel (vereinfacht): Nach dem Text „Der Hund liegt auf dem …" könnte die Verteilung so aussehen:
+- „Sofa" → 25 %
+- „Boden" → 20 %
+- „Bett" → 15 %
+- „Teppich" → 10 %
+- … und tausende weitere Möglichkeiten mit kleinen Wahrscheinlichkeiten
 
-Höhere Temperature macht seltene Token wahrscheinlicher. Gut für Brainstorming, schlecht für `import`-Zeilen. Ein Agent, der bei Temperature 1 APIs erfindet, ist kein Wunder — du hast Varianz bestellt.
+**Sampling** ist der Prozess, aus dieser Verteilung ein konkretes Token auszuwählen. Und hier kommen die Parameter ins Spiel, die du als Nutzer einstellen kannst.
 
-Wichtig gegenüber Kunden: **Temperature 0 ist nicht bitweise deterministisch.** Batching, Floating-Point und Provider-Implementierung können trotzdem divergieren. Für Reproduzierbarkeit brauchst du zusätzlich Seeds wo der Anbieter sie anbietet, plus Evals — nicht nur den Slider.
+## Temperature: Der Zufall-Regler
 
-## Top-p und Top-k
+Die **Temperature** (Temperatur) ist der wichtigste Sampling-Parameter. Sie bestimmt, wie „zufällig" die Auswahl ist.
 
-- **Top-k** behält nur die k wahrscheinlichsten Token.
-- **Top-p (Nucleus)** behält die kleinste Menge, deren Wahrscheinlichkeitssumme p erreicht.
+### Temperature = 0 (oder sehr nah dran)
 
-Beide beschneiden den langen Schwanz. In der Praxis stellst du Temperature und lässt Top-p bei einem vernünftigen Default (oft 1.0 oder 0.9), statt an drei Knöpfen gleichzeitig zu drehen. Ein Parameter, den du erklären kannst, schlägt drei, die sich gegenseitig aufheben.
+Das Modell wählt fast immer das *wahrscheinlichste* Token. Das Ergebnis ist vorhersagbar, konsistent, und bei derselben Eingabe bekommst du (meistens) dieselbe Ausgabe.
+
+**Gut für:** Code schreiben, Refactoring, JSON erzeugen, Aufgaben mit einer „richtigen" Antwort — alles, wo Kreativität ein Bug wäre.
+
+### Temperature = 1.0
+
+Die Wahrscheinlichkeitsverteilung wird unverändert verwendet. Token mit mittlerer Wahrscheinlichkeit haben eine realistische Chance, ausgewählt zu werden. Der Text wird vielfältiger, überraschender — aber auch weniger zuverlässig.
+
+**Gut für:** Brainstorming, kreatives Schreiben, alternative Formulierungen finden.
+
+### Temperature > 1.0 (z. B. 1.5)
+
+Die Verteilung wird „geglättet" — seltene Token werden *wahrscheinlicher*, häufige Token *weniger dominant*. Der Text wird experimentell bis chaotisch.
+
+**Gefährlich für:** Alles, was korrekt sein muss. Ein Agent, der bei Temperature 1.5 Code schreibt, wird API-Funktionen erfinden, die es nicht gibt — nicht aus Böswilligkeit, sondern weil du ihm gesagt hast, er soll würfeln.
+
+### Technisch: Was passiert bei der Temperature?
+
+Die Wahrscheinlichkeiten werden durch die Temperature geteilt, bevor sie in eine Auswahl umgerechnet werden. Niedrige Temperature macht den Unterschied zwischen wahrscheinlichem und unwahrscheinlichem Token extremer. Hohe Temperature macht alle Token ähnlich wahrscheinlich.
+
+## Top-p und Top-k: Den langen Schwanz abschneiden
+
+Neben der Temperature gibt es zwei weitere Parameter, die die Auswahl einschränken:
+
+### Top-k
+
+**Top-k** behält nur die *k wahrscheinlichsten* Token und ignoriert alle anderen komplett.
+
+Beispiel mit Top-k = 3: Aus unserer Verteilung oben bleiben nur „Sofa" (25 %), „Boden" (20 %) und „Bett" (15 %). Alle anderen Möglichkeiten werden ausgeschlossen, ihre Wahrscheinlichkeiten auf die drei verbleibenden umverteilt.
+
+### Top-p (Nucleus Sampling)
+
+**Top-p** (auch „Nucleus Sampling" genannt) funktioniert anders: Es behält die *kleinste Gruppe* von Token, deren Wahrscheinlichkeiten zusammen mindestens p (z. B. 0.9 = 90 %) ergeben.
+
+Beispiel mit Top-p = 0.9: Das System addiert Token von oben nach unten, bis 90 % erreicht sind. Nur diese Token bleiben als Kandidaten. Der Rest wird ignoriert.
+
+Der Vorteil von Top-p gegenüber Top-k: Die Anzahl der Kandidaten passt sich automatisch an. Wenn das Modell sich sehr sicher ist (ein Token hat 80 %), bleiben nur wenige übrig. Wenn es unsicher ist (viele Token mit 5–10 %), bleiben mehr übrig.
+
+## Was bedeutet das für die Praxis?
+
+### Die Faustregel für Coding-Aufgaben
+
+Für Implementierungsarbeit, Refactoring, Code-Reviews und alle Aufgaben, bei denen Korrektheit wichtiger ist als Vielfalt: **Temperature niedrig** (0 bis 0.3). Top-p bei 1.0 lassen oder auf 0.9 setzen.
+
+Für Brainstorming, Namensfindung, alternative Lösungsansätze: **Temperature moderat** (0.7 bis 1.0).
+
+Für alles andere: Einen Parameter verstehen und erklären können ist besser als an drei Reglern gleichzeitig zu drehen.
+
+### Temperature 0 ist nicht bitweise deterministisch
+
+Ein wichtiges Detail: Auch bei Temperature 0 bekommst du nicht *garantiert* jedes Mal exakt dieselbe Antwort. Gründe dafür sind:
+- GPU-Batching und Floating-Point-Rundung
+- Provider-seitige Implementierungsdetails
+- Infrastruktur-Änderungen beim Anbieter
+
+Wenn du echte Reproduzierbarkeit brauchst (z. B. für Tests oder Evaluierungen), reicht Temperature 0 allein nicht. Du brauchst zusätzlich Seeds (wo der Anbieter sie anbietet) und am besten automatisierte Evaluierungen statt Augenschein.
+
+### Im Kundengespräch erklären
+
+Eine einfache Erklärung für Nicht-Techniker: „Temperature ist wie ein Kreativitäts-Regler. Ganz runtergedreht: der Assistent gibt die sicherste, vorhersagbarste Antwort. Aufgedreht: er wird kreativer, aber auch unzuverlässiger. Für Code drehen wir ihn fast ganz runter."
 
 <Merksatz>
-Für Implementierungsarbeit: Temperature niedrig. Varianz ist ein Feature für Ideen und ein Bug für Compiler.
+Temperature steuert den Zufall bei der Token-Auswahl. Für Coding-Aufgaben: niedrig halten. Varianz ist ein Feature für Ideen und ein Bug für Compiler. Top-p und Top-k schneiden unwahrscheinliche Kandidaten ab.
 </Merksatz>
 
 <Quelle

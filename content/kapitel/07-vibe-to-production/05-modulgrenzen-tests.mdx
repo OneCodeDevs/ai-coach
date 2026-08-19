@@ -1,41 +1,87 @@
 ---
 titel: Modulgrenzen und Tests an den schmerzhaften Stellen
-dauerMinuten: 16
+dauerMinuten: 28
 zusammenfassung: Coverage-Theater lassen. Tests und Schnitte dort, wo ein Agent oder ein Bug euch Geld oder Daten kostet.
 reihenfolge: 5
 ---
 
-„Wir haben keine Tests“ ist der Standardsatz. „Dann schreiben wir überall Tests“ ist der Standardfehler. Angebot 2 sagt: Tests *wo es weh tut*, und Modulgrenzen so, dass der Schmerz nicht in jede Datei ausläuft. Fraunhofer: ohne Tests ist nicht klar, ob funktionale und nichtfunktionale Eigenschaften stimmen. Deine Aufgabe ist, die wenigen Eigenschaften zu benennen, die Production definieren.
+„Wir haben keine Tests" ist der Standardsatz bei Vibe-Coding-Projekten. Die natürliche Reaktion wäre: „Dann schreiben wir überall Tests." Das ist der Standardfehler. Stattdessen: Tests *wo es weh tut*, und Modulgrenzen so ziehen, dass der Schmerz nicht in jede Datei ausläuft.
 
-## Grenzen zuerst, sonst testest du Pudding
+Aber fangen wir vorne an.
 
-Eine Grenze ist eine Stelle, an der ein Modul ein Versprechen hat: „Billing ändert Kontostände nur über `ledger.post`“, „HTTP kennt keine SQL“. Im Vibe-Repo ist das Versprechen oft gebrochen: die Stripe-Webhook-Datei importiert React-State-Typen, die Preislogik sitzt in einer Server Action und nochmal im Client.
+## Was ein Modul ist
 
-Schnitt-Heuristik aus dem Audit:
+Ein **Modul** ist ein abgegrenzter Teil des Codes, der eine bestimmte Aufgabe hat. Man kann sich Module wie Zimmer in einer Wohnung vorstellen: Das Badezimmer ist fürs Waschen, die Küche fürs Kochen, das Schlafzimmer fürs Schlafen. Jedes Zimmer hat eine klare Funktion und eine Tür (die Grenze).
 
-- Ziehe **Auth** und **Permissions** hinter eine Funktion, die jede Route benutzt. Dann testest du die Funktion hart, nicht 40 Handler oberflächlich.
-- Ziehe **Geld- und Bestandsinvarianten** hinter ein kleines Domain-Modul ohne HTTP.
-- Lass UI-Komponenten dumm. Ein Agent, der Tailwind schiebt, soll die Invariante nicht aus Versehen duplizieren.
+In Software bedeutet das: Der Code, der sich um Zahlungen kümmert, ist getrennt vom Code, der die Benutzeroberfläche zeichnet. Der Code, der mit der Datenbank spricht, ist getrennt von dem Code, der HTTP-Anfragen entgegennimmt.
 
-Du musst nicht das ganze Monolith in Packages sägen. Ein `src/domain/` mit drei Dateien und einem Verbot, von dort `next/headers` zu importieren, reicht als erste Grenze.
+## Was eine Modulgrenze ist
 
-## Wo Tests weh tun (und deshalb zuerst hin)
+Eine **Modulgrenze** ist ein Versprechen: „Alles, was mit Geld zu tun hat, geht über diese eine Funktion. Wer Geld bewegen will, muss hier durch." Oder: „Der HTTP-Layer kennt keine SQL-Befehle — er ruft Funktionen auf, und die kümmern sich um die Datenbank."
 
-1. **Permissions und IDOR** an den echten Routen, mit zwei Usern.
-2. **Zahlungs- und Abo-Pfade**, inkl. Webhook-Replay und doppelter Events.
-3. **Dateninvarianten** (keine doppelte Email, Order ohne Items).
-4. **Migrationen** auf einer wegwerfbaren DB, nicht „hoffentlich klappt prod“.
-5. **Öffentliche API-Verträge**, wenn schon Clients draußen sind.
+**Analogie:** In einem Restaurant gibt es eine Durchreiche zwischen Küche und Gastraum. Die Kellner bestellen, die Köche kochen, die Übergabe passiert an einem definierten Punkt. Kein Kellner steht am Herd, kein Koch bedient die Gäste. Die Durchreiche ist die Modulgrenze.
 
-Charaktertests: das heutige Verhalten einfrieren, bevor ihr refactort. Sonst „verbessert“ ihr den Code und ändert die Preise. Der Agent darf Charaktertests *vorschlagen*; ihr prüft, ob sie das echte Soll kodieren oder die Implementation zementieren.
+### Warum Vibe-Projekte keine Grenzen haben
 
-Nicht zuerst: Snapshot-Tests jedes Buttons, 90 Prozent Coverage auf Generated-CRUD, Tests die `expect(true).toBe(true)` aus einem Chat sind. Das erhöht die Metrik und senkt das Vertrauen.
+In einem Vibe-Coding-Projekt wurde jedes Feature in einer eigenen Chat-Sitzung gebaut. Jede Sitzung hat ihre eigene Lösung produziert, ohne das Gesamtbild zu kennen. Das Ergebnis:
 
-## Wie Agents hier helfen, ohne Vibe zu werden
+- Die Stripe-Webhook-Datei (die Zahlungsbenachrichtigungen verarbeitet) importiert React-State-Typen (die zur Benutzeroberfläche gehören).
+- Die Preislogik sitzt in einer Server Action *und* nochmal im Client — zwei verschiedene Stellen, die sich widersprechen können.
+- Eine Datei namens `lib/utils.ts` enthält Authentifizierung, Preisberechnung und Datenbankzugriffe.
 
-Nach dem Schnitt: Skills und Rules aus [Kontext-Engineering](/kapitel/kontext-engineering) sagen dem Agenten „anfassbar ist UI und Glue, `src/domain` nur mit Test“. Evaluator-Optimizer aus [Kapitel 6](/kapitel/agentic-workflows): Patch, dann Testlauf als Ground Truth. Human Gate, wenn die Grenze selbst sich ändert.
+Ohne Grenzen ist der Code wie eine Wohnung ohne Wände: Alles fließt ineinander, und wenn du das Bad renovierst, geht die Küche kaputt.
 
-Wenn der Founder „vollständige Coverage in einer Woche“ will: ablehnen. Eine Woche ist Audit plus die ersten Invarianten. Fläche kommt in den Umbau-Wochen, priorisiert nach der Risikoliste. Ein Coverage-Badge ohne die fünf schmerzhaften Pfade ist eine Zahl, die ihr im Statusbericht nicht verwenden solltet.
+## Grenzen zuerst, dann Tests
+
+Warum diese Reihenfolge? Weil Tests ohne Grenzen „Pudding testen": Du stichst hinein, und alles wackelt mit. Ein Test, der die Zahlungslogik prüfen soll, aber dabei die Datenbank, die Benutzeroberfläche und drei externe Dienste mitstartet, ist fragil (bricht bei jeder kleinen Änderung) und langsam.
+
+### Schnitt-Heuristik aus dem Audit
+
+Drei Grenzen, die fast immer den größten Wert bringen:
+
+1. **Auth und Permissions hinter eine Funktion ziehen.** Statt in jedem der 40 API-Handler (Funktionen, die auf HTTP-Anfragen antworten) einzeln zu prüfen „darf der Nutzer das?", schreibst du *eine* Funktion, die jeder Handler benutzt. Dann testest du diese eine Funktion gründlich — nicht 40 Handler oberflächlich.
+
+2. **Geld- und Bestandsinvarianten in ein kleines Domain-Modul.** Eine **Invariante** ist eine Regel, die immer gelten muss: „Ein Kontostand kann nicht negativ sein", „Eine bezahlte Bestellung hat genau eine Rechnung", „Es gibt keine Bestellung ohne Artikel." Diese Regeln gehören in ein Modul, das *keine* HTTP-Abhängigkeit und *keine* UI-Abhängigkeit hat — reiner Geschäftslogik-Code.
+
+3. **UI-Komponenten dumm halten.** Die Benutzeroberfläche zeigt Daten an und nimmt Eingaben entgegen — aber sie trifft keine Geschäftsentscheidungen. Wenn ein Agent die Tailwind-Klassen (CSS-Hilfsklassen für Styling) ändert, sollte das keine Auswirkung auf die Preisberechnung haben.
+
+Du musst nicht das gesamte Projekt in Pakete zersägen. Ein Ordner `src/domain/` mit drei Dateien und einer klaren Regel „von hier aus darf man nicht `next/headers` importieren" reicht als erste Grenze.
+
+## Wo Tests weh tun — und deshalb zuerst dran sind
+
+### Was automatische Tests sind
+
+Ein **automatischer Test** ist ein kleines Programm, das prüft, ob ein bestimmtes Verhalten funktioniert. Beispiel: „Wenn Nutzer A versucht, die Bestellung von Nutzer B zu lesen, soll die API einen Fehler zurückgeben." Der Test simuliert genau diese Situation und prüft das Ergebnis — automatisch, bei jedem PR, ohne dass ein Mensch manuell klicken muss.
+
+### Die fünf schmerzhaftesten Stellen zuerst
+
+1. **Permissions und IDOR** an den echten Routen. Zwei Test-Nutzer: Nutzer A versucht, auf die Daten von Nutzer B zuzugreifen. Wenn das klappt, ist es ein Sicherheitsproblem.
+2. **Zahlungs- und Abo-Pfade.** Inklusive Webhook-Replay (was passiert, wenn Stripe dieselbe Benachrichtigung zweimal schickt?) und doppelte Events (wird eine Zahlung doppelt verbucht?).
+3. **Dateninvarianten.** Kann eine E-Mail-Adresse doppelt vergeben werden? Kann eine Bestellung ohne Artikel existieren?
+4. **Migrationen** (Datenbankstruktur-Änderungen) auf einer Wegwerf-Datenbank testen — nicht „hoffentlich klappt es auf dem Produktionsserver".
+5. **Öffentliche API-Verträge.** Wenn schon externe Clients (andere Programme, die eure API nutzen) im Einsatz sind, darf sich die Antwortstruktur nicht stillschweigend ändern.
+
+### Charaktertests
+
+**Charaktertests** (auch Approval Tests oder Snapshot Tests auf Logik-Ebene) frieren das *aktuelle* Verhalten ein, bevor man refactort (also den Code umstrukturiert, ohne das Verhalten zu ändern). Das ist wichtig: Wenn du den Code verbesserst, willst du sicherstellen, dass sich die Ergebnisse nicht versehentlich ändern — zum Beispiel, dass die Preisberechnung plötzlich andere Werte liefert.
+
+Der Agent darf Charaktertests *vorschlagen*. Aber ihr müsst prüfen: Kodiert der Test das echte Soll-Verhalten, oder zementiert er nur den fehlerhaften Status quo?
+
+### Was *nicht* zuerst kommt
+
+- Snapshot-Tests für jeden Button (prüft, ob die Benutzeroberfläche pixelgenau gleich aussieht — fragil und wenig aussagekräftig für Sicherheit).
+- 90 Prozent Code-Coverage auf generiertem CRUD (einfache Erstellen-Lesen-Aktualisieren-Löschen-Operationen). Coverage (Abdeckung) misst, wie viel Prozent des Codes von Tests ausgeführt wird — aber hohe Coverage heißt nicht, dass die *richtigen* Dinge getestet werden.
+- Tests, die `expect(true).toBe(true)` sind — aus einem Chat generiert, um eine Metrik zu erfüllen, ohne etwas zu prüfen.
+
+## Wie Agenten hier helfen, ohne Vibe zu werden
+
+Nach dem Schnitt (wenn die Grenzen gezogen sind) kannst du Agenten einsetzen:
+
+- **Rules und Skills** sagen dem Agenten: „Du darfst UI und Glue (Verbindungscode) anfassen. `src/domain` nur mit begleitendem Test."
+- **Evaluator-Optimizer-Pattern:** Der Agent erzeugt einen Patch (eine Codeänderung), dann laufen die Tests als Ground Truth (Wahrheitsquelle). Nur wenn die Tests grün sind, geht es weiter.
+- **Human Gate**, wenn sich die Grenze selbst ändert — also wenn der Agent die Modulstruktur umbauen will.
+
+Wenn der Gründer „vollständige Coverage in einer Woche" will: ablehnen. Eine Woche ist Audit plus die ersten Invarianten. Fläche kommt in den Umbau-Wochen, priorisiert nach der Risikoliste. Ein Coverage-Badge ohne die fünf schmerzhaften Pfade ist eine Zahl, die im Statusbericht nicht stehen sollte.
 
 <Merksatz>
 Eine Modulgrenze ist ein Versprechen, ein Test ist der Beweis an der teuren Stelle. Überall ein bisschen Coverage ist Vibe mit grünem Badge.

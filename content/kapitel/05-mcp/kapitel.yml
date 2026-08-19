@@ -2,7 +2,7 @@ slug: mcp
 nummer: 5
 titel: MCP und Werkzeuganbindung
 untertitel: Host, Client, Server, Primitives — und warum das der Hebel für Agenten im Repo ist.
-dauerMinuten: 79
+dauerMinuten: 170
 lernziele:
   - Host, Client und Server von MCP in eigenen Worten trennen und die drei Server-Primitives nennen können
   - Bestehende MCP-Server begründet anbinden statt blind zu stapeln

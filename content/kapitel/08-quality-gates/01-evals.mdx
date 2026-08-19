@@ -1,47 +1,79 @@
 ---
 titel: Evals — von Bauchgefühl zu messbaren Kriterien
-dauerMinuten: 16
-zusammenfassung: Warum „fühlt sich besser an“ keine Qualitätssicherung ist, und wie du ein Eval als Test mit Grader baust.
+dauerMinuten: 30
+zusammenfassung: Warum „fühlt sich besser an" keine Qualitätssicherung ist, und wie du ein Eval als Test mit Grader baust.
 reihenfolge: 1
 ---
 
-Ein Agent, der montags drei Tickets schließt und dienstags still Auth kaputt macht, „fühlt sich“ bis zum Incident gut an. Bauchgefühl ist kein Gate. Ein Eval ist ein Test: festes Input, definierter Erfolg, wiederholbarer Lauf. Ohne das kannst du weder ein Modell upgraden noch einen Prompt ändern, ohne zu hoffen.
+## Warum Bauchgefühl nicht reicht
 
-## Was ein Eval wirklich ist
+Stell dir vor, du stellst einen neuen Mitarbeiter ein. Am Montag erledigt er drei Aufgaben perfekt. Am Dienstag löscht er versehentlich eine wichtige Datei — aber niemand merkt es, weil am Dienstag alles noch „irgendwie läuft". Genau so verhält sich ein KI-Agent (ein Programm, das selbstständig Aufgaben ausführt) ohne systematische Prüfung: Er „fühlt sich gut an", bis plötzlich etwas Ernstes passiert.
 
-Anthropic trennt die Begriffe sauber, und genau so sollst du sie im Kundengespräch verwenden:
+„Fühlt sich besser an" ist kein Qualitätskriterium. Wenn du an einem KI-System etwas änderst — zum Beispiel den Prompt (die Anweisung, die du dem Modell gibst) oder das Modell selbst (etwa von GPT-4 auf ein neueres Modell) — dann brauchst du eine Methode, um **vorher und nachher** zu vergleichen. Ohne diese Methode ist jede Änderung ein Blindflug: Du hoffst, dass es besser geworden ist, aber du weißt es nicht.
 
-- **Task** — ein Fall mit Input und Erfolgskriterium (Issue, Prompt, Fixture-Repo).
-- **Trial** — ein Versuch. Modelle variieren; ein Lauf ist Anekdote, fünf Läufe sind Signal.
-- **Grader** — Logik, die Transcript oder Outcome bewertet. Ein Task darf mehrere Grader haben.
-- **Transcript** — der komplette Verlauf inklusive Tool-Calls. „Der Agent hat Ja gesagt“ ist nicht dasselbe wie „in der Datenbank steht eine Buchung“.
-- **Outcome** — der Zustand der Welt nach dem Lauf. Bei Coding-Agents: Tests, Diff, Dateibaum.
-- **Harness** — die Infrastruktur, die Tasks parallel fährt, aufzeichnet und aggregiert.
+Genau dafür gibt es **Evals** (kurz für „Evaluations", also Bewertungen). Ein Eval ist im Kern nichts anderes als ein **Test**: Du gibst dem System eine bekannte Eingabe, lässt es arbeiten, und prüfst das Ergebnis gegen definierte Kriterien. Wie ein Schultest, nur für KI.
 
-Der entscheidende Satz gegenüber einem Founder: **du evaluierst immer Modell plus Harness.** Claude Code ohne eure Rules ist ein anderes System als Claude Code mit euren Rules. Wer „wir haben GPT-x getestet“ sagt, hat oft nur das Modell getestet.
+## Was ein Eval wirklich ist — Begriffe erklärt
 
-## Capability versus Regression
+Anthropic (das Unternehmen hinter dem KI-Modell Claude) hat die Begriffe rund um Evals sauber definiert. Diese Begriffe solltest du kennen, weil sie auch im Kundengespräch die professionelle Sprache sind:
 
-Zwei Suiten, zwei Passraten, sonst lügst du dir Qualität schön:
+- **Task** (Aufgabe) — Ein konkreter Testfall. Zum Beispiel: „Hier ist ein fehlerhafter Code. Finde und behebe den Bug." Der Task hat immer eine **Eingabe** und ein **Erfolgskriterium** (woran erkennt man, dass die Aufgabe gelöst ist?).
 
-1. **Capability-Evals** fragen: Was kann der Agent inzwischen? Die Passrate darf am Anfang niedrig sein. Das ist der Hügel, den ihr klettert.
-2. **Regression-Evals** fragen: Kann er noch, was er konnte? Die Passrate soll nahe 100 Prozent liegen. Fällt sie, ist etwas kaputt — nicht „das Modell ist kreativer geworden“.
+- **Trial** (Versuch) — Ein einzelner Durchlauf eines Tasks. Weil KI-Modelle bei jeder Ausführung leicht unterschiedliche Ergebnisse liefern (sie sind „nicht-deterministisch"), ist *ein* Versuch nur eine Anekdote. Erst **fünf oder mehr Versuche** zeigen ein belastbares Muster. Stell dir vor, du testest, ob ein Würfel fair ist — einmal werfen sagt nichts, hundertmal werfen schon.
 
-Tasks, die dauerhaft grün sind, **graduieren** in die Regression-Suite. Genau so vermeidest du, dass ihr an einem neuen Trick arbeitet und still den Checkout zerlegt.
+- **Grader** (Bewerter) — Die Logik, die entscheidet, ob das Ergebnis gut oder schlecht war. Das kann ein Programm sein (z. B. „laufen die Tests durch?"), ein anderes KI-Modell (dazu mehr in der nächsten Lektion) oder ein Mensch. Ein Task darf mehrere Grader haben — genau wie eine Klassenarbeit mehrere Bewertungskriterien hat.
 
-## Für Coding-Agents zuerst Code-Grader
+- **Transcript** (Protokoll) — Der vollständige Verlauf dessen, was der Agent getan hat: welche Fragen er gestellt hat, welche Werkzeuge (Tools) er benutzt hat, welche Antworten er gegeben hat. Wichtig: „Der Agent hat Ja gesagt" ist nicht dasselbe wie „in der Datenbank steht tatsächlich eine Buchung". Das Protokoll zeigt den Weg, nicht nur das Ergebnis.
 
-Software hat den Vorteil, den Chatbots nicht haben: der Compiler und die Testsuite sind billige, objektive Grader. SWE-bench bewertet genau so — fail-to-pass, ohne bestehende Tests zu brechen. Dein Minimum für Angebot 3 ist deshalb nicht ein Dashboard mit Smileys, sondern:
+- **Outcome** (Ergebnis) — Der tatsächliche Zustand der Welt nach dem Lauf. Für Coding-Agents (KI-Agenten, die Programmcode schreiben): Laufen die Tests? Wie sieht der geänderte Code aus? Welche Dateien existieren? Das Outcome ist die Realität, nicht die Behauptung des Agenten.
 
-1. eine kleine Bank echter Tickets oder synthetischer Bugs aus dem Kundenrepo,
-2. ein Fixture (Repo-Stand, Testdaten, Secrets als Dummies),
-3. ein **deterministischer** Grader: Testsuite, Typecheck, Lint, Secret-Scan,
-4. erst danach ein Modell-Grader für Dinge, die Tests nicht sehen (Überengineering, falsche Abstraktion, ignorierte Rules).
+- **Harness** (Testrahmen) — Die technische Infrastruktur, die alle Tasks parallel ausführt, aufzeichnet und die Ergebnisse zusammenfasst. Wie eine Testmaschine in einer Fabrik, die hundert Teile gleichzeitig prüfen kann.
 
-OpenAI beschreibt denselben Zyklus als Flywheel: Produktionsfehler einsammeln, in die Eval-Menge heben, Prompt oder Gate ändern, erneut messen. Wer nur Gold-Beispiele aus dem Onboarding hat, misst Demo-Qualität. Wer Traces aus Production sampelt, misst Kundenqualität.
+### Ein entscheidender Punkt für das Kundengespräch
+
+Du evaluierst immer **Modell plus Harness zusammen**. Das bedeutet: Dasselbe KI-Modell (z. B. Claude) verhält sich unterschiedlich, je nachdem welche Regeln, welcher Kontext und welche Werkzeuge drumherum eingerichtet sind. Claude Code ohne eure projektspezifischen Rules ist ein *anderes System* als Claude Code mit euren Rules.
+
+Wenn jemand sagt „Wir haben GPT-x getestet", hat er oft nur das nackte Modell getestet — nicht das System, das am Ende tatsächlich im Team läuft. Das ist so, als würdest du einen Motor auf dem Prüfstand testen, aber nie im fertigen Auto fahren.
+
+## Zwei Sorten von Evals: Capability und Regression
+
+Ein häufiger Fehler: Alle Tests in einen Topf werfen und eine einzige Zahl draus machen. Professionelle Eval-Systeme unterscheiden zwei Kategorien, und diese Unterscheidung ist für die Qualitätssicherung entscheidend:
+
+### 1. Capability-Evals (Was kann der Agent inzwischen?)
+
+Diese Evals fragen: „Welche neuen Fähigkeiten hat der Agent gelernt?" Die Erfolgsquote darf am Anfang niedrig sein — das ist der Hügel, den ihr klettert. Stell dir eine Checkliste mit schwierigen Aufgaben vor: Anfangs schafft der Agent nur 3 von 10. Nächsten Monat 5 von 10. Das ist Fortschritt, sichtbar gemacht.
+
+### 2. Regression-Evals (Kann er noch, was er konnte?)
+
+Diese Evals fragen: „Funktioniert alles noch, was letzte Woche funktioniert hat?" Die Erfolgsquote soll **nahe 100 Prozent** liegen. Fällt sie, ist etwas kaputt — nicht „das Modell ist kreativer geworden".
+
+Eine Analogie: Stell dir vor, du trainierst für einen Marathon. Capability ist deine neue Bestzeit. Regression ist: Kannst du noch Treppen steigen, ohne außer Atem zu geraten? Beides muss stimmen.
+
+Tasks, die dauerhaft grün sind (also immer bestanden werden), **graduieren** von der Capability- in die Regression-Suite. So vermeidest du, dass ihr an einem neuen Feature arbeitet und dabei still den Login-Prozess zerlegt.
+
+## Für Coding-Agents: Code-Grader zuerst
+
+Software hat einen riesigen Vorteil gegenüber Chat-Anwendungen: Der Compiler (das Programm, das prüft ob der Code gültig ist) und die automatischen Tests sind **billige, objektive Grader**. Sie lügen nicht, sie haben keine Meinung, sie liefern eindeutige Ergebnisse.
+
+SWE-bench (ein bekannter Benchmark, also Vergleichstest, für Coding-Agents) bewertet genau so: Hat der Agent den Test, der vorher fehlgeschlagen ist, zum Laufen gebracht — ohne dabei bestehende Tests kaputt zu machen?
+
+Dein Minimum für ein professionelles Eval-Setup ist deshalb:
+
+1. **Eine kleine Sammlung echter Aufgaben** — echte Tickets oder künstlich erzeugte Bugs aus dem Code des Kunden.
+2. **Ein Fixture** (ein definierter Ausgangszustand) — eine bestimmte Version des Code-Projekts, dazu Testdaten und Platzhalter-Passwörter statt echter Zugangsdaten.
+3. **Ein deterministischer Grader** (ein Bewerter, der immer dasselbe Ergebnis liefert): Testsuite, Typ-Prüfung (TypeCheck — prüft, ob die Datentypen im Code stimmen), Lint (ein Werkzeug, das Code-Stil und häufige Fehler prüft), und ein Secret-Scan (prüft, ob versehentlich Passwörter oder API-Schlüssel im Code stehen).
+4. **Erst danach ein Modell-Grader** — ein zweites KI-Modell, das Dinge bewertet, die Tests nicht sehen können: Hat der Agent den Code unnötig kompliziert gemacht? Hat er eine falsche Architekturentscheidung getroffen? Hat er Regeln ignoriert?
+
+### Der Eval-Flywheel: Wie Qualität sich aufbaut
+
+OpenAI beschreibt diesen Kreislauf als **Flywheel** (Schwungrad): Fehler, die in der Produktion (also im echten Betrieb) auftreten, werden eingesammelt und in neue Testfälle verwandelt. Dann wird der Prompt oder ein Gate (eine Prüfstation) angepasst und erneut gemessen.
+
+Stell dir ein Schwungrad vor: Mit jedem Fehler, den du als Testfall aufnimmst, dreht sich das Rad schneller — die Qualität verbessert sich von selbst, weil du systematisch aus Fehlern lernst.
+
+Wer nur perfekte Beispiele aus der Onboarding-Demo als Testfälle hat, misst **Demo-Qualität**. Wer echte Daten aus dem laufenden Betrieb nimmt, misst **Kunden-Qualität**. Der Unterschied ist wie zwischen einem Bewerbungsgespräch und dem echten Arbeitsalltag.
 
 <Merksatz>
-Ein Eval ist Input plus Grader plus Schwelle — wiederholt. „Sieht gut aus“ ist kein Grader. Ohne Regression-Suite ist jedes Modell-Upgrade ein Blindflug.
+Ein Eval ist Input plus Grader plus Schwelle — wiederholt. „Sieht gut aus" ist kein Grader. Ohne Regression-Suite ist jedes Modell-Upgrade ein Blindflug.
 </Merksatz>
 
 <Quelle

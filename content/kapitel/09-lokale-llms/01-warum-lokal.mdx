@@ -1,38 +1,90 @@
 ---
 titel: Warum lokal — Datenschutz, Kosten, Offline, Demos
-dauerMinuten: 14
+dauerMinuten: 24
 zusammenfassung: Lokale Modelle lösen echte Constraints. Sie ersetzen keine Frontier-Cloud für Agent-Arbeit im großen Repo.
 reihenfolge: 1
 ---
 
-Lokale LLMs sind der Bonus im OneCode-Gespräch, nicht Angebot 1. Wer sie als „wir sind genauso gut wie Claude, nur ohne Rechnung“ verkauft, verbrennt Vertrauen in den ersten fünf Minuten. Wer sie als **gezieltes Werkzeug für vier Constraints** verkauft, klingt wie jemand, der Hardware und Compliance verstanden hat.
+## Was bedeutet „lokales LLM"?
+
+Wenn du ChatGPT, Claude oder Gemini benutzt, schickst du deine Texte über das Internet an einen Server eines großen Anbieters. Das Modell läuft dort — in der **Cloud** (auf fremden Computern in einem Rechenzentrum). Deine Daten verlassen deinen Rechner.
+
+Ein **lokales LLM** (Large Language Model — großes Sprachmodell) hingegen läuft **direkt auf deinem eigenen Computer**: auf deinem Laptop, deiner Workstation oder einem Server in deinem Büro. Deine Daten bleiben bei dir. Kein Internet nötig, kein externer Anbieter involviert.
+
+Stell dir den Unterschied so vor: Cloud-KI ist wie ein Restaurant — jemand anderes kocht, du musst hinfahren und bezahlen, aber das Essen ist professionell. Lokale KI ist wie Kochen zu Hause — du brauchst eigene Geräte und Zutaten, behältst aber die volle Kontrolle und niemand schaut dir über die Schulter.
 
 ## Vier Gründe, die ein CTO unterschreibt
 
-1. **Datenschutz und Residenz.** Prompts, Diffs, Kundencode verlassen die Maschine nicht. Für Behörden, Health, Legal, Air-Gap-Zonen und paranoid regulierte Mittelständler ist das oft die *einzige* Tür, durch die ein LLM überhaupt darf. Das ist kein Lifestyle, das ist Vertrag.
-2. **Kosten bei Wiederholung.** Ein 70B-Cloud-Call für jedes interne Changelog ist Verschwendung. Kleine lokale Modelle für Klassifikation, Commit-Messages, Boilerplate, Routing sind günstig, sobald die GPU abgeschrieben ist. Die Schwelle liegt bei Volumen und Vorhersagbarkeit, nicht beim ersten PoC.
-3. **Offline und Souveränität.** Zug, Kunden-WLAN, Demo auf der Bühne, Incident während der Provider-Outage. Ein lokales Modell, das in 800 ms den nächsten Satz vorschlägt, schlägt ein Spinner-UI mit 503.
-4. **Demos und Enablement.** Founder wollen „AI“ sehen, ohne dass ihr in der Session einen API-Key des Kunden in `.env` legt. Ein Laptop mit Ollama ist eine Bühne. Die Cloud kommt, wenn der Vertrag und das Gate stehen.
+Lokale Modelle sind kein Selbstzweck. Sie sind ein gezieltes Werkzeug für vier konkrete Situationen:
+
+### 1. Datenschutz und Datenresidenz
+
+**Datenresidenz** bedeutet: Wo dürfen die Daten physisch gespeichert und verarbeitet werden? Für manche Unternehmen und Branchen ist die Antwort: „Nirgendwo außerhalb unserer eigenen Infrastruktur."
+
+Wenn du ein KI-Modell in der Cloud benutzt, schickst du den **Quellcode** deines Unternehmens, **Tickettexte** (Aufgabenbeschreibungen aus dem Projektmanagement), interne Dokumente und möglicherweise **Kundendaten** an einen fremden Server. Für Behörden, Gesundheitswesen, Rechtsabteilungen, militärische Bereiche (Air-Gap-Zonen — komplett vom Internet getrennte Netzwerke) und streng regulierte Mittelständler ist das oft **die einzige Tür**, durch die ein KI-Modell überhaupt darf: Es muss lokal laufen.
+
+Das ist kein Lifestyle — das ist Vertrag. Manchmal sogar Gesetz.
+
+### 2. Kosten bei Wiederholung
+
+Jeder Aufruf an ein Cloud-Modell kostet Geld — gemessen in **Tokens** (Textbausteine, die das Modell verarbeitet; grob entspricht ein Token etwa einem halben bis einem ganzen Wort). Für einen einmaligen schwierigen Refactoring-Aufruf ist das akzeptabel. Aber wenn du dasselbe Modell tausendfach am Tag für einfache Aufgaben nutzt — Commit-Messages schreiben, Code klassifizieren, Boilerplate generieren (Standardcode, der sich immer wiederholt) — dann summieren sich die Kosten schnell.
+
+Kleine lokale Modelle für solche Routine-Aufgaben sind **günstig**, sobald die Hardware (die Grafikkarte) einmal bezahlt ist. Die Schwelle liegt bei **Volumen und Vorhersagbarkeit** — nicht beim ersten Experiment.
+
+### 3. Offline und Souveränität
+
+Im Zug ohne Internet. Im Kunden-WLAN, das externen Datenverkehr blockiert. Auf der Bühne bei einer Demo, wo jede Sekunde Ladezeit peinlich ist. Während eines Ausfalls des Cloud-Anbieters.
+
+Ein lokales Modell, das in 800 Millisekunden den nächsten Satz vorschlägt, schlägt ein leeres UI mit dem Hinweis „Service unavailable" (Dienst nicht verfügbar).
+
+### 4. Demos und Enablement
+
+**Enablement** bedeutet: Menschen befähigen, ein neues Werkzeug zu verstehen und zu nutzen. Gründer und Stakeholder (Beteiligte) wollen „KI" sehen und ausprobieren, ohne dass dafür in einer Live-Session ein API-Key (ein geheimer Zugangscode für einen Cloud-Dienst) angelegt oder Kundendaten in die Cloud geschickt werden müssen.
+
+Ein Laptop mit einer lokalen KI ist eine Bühne. Die Cloud kommt, wenn der Vertrag und die Sicherheits-Gates stehen.
 
 ## Der Satz, den du nicht sagst
 
-Nicht: „Lokal ist inzwischen gleichwertig.“  
-Sondern: „Lokal ist gut genug für X. Für agentisches Refactoring über Modulgrenzen, hartes Reasoning und Tool-Use im großen Repo bleiben Frontier-Modelle in der Cloud vorn — mit euren Gates.“
+**Nicht:** „Lokal ist inzwischen gleichwertig mit der Cloud."
 
-Der Qualitätsabstand ist 2026 kleiner als 2023 und immer noch real: Instruction-Following, lange Contexts, zuverlässige Tool-Calls, SWE-bench-ähnliche Arbeit. Ein 14B Q4 auf 12 GB VRAM ist ein nützlicher Kollege für lokale Snippets. Er ist kein Ersatz für das System aus Angebot 1.
+**Sondern:** „Lokal ist gut genug für X. Für agentisches Refactoring über Modulgrenzen (wenn der Agent Code in mehreren Dateien gleichzeitig ändern muss), hartes Reasoning (schwierige Denk- und Planungsaufgaben) und Tool-Use (Werkzeugbenutzung) in großen Projekten bleiben Frontier-Modelle (die leistungsstärksten, neuesten Modelle) in der Cloud vorn — mit euren Gates."
+
+Der Qualitätsabstand zwischen lokal und Cloud ist 2026 kleiner als 2023 — aber er ist **immer noch real**. Besonders bei:
+- **Instruction-Following** — das Befolgen komplexer, mehrstufiger Anweisungen
+- **Langen Kontexten** — große Codebases, die das Modell gleichzeitig „sehen" muss
+- **Zuverlässigen Tool-Calls** — das Modell muss Werkzeuge korrekt aufrufen, nicht nur Text generieren
+- **SWE-bench-ähnlicher Arbeit** — komplexe, zusammenhängende Software-Engineering-Aufgaben
+
+Ein 14B-Modell (14 Milliarden Parameter — ein mittelgroßes Modell) in Q4-Quantisierung (reduzierte Genauigkeit, dazu mehr in Lektion 3) auf 12 GB VRAM (Video-RAM — der Speicher der Grafikkarte) ist ein nützlicher Helfer für lokale Code-Schnipsel. Er ist **kein Ersatz** für das System, das ihr als Angebot 1 verkauft.
 
 ## Wie lokal ins Portfolio passt
 
-- **Angebot 1** kann eine lokale Spur enthalten: Embedding, Routing, Pre-Commit-Checks ohne Datenabfluss.
-- **Angebot 2** (Vibe → Production) ist fast immer Cloud plus Gates; lokal höchstens für den Audit-Workspace des Kunden, wenn Code die Firma nicht verlassen darf.
-- **Angebot 3** profitiert von lokalen Judges oder Red-Team-Modellen hinter der Firewall — wiederum ehrlich: der Judge ist so gut wie das Modell.
+- **Angebot 1** (AI-Native Delivery System) kann eine lokale Spur enthalten: Embedding (Textumwandlung in Zahlenvektoren für Suche), Routing (Entscheidung, welches Modell welche Aufgabe übernimmt), Pre-Commit-Checks (Prüfungen vor dem Einreichen von Code) ohne Datenabfluss.
 
-Was lokal *nicht* löst, damit der Bonus nicht das Hauptangebot frisst: keine evaluierten Gates, keine MCP-Härte, keine Production-Observability. Ein Laptop-Modell ohne Trace ist dasselbe Blindflug-Problem wie Cloud ohne Langfuse — nur billiger und stiller. Deshalb bleibt Kapitel 8 die Pflicht, sobald Code merget; Kapitel 9 ist die Spur, auf der Daten nicht in die Cloud müssen.
+- **Angebot 2** (Vibe → Production) ist fast immer Cloud plus Gates. Lokal höchstens für den Audit-Workspace des Kunden, wenn Code die Firma nicht verlassen darf.
 
-Discovery-Frage, die du mitnimmst: „Darf Quellcode und Tickettext eure VPC bzw. euren Laptop verlassen — ja, nein, nur anonymisiert?“ Die Antwort entscheidet, ob lokal Pflicht, Nice-to-have oder Zeitverschwendung ist. Eine zweite, ehrliche Frage: „Wollt ihr lokal, weil Compliance — oder weil die Cloud-Rechnung weh tut?“ Das erste ist Architektur. Das zweite ist oft ein Routing-Problem (kleine Cloud-Modelle, Cache), kein 70B auf der NAS.
+- **Angebot 3** (Quality Gates) profitiert von lokalen Judges (Bewertungsmodellen) oder Red-Team-Modellen (Modelle, die gezielt Schwachstellen suchen) hinter der Firewall (der Netzwerkgrenze des Unternehmens). Aber ehrlich: Der Judge ist nur so gut wie das Modell.
+
+### Was lokal *nicht* löst
+
+Damit der Bonus nicht das Hauptangebot frisst: Lokale Modelle liefern keine evaluierten Gates, keine MCP-Härtung (Absicherung externer Werkzeug-Verbindungen), keine Production-Observability (Überwachung im Echteinsatz). Ein Laptop-Modell ohne Trace ist dasselbe Blindflug-Problem wie ein Cloud-Modell ohne Langfuse — nur billiger und stiller.
+
+Deshalb bleibt Kapitel 8 die Pflicht, sobald Code gemerget wird. Kapitel 9 ist die Spur, auf der Daten nicht in die Cloud müssen.
+
+## Die Discovery-Frage, die du mitnimmst
+
+Zwei Fragen an den Kunden:
+
+1. **„Darf Quellcode und Tickettext eure VPC bzw. euren Laptop verlassen — ja, nein, nur anonymisiert?"** (VPC = Virtual Private Cloud — der abgeschirmte Cloud-Bereich eines Unternehmens)
+
+Die Antwort entscheidet, ob lokal **Pflicht**, Nice-to-have oder Zeitverschwendung ist.
+
+2. **„Wollt ihr lokal, weil Compliance — oder weil die Cloud-Rechnung weh tut?"**
+
+Das erste ist Architektur. Das zweite ist oft ein **Routing-Problem** (kleine Cloud-Modelle, Cache statt großer Modelle), kein 70B-Modell auf der NAS (Network Attached Storage — ein Netzwerk-Speichergerät).
 
 <Merksatz>
-Lokal löst Daten, Offline, Demo und wiederholte Billig-Tasks. Es löst nicht „wir brauchen Opus-Qualität ohne Cloud“. Wer das vermischt, verkauft Magie.
+Lokal löst Daten, Offline, Demo und wiederholte Billig-Tasks. Es löst nicht „wir brauchen Opus-Qualität ohne Cloud". Wer das vermischt, verkauft Magie.
 </Merksatz>
 
 <Quelle

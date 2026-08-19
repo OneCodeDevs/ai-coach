@@ -1,47 +1,118 @@
 ---
 titel: Vorbereitung auf das simulierte CTO-Interview
-dauerMinuten: 16
+dauerMinuten: 28
 zusammenfassung: "Der Tutor grillt wie ein skeptischer CTO — Gates, MCP, Evals, Vibe-Audit. Keine Folien, kurze wahrhaftige Sätze."
 reihenfolge: 5
 ---
 
-Ab hier spricht der Tutor nicht mehr als Lehrer. Er spielt den CTO, der schon zwei Vendor-Demos überlebt hat, Copilot bezahlt, und in 20 Minuten merkt, ob du substanz oder Slides verkaufst. Deine Aufgabe ist nicht, ihn zu beeindrucken. Deine Aufgabe ist, **ein Angebot zu wählen**, ein Gate zu benennen, und bei Unwissenheit nicht zu halluzinieren.
+## Was ist das CTO-Interview?
 
-## Worauf er bohrt
+In dieser Lektion bereiten wir dich auf eine **Simulation** vor: Der Tutor (die KI auf dieser Plattform) schlüpft in die Rolle eines skeptischen CTO (Chief Technology Officer — der technische Leiter eines Unternehmens). Er hat schon zwei Vendor-Demos (Produktvorstellungen von Anbietern) überlebt, bezahlt Copilot (Microsofts KI-Programmier-Assistent), und merkt in 20 Minuten, ob du Substanz oder nur Folien verkaufst.
 
-**Gates.** „Was stoppt den Merge?“ Wenn du „Best Practices“ sagst, hast du verloren. Sag: required Test, Secret-Scan, Eval-Smoke, CODEOWNERS auf `auth/`. Tripwire vor Shell mit Prod-Token. Mensch vor Migration. Kapitel 8 ist die Munition.
+Stell dir ein Bewerbungsgespräch vor — nur dass du nicht für einen Job kandidierst, sondern dafür, mit dem Unternehmen des CTO zusammenzuarbeiten. Er will keine PowerPoint-Präsentation. Er will kurze, wahrhaftige Sätze. Und er testet, ob du **Nein** sagen kannst.
 
-**MCP.** Er will hören, dass MCP ein **Tool-Kanal mit Trust-Grenze** ist, kein USB-Segen. Neue Server sind Excessive Agency. Allowlist im Repo, Least Privilege, kein wildes `npx` aus einem Blogpost. Claude Code verlangt Trust für neue MCP-Server — genau diese Intuition.
+Deine Aufgabe ist nicht, ihn zu beeindrucken. Deine Aufgabe ist:
+1. **Ein Angebot wählen** (nicht drei gleichzeitig)
+2. **Ein Gate benennen** (konkret, nicht „Best Practices")
+3. **Bei Unwissenheit nicht halluzinieren** (erfinden)
 
-**Evals.** Er hasst „wir prompten bis es gut ist“. Du: Task, Grader, Regression vs. Capability, Flywheel aus Production-Fails. Coding: zuerst Tests. Judge nur kalibriert. Wenn du kein Eval-Beispiel aus *seinem* Domain-Schnitt bauen kannst, sag wie du in Woche eins die ersten zehn Tasks schneiden würdest.
+## Worauf der CTO bohrt
 
-**Vibe-Code-Audit (Angebot 2).** Er behauptet, der Prototyp „läuft bei Kunden“. Du: eine Woche Audit — Architektur, Datenmodell, Auth, Dependencies — Risikoliste mit Aufwand. Dann Umbau der tragenden Pfade, nicht Cosmetics. Übergabe mit Rules und Context Files. IESE: Vibe ist Prototyping, nicht Production-Prozess. Du versprichst keine Grüne-Wiese-Neuschreibung in drei Tagen.
+### Gates — „Was stoppt den Merge?"
 
-## Format, das sitzt
+Wenn du auf diese Frage „Best Practices" antwortest, hast du verloren. Das ist zu vage — jeder sagt „Best Practices".
 
-1. **90-Sekunden-Unterscheidung** 1 vs. 2 vs. 3 (Lektion 1). Copilot ist in keinem der drei.
-2. **Eine Discovery-Frage**, dann zuhören. Nicht drei Fragen hintereinander als Verhör.
-3. **Ein Einwand** (meist Copilot oder Risiko). Struktur aus Lektion 3.
-4. **Eine Pflicht** aus Art. 4 oder Transparenz, plus der Disclaimer keine Rechtsberatung.
-5. **Ein Nein.** „Das ist nicht Angebot 2.“ CTOs testen, ob du Scope halten kannst.
+Was der CTO hören will — konkretes aus Kapitel 8:
+- **Required Tests** — automatische Tests, die bestanden werden müssen
+- **Secret-Scan** — automatische Suche nach Passwörtern im Code
+- **Eval-Smoke** — ein schneller Bewertungslauf bei jedem Pull Request
+- **CODEOWNERS auf `auth/`** — eine Konfiguration, die festlegt, dass Änderungen am Login-Code von einer bestimmten Person freigegeben werden müssen
+- **Tripwire** (Sicherheits-Alarm) vor Shell-Befehlen mit Produktions-Zugangsdaten
+- **Mensch vor Migration** — menschliche Freigabe, bevor die Datenbankstruktur geändert wird
 
-## Sätze, die du übst (laut)
+Kapitel 8 ist die Munition für diese Frage. Wenn du es verinnerlicht hast, kannst du für jede Situation das passende Gate benennen.
 
-- „Tools habt ihr. Das System im Repo habt ihr nicht — das ist Angebot 1.“
-- „Der Prototyp ist die Asset-Klasse. Wir härten die Lastpfade und übergeben agentenfähig — Angebot 2.“
-- „Agent-Code merget bei uns, wenn CI und ein benannter Mensch Ja sagen — Angebot 3.“
-- „Lokal ist Datenschutz und Demo, nicht heimlich Opus.“
-- „Dazu sage ich nichts Verbindliches, das muss euer Counsel an Art. X prüfen.“
+### MCP — „Was ist das und wie sichert ihr das ab?"
+
+**MCP** steht für **Model Context Protocol** — ein Standard, über den KI-Agenten auf externe Werkzeuge und Datenquellen zugreifen können. Stell dir MCP wie einen USB-Anschluss für KI vor: Du steckst verschiedene Werkzeuge an (Datenbank, Code-Repository, Projektmanagement-Tool), und der Agent kann sie nutzen.
+
+Der CTO will hören, dass MCP ein **Werkzeug-Kanal mit Vertrauensgrenze** (Trust Boundary) ist — nicht ein magischer Segen, der alles automatisch sicher macht.
+
+- **Neue MCP-Server** sind potenzielle Excessive Agency — jedes neue Werkzeug erweitert die Angriffsfläche
+- **Allowlist im Repo** — nur explizit erlaubte Werkzeuge
+- **Least Privilege** — jedes Werkzeug bekommt nur die minimalen Rechte
+- Kein wildes `npx` (Ausführen von Paketen aus dem Internet) aus einem Blogpost
+
+Claude Code verlangt explizite Vertrauensbestätigung für neue MCP-Server — genau diese Intuition soll man im Gespräch zeigen.
+
+### Evals — „Wie wisst ihr, dass der Agent besser wird?"
+
+Der CTO hasst „wir prompten bis es gut ist" (also: wir probieren verschiedene Anweisungen aus und hoffen, dass es funktioniert).
+
+Was du stattdessen sagst — aus Kapitel 8, Lektionen 1 und 2:
+- **Task, Grader, Regression vs. Capability** — die Grundbegriffe aus der Eval-Lektion
+- **Flywheel aus Production-Fails** — der Kreislauf: Fehler einsammeln → Testfall draus machen → System verbessern → erneut messen
+- **Für Coding: zuerst Tests** — automatische Tests sind der erste Grader
+- **Judge nur kalibriert** — ein KI-Richter nur mit Bewertungskriterien und menschlicher Überprüfung
+- Wenn du kein Eval-Beispiel aus *seinem* Fachgebiet bauen kannst: **Sag, wie du in Woche 1 die ersten zehn Tasks schneiden würdest** — das zeigt Methode, nicht Wissen
+
+### Vibe-Code-Audit (Angebot 2) — „Unser Prototyp läuft bei Kunden"
+
+Er behauptet, der Prototyp funktioniert. Deine Antwort — aus der Drei-Angebote-Lektion:
+
+1. **Eine Woche Audit** — Architektur, Datenmodell, Auth (Login/Berechtigungen), Dependencies (verwendete Bibliotheken). Ergebnis: Risikoliste mit geschätztem Aufwand.
+2. **Umbau der tragenden Pfade** — nicht Kosmetik, sondern die Stellen, an denen ein Fehler echten Schaden anrichtet
+3. **Übergabe mit Rules und Context Files** — damit der Agent im Repo weiterarbeiten kann, statt weitere technische Schulden aufzubauen
+
+Fraunhofer IESE sagt: Vibe Coding ist Prototyping, nicht Produktionsprozess. Du versprichst keine Grüne-Wiese-Neuschreibung in drei Tagen — du versprichst, die tragenden Wände tragend zu machen.
+
+## Das Format, das im Gespräch sitzt
+
+### 1. 90-Sekunden-Unterscheidung
+
+Die drei Angebote in 90 Sekunden erklären — in eigenen Worten, nicht auswendig aufgesagt. Copilot ist in keinem der drei Angebote.
+
+Tipp: Übe das laut. Nicht im Kopf, nicht schriftlich — **laut**. Die gesprochene Sprache ist kürzer und direkter als die geschriebene.
+
+### 2. Eine Discovery-Frage, dann zuhören
+
+Nicht drei Fragen hintereinander abfeuern wie ein Verhör. Eine Frage stellen, die Antwort **hören**, dann eine Nachfrage.
+
+**Discovery-Fragen** (Erkundungsfragen) sind Fragen, die den Zustand des Kunden enthüllen (siehe Lektion 2). Z. B.: „Läuft schon Last vor Kunden?"
+
+### 3. Ein Einwand — und die Struktur halten
+
+Meist kommt „Copilot" oder „Risiko". Die Struktur: Anerkennen → Präzisieren → In Pain mappen → Angebot oder Nein (siehe Lektion 3).
+
+### 4. Eine Pflicht aus dem AI Act
+
+Art. 4 (KI-Kompetenz) oder Transparenz (Art. 50), plus der Disclaimer: „Verbindlich sagt das euer Counsel, nicht ich." (Siehe Lektion 4.)
+
+### 5. Ein Nein
+
+„Das ist nicht Angebot 2." CTOs testen, ob du **Scope halten** kannst — ob du sagst, was du nicht tust, statt alles zu versprechen. Ein klares Nein zeigt Professionalität.
+
+## Sätze, die du übst (laut, vor dem Spiegel oder vor dem Mikro)
+
+- „Tools habt ihr. Das System im Repo habt ihr nicht — das ist Angebot 1."
+- „Der Prototyp ist das Asset. Wir härten die Lastpfade und übergeben agentenfähig — Angebot 2."
+- „Agent-Code mergt bei uns, wenn CI und ein benannter Mensch Ja sagen — Angebot 3."
+- „Lokal ist Datenschutz und Demo, nicht heimlich Opus."
+- „Dazu sage ich nichts Verbindliches, das muss euer Counsel an Art. X prüfen."
 
 ## Was als Fail gilt
 
-- Alle drei Angebote in ein SOW ohne Reihenfolge.
-- „Unser Modell halluziniert nicht.“
-- MCP als Feature-Liste ohne Permission-Modell.
-- AI Act als Angstverkauf („sonst Strafe in Milliarden“) ohne Artikel.
-- Eval als Synonym für „ein Praktikant klickt durch die UI“.
+Der Tutor bewertet dich nicht nach Charme, sondern nach Substanz. Diese Fehler sind Fails:
 
-Wenn der Tutor nachlegt, darfst du nachfragen: „Ist euer Schmerz Tempo oder Incidents?“ Das ist Discovery, kein Ausweichen. Wenn du die Kapitel 1–9 nur nachplapperst, ohne sie an *sein* Repo zu hängen, bist du noch nicht verkaufsbereit — dann noch einmal Lektion 1 und 8, nicht noch mehr Jargon.
+- **Alle drei Angebote in ein SOW ohne Reihenfolge** — SOW (Statement of Work) ist ein Vertragsdokument, das den Arbeitsumfang definiert. Alle drei reinzupacken heißt: Du hast nicht unterschieden.
+- **„Unser Modell halluziniert nicht."** — Jedes Modell kann halluzinieren. Das zu leugnen ist unehrlich.
+- **MCP als Feature-Liste ohne Permission-Modell** — Werkzeuge aufzählen, ohne zu erklären, wie sie abgesichert werden.
+- **AI Act als Angstverkauf** („sonst Strafe in Milliarden") ohne Artikel — Panikmache ohne Substanz.
+- **Eval als Synonym für „ein Praktikant klickt durch die UI"** — Das ist kein Eval, das ist Hoffnung.
+
+## Wenn der Tutor nachlegt
+
+Du darfst nachfragen: „Ist euer Schmerz Tempo oder Incidents?" Das ist Discovery, kein Ausweichen. Wenn du die Kapitel 1–9 nur nachplapperst, ohne sie an *sein* Unternehmen zu hängen, bist du noch nicht gesprächsbereit. Dann noch einmal Lektion 1 (drei Angebote) und Kapitel 8 (Quality Gates) — nicht noch mehr Fachbegriffe.
 
 <Merksatz>
 Der CTO kauft Unterscheidung, ein konkretes Gate und ein ehrliches Nein. Wer alles kann, kann nichts davon in seinem Sprint.
@@ -58,7 +129,7 @@ Der CTO kauft Unterscheidung, ein konkretes Gate und ein ehrliches Nein. Wer all
 <Quelle
   url="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"
   lang="en"
-  typ="Anthropic — Evals, wenn der CTO ‚messen‘ sagt"
+  typ="Anthropic — Evals, wenn der CTO ‚messen' sagt"
   dauer="20 Min"
   account={false}
   excerpt="Without evals you cannot tell a regression from noise. A skeptical buyer will ask how you know the agent got better. Answer with tasks, graders and a regression suite — not with vibes."

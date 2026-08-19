@@ -1,38 +1,67 @@
 ---
 titel: Human Quality Gates richtig platzieren
-dauerMinuten: 16
+dauerMinuten: 28
 zusammenfassung: Der Agent schreibt den Branch. Der Mensch entscheidet Merge, Geld und Irreversibles.
 reihenfolge: 3
 ---
 
-OneCode verkauft autonome Workflows *mit* Human Quality Gates, nicht Autonomie statt Menschen. Ein Gate ist eine Stelle, an der das System ohne explizite menschliche Entscheidung nicht weiter darf. Alles andere ist ein Check (Test, Linter, Policy-as-Code) und darf automatisch sein. Wenn du beides vermischt, sitzt entweder ein Mensch in jeder Kleinigkeit oder niemand an den teuren Stellen.
+Wenn ein KI-Agent autonom (also selbstständig) arbeitet, stellt sich sofort eine Frage: Wo darf er allein weitermachen — und wo muss ein Mensch draufschauen? Die Antwort darauf sind **Human Quality Gates** (menschliche Qualitäts-Kontrollpunkte).
 
-## Automatische Checks sind keine Gates
+## Was ein Gate ist — und was nicht
 
-CI, Schema-Validierung, Secret-Scan, „Evaluator“-Call gegen eine Checkliste: das sind Maschinenurteile. Sie dürfen blocken. Sie ersetzen nicht die Verantwortung für Produktverhalten, Architektur und Missbrauch. Anthropic bleibt bei Coding-Agents klar: Tests verifizieren Funktion, Menschen prüfen, ob die Lösung zur Systemanforderung passt.
+Ein **Gate** ist eine Stelle im Ablauf, an der das System *ohne explizite menschliche Entscheidung nicht weiter darf*. Der Agent liefert sein Ergebnis ab, und dann wartet er. Ein Mensch schaut drauf, sagt „ja" oder „nein", und erst dann geht es weiter.
 
-## Wo das Gate hingehört
+**Automatische Checks** dagegen sind Maschinenurteile: Laufen die Tests? Findet der Linter (ein Werkzeug, das Code auf Stilfehler und häufige Bugs prüft) Probleme? Enthält der Code versehentlich eingebaute Passwörter? Diese Checks dürfen automatisch laufen und automatisch blockieren. Sie ersetzen aber *nicht* die menschliche Verantwortung für Fragen wie: „Passt diese Lösung überhaupt zu unserem Produkt?" oder „Ist das die richtige Architektur?"
 
-Platziere Menschen, wo Rücknahme teuer oder unmöglich ist.
+**Der Unterschied ist entscheidend:** Wenn du beides vermischst, passiert eines von zwei Dingen:
+- Ein Mensch sitzt in jeder Kleinigkeit und wird zum Flaschenhals (alles dauert ewig).
+- Niemand schaut an den wirklich teuren Stellen hin (und es passieren teure Fehler).
 
-1. **Merge nach `main`.** Der Agent öffnet den PR, darf nicht selbst mergen, auch nicht mit Admin-Token. Branch Protection, required reviews, required status checks. Copilot als Reviewer zählt als zusätzliches Signal, nicht als der eine erforderliche Mensch, wenn eure Policy „zwei Augen“ heißt.
-2. **Produktion.** Deploy aus `main`, nicht aus Agent-Branches. Change an Auth, Payments, Datenlöschung, öffentliche API: zweites Gate oder explizite Owner-Freigabe.
-3. **Destruktive MCP-Tools.** Datenbank-Drop, Massenmail, Secret rotieren. Volle Parameter in der UI, Bestätigung, die das Modell nicht erzeugen kann.
-4. **Scope-Änderung.** Ticket sagt „Buttonfarbe“, Diff fasst Billing an: Mensch muss den Auftrag erweitern, nicht der Agent.
+## Wo ein Gate hingehört
 
-Nicht jedes Issue braucht alle vier. Ein Typo in der README braucht Review-light, aber immer noch keinen Push auf `main` durch den Bot.
+Die Faustregel: **Platziere Menschen dort, wo eine Rücknahme teuer oder unmöglich ist.**
 
-## Wo das Gate *nicht* hingehört
+### 1. Vor dem Merge nach `main`
 
-Nicht nach jeder Tool-Call in einer 40-Schritte-Sitzung. Dann kaufst du dir keine Qualität, sondern Warteschlangen. Nicht vor dem ersten Compile: der Agent soll in der Sandbox scheitern dürfen. Nicht „irgendwann im Chat“, ohne Artefakt. Ein Gate ohne Diff, ohne Checkliste, ohne Owner ist ein Nicken.
+Kurze Erklärung für Nicht-Entwickler: In der Software-Entwicklung gibt es eine zentrale Version des Codes, die `main` heißt (manchmal auch `master`). Das ist die „offizielle" Version. Wenn ein Agent Änderungen macht, arbeitet er auf einer Kopie — einem sogenannten **Branch** (Zweig). Erst wenn jemand diese Änderungen in `main` übernimmt (das nennt man **Merge**, also Zusammenführen), werden sie offiziell.
 
-Gute Gates sind **asynchron und artefaktgebunden**: PR, Preview-Deploy, Runbook-Checkbox. Der Mensch kommt, wenn die Maschine fertig ist, nicht während sie tippt. Genau das ist der Vorteil von Cloud Agents gegenüber IDE-Paarprogrammierung: die Arbeit liegt auf einem Branch, nachvollziehbar, reviewbar.
+Der Agent darf einen PR (Pull Request — eine Anfrage, die Änderungen zu übernehmen) öffnen. Aber er darf *nicht selbst mergen*, auch nicht mit einem Admin-Zugang. Das stellt man technisch über **Branch Protection** sicher — Regeln, die GitHub (oder ein anderes System) erzwingt: „Mindestens ein Mensch muss den Code geprüft haben", „Alle automatischen Tests müssen grün sein".
 
-## Formulierung im Vertrag
+Ein KI-Reviewer (zum Beispiel Copilot Code Review) darf zusätzlich prüfen. Aber er zählt als Bonus-Signal, nicht als Ersatz für den menschlichen Reviewer — wenn eure Regel „vier Augen" heißt, müssen zwei menschliche Augen dabei sein.
 
-„Autonom“ heißt: Agent darf recherchieren, branch erstellen, Tests in CI anstoßen, am Gate warten. „Human Quality Gate“ heißt: namentliche Rolle (Maintainer, Founder, Security) und ein verbales Kriterium (keine neuen öffentlichen Endpoints ohne Auth-Test). Wenn der Kunde „der Agent merget nachts“ will, ist das Angebot 3 (Quality Gate) plus bewusst akzeptiertes Risiko, nicht Default von Angebot 1.
+### 2. Vor der Produktion
 
-Schreib die Gates in Rules und Branch-Protection, nicht nur in den Workshop-Notes. Agents lesen `AGENTS.md`. GitHub erzwingt die Protection. Beides muss dieselbe Geschichte erzählen.
+**Produktion** (oder kurz „Prod") bedeutet: das echte System, das echte Nutzer verwenden. Alles, was dort ankommt, hat Konsequenzen. Deshalb:
+
+- Deployments (das Ausrollen neuer Software-Versionen) gehen aus `main`, nicht aus Agent-Branches.
+- Änderungen an besonders sensiblen Bereichen — Authentifizierung (Login), Zahlungen, Datenlöschung, öffentliche API — brauchen ein zusätzliches Gate oder eine explizite Freigabe durch den Verantwortlichen.
+
+### 3. Vor destruktiven Werkzeug-Aufrufen
+
+Manche Aktionen kann man nicht rückgängig machen: eine Datenbank löschen, eine Massenmail versenden, ein Secret (Zugangsdaten) rotieren (also die alten ungültig machen und neue erstellen). Solche Aktionen brauchen eine Bestätigungsoberfläche, die dem Menschen die vollständigen Parameter zeigt — und die das KI-Modell *nicht selbst erzeugen oder umgehen kann*.
+
+### 4. Bei Scope-Änderungen
+
+**Scope** (Umfang) ist das, was der Auftrag umfasst. Wenn das Ticket sagt „Ändere die Buttonfarbe", aber der Agent plötzlich auch die Zahlungslogik anfasst — dann hat er den Scope eigenmächtig erweitert. Das darf nicht automatisch passieren. Ein Mensch muss den Auftrag erweitern, nicht der Agent.
+
+Nicht jedes Issue braucht alle vier Gates. Ein Tippfehler in der README braucht nur ein lockeres Review — aber trotzdem darf der Agent nicht direkt auf `main` pushen.
+
+## Wo ein Gate *nicht* hingehört
+
+- **Nicht nach jedem einzelnen Schritt** in einer 40-Schritte-Sitzung. Dann kaufst du dir keine Qualität, sondern eine Warteschlange. Der Agent soll arbeiten können.
+- **Nicht vor dem ersten Compile** (Übersetzen des Codes in eine lauffähige Form). Der Agent soll in seiner geschützten Umgebung (Sandbox) scheitern und es erneut versuchen dürfen — das ist der Lernprozess.
+- **Nicht „irgendwann im Chat"**, ohne ein konkretes Ergebnis. Ein Gate ohne einen Diff (die sichtbaren Änderungen), ohne eine Checkliste und ohne einen Verantwortlichen ist nur ein Kopfnicken — es bringt keine Qualität.
+
+Gute Gates sind **asynchron und ergebnisgebunden**: Der Agent erzeugt ein Artefakt (einen PR, ein Preview-Deployment, eine ausgefüllte Checkliste). Der Mensch kommt, wenn die Maschine fertig ist — nicht während sie tippt. Genau das ist der Vorteil von Cloud-Agenten gegenüber Paar-Programmierung in der IDE: Die Arbeit liegt auf einem Branch, nachvollziehbar und reviewbar.
+
+## Gates in der Praxis verankern
+
+Es reicht nicht, Gates mündlich zu vereinbaren. Sie müssen an zwei Stellen stehen:
+
+1. **In den Repository-Regeln:** `AGENTS.md` (eine Datei, die Agenten lesen und befolgen) enthält: „Keine neuen öffentlichen Endpunkte ohne Auth-Test." Branch Protection in GitHub erzwingt: „Mindestens ein Review, alle Checks grün."
+2. **Im Vertrag oder der Projektvereinbarung:** „Autonom" heißt: Der Agent darf recherchieren, einen Branch erstellen und Tests in der CI anstoßen — aber am Gate wartet er. „Human Quality Gate" heißt: Eine namentlich benannte Rolle (Maintainer, Gründer, Security-Verantwortlicher) mit einem klar formulierten Kriterium.
+
+Wenn beide Quellen — die technische Konfiguration und die menschliche Vereinbarung — dieselbe Geschichte erzählen, funktionieren Gates. Wenn sie sich widersprechen, gewinnt meistens der Pfad des geringsten Widerstands — und das ist selten der sichere.
 
 <Merksatz>
 Maschinen prüfen, was maschinell prüfbar ist. Menschen stehen vor Merge, Prod und Irreversiblem. Der Agent wartet am Artefakt, er umgeht das Gate nicht mit einem überzeugenden Absatz.

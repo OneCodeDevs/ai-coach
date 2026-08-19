@@ -1,34 +1,74 @@
 ---
 titel: Dependencies und Supply Chain
-dauerMinuten: 14
+dauerMinuten: 24
 zusammenfassung: Halluzinierte Pakete, ungepinntes latest und ein Postinstall, das eure Secrets sieht.
 reihenfolge: 4
 ---
 
-Fraunhofer nennt Halluzinationen inkl. erfundener Abhängigkeiten beim Namen. Im Audit ist `package.json` (und das Analogon in Python/Go) deshalb kein Nebenkriegsschauplatz. Der Agent hat „das übliche Stack“ zusammengestellt: oft fünf Libraries für dasselbe, zwei tote GitHub-User, eine SDK-Version, die das Tutorial vor einem Jahr zeigte.
+Jede moderne Software besteht zu einem großen Teil nicht aus eigenem Code, sondern aus **Dependencies** (Abhängigkeiten) — also Pakete, Bibliotheken und Module, die andere Leute geschrieben haben und die man in sein Projekt einbaut. Das ist normal und sinnvoll: Niemand schreibt eine Datumsbibliothek oder einen HTTP-Server von Grund auf neu.
 
-## Was du in vier Stunden siehst
+Aber: Jede Dependency ist auch fremder Code, der auf eurem Server oder im Browser eurer Nutzer ausgeführt wird. Wenn in diesem fremden Code ein Sicherheitsproblem steckt oder jemand absichtlich Schadsoftware einschleust, betrifft das euer Produkt. Das nennt man ein **Supply-Chain-Risiko** (Lieferketten-Risiko) — ein Problem, das nicht aus eurem eigenen Code kommt, sondern aus der Kette von Zulieferern.
 
-- **Lockfile existiert und ist committed.** Ohne Lockfile ist Production nicht reproduzierbar. `npm install` nächste Woche ist ein anderes Produkt.
-- **Jeder Direct Dependency ein Grund.** „Haben wir je `moment` und `dayjs` und `date-fns` gebraucht?“ Vibe stapelt, löscht selten.
-- **Typosquatting und Phantom-Packages.** Namen, die *fast* stimmen. Pakete, die nicht existieren, aber im Chat als installiert behauptet wurden; oder existieren und seit Jahren ungepflegt sind. Installiert ihr sie trotzdem, ist die Supply Chain euer Incident.
-- **Install-Skripte.** `postinstall`, die Binaries nachladen. In CI und auf Laptops der Founder.
-- **Öffentliche vs. interne Registry.** `.npmrc` mit Token im Repo ist Secret-Leak plus Supply-Chain in einem.
-- **Lizenzen.** GPL in einem SaaS-MVP, Copy-Paste aus Stack Overflow, Modell-Output ohne Herkunft. Das ist Legal, nicht Geschmack.
-- **AI-SDK und MCP-Server** als Dependencies: Version pinnen, wie in [MCP-Sicherheit](/kapitel/mcp). `@latest` in der MCP-Config ist dasselbe Problem in anderem File.
+## Warum das bei Vibe Coding besonders relevant ist
+
+Fraunhofer nennt **Halluzinationen** (das Erfinden von Dingen durch KI-Modelle) explizit auch im Zusammenhang mit Dependencies. Der Agent hat „den üblichen Stack" zusammengestellt — aber „üblich" nach seinen Trainingsdaten, nicht nach der Realität eures Projekts. Typische Ergebnisse:
+
+- Fünf verschiedene Bibliotheken für dasselbe Problem (z. B. `moment`, `dayjs` *und* `date-fns` für Datumsformatierung — eine hätte gereicht).
+- Pakete von Entwicklern, die ihr GitHub-Konto seit Jahren nicht mehr pflegen.
+- Eine SDK-Version, die in einem Tutorial vor einem Jahr verwendet wurde, aber inzwischen veraltet oder unsicher ist.
+- Pakete, die der Agent als installiert *behauptet* hat, die aber gar nicht existieren — sogenannte **Phantom Packages**. Wenn jemand ein Paket mit genau diesem Namen registriert und Schadcode einbaut, installiert ihr es trotzdem.
+
+## Was du in vier Stunden prüfst
+
+### 1. Lockfile vorhanden und eingecheckt?
+
+Die **Manifest-Datei** (z. B. `package.json` bei JavaScript, `requirements.txt` bei Python, `go.mod` bei Go) sagt: „Ich brauche Paket X." Das **Lockfile** (z. B. `package-lock.json` oder `yarn.lock`) sagt: „Und zwar genau Version 2.3.1, mit genau diesen Unter-Abhängigkeiten in genau diesen Versionen."
+
+Ohne Lockfile ist jede Installation ein Glücksspiel: `npm install` heute liefert andere Versionen als `npm install` nächste Woche. Euer Produkt in Produktion wäre nicht reproduzierbar — was heute funktioniert, könnte morgen kaputt sein, ohne dass sich am eigenen Code etwas geändert hat.
+
+### 2. Jede direkte Abhängigkeit begründet?
+
+Öffne die Manifest-Datei und frage bei jeder Dependency: Brauchen wir die? Wird sie tatsächlich im Code importiert? Vibe Coding stapelt Pakete und löscht selten — weil jede Chat-Sitzung ihr eigenes „damit es funktioniert" eingebaut hat.
+
+### 3. Typosquatting und Phantom-Packages
+
+**Typosquatting** bedeutet: Jemand registriert ein Paket mit einem Namen, der einem beliebten Paket *fast* gleicht — z. B. `lodsah` statt `lodash`. Wenn jemand (oder ein Agent) den Namen falsch tippt, wird das Schadpaket installiert.
+
+**Phantom Packages** sind noch hinterhältiger: Der Agent nennt ein Paket, das nicht existiert. Solange es nicht existiert, passiert beim Installieren ein Fehler. Aber wenn ein Angreifer dann genau dieses Paket mit Schadcode veröffentlicht, installieren alle, die es versuchen, den Schadcode.
+
+### 4. Install-Skripte prüfen
+
+Manche Pakete führen beim Installieren automatisch Skripte aus — sogenannte `postinstall`-Skripte. Diese Skripte können alles tun: Dateien herunterladen, Daten senden, Umgebungsvariablen lesen. Sie laufen mit denselben Rechten wie der Installationsbefehl — also auf dem Laptop des Gründers oder in der CI-Umgebung, wo auch andere Secrets liegen.
+
+### 5. Registry-Token im Repository?
+
+Die **Registry** ist der Ort, von dem Pakete heruntergeladen werden (z. B. npmjs.com für JavaScript-Pakete). Manche Projekte haben eine `.npmrc`-Datei mit einem Zugangs-Token — wenn dieser Token im Repository liegt, ist das ein Secret-Leak *und* ein Supply-Chain-Risiko in einem.
+
+### 6. Lizenzen
+
+GPL in einem SaaS-MVP (eine bestimmte Open-Source-Lizenz, die unter Umständen verlangt, dass der gesamte Code ebenfalls offen veröffentlicht wird), kopierter Code von Stack Overflow ohne Herkunftsangabe, KI-generierter Code ohne klare Urheberschaft — das sind rechtliche Fragen, keine Geschmacksfragen.
+
+### 7. AI-SDKs und MCP-Server als Dependencies
+
+Auch KI-spezifische Pakete (AI SDK, MCP-Server) sind Dependencies und müssen gleich behandelt werden: Version festnageln (pinnen), nicht `@latest` in der Konfiguration stehen lassen. `@latest` bedeutet „immer die neueste Version" — das ist dasselbe Problem wie ein fehlendes Lockfile, nur in einer anderen Datei.
 
 ## Was du tust, bevor du Features anfasst
 
-1. `npm audit` / OS-Tools als Signal, nicht als Wahrheit. Triage nach Reachability: eine vuln in einer Dev-only Linter-Chain ist nicht dasselbe wie `serialize-javascript` auf dem Checkout-Pfad.
-2. Unbenutzte Directs entfernen, Transitiven nicht von Hand anfassen außer bei Blockern.
-3. Generieren von SBOMs, wenn der Kunde Enterprise-Käufer hat. Für den Seed-Founder reicht die gekürzte Liste „diese acht Pakete berühren Auth oder Payments“.
-4. Pinning in CI: `npm ci`, nicht `npm install`. Gleiches für Actions: SHA-gepinnt, nicht `@v4` schwebend, sobald ihr hartet.
+1. **`npm audit` / Sicherheitstools als Signal nutzen.** Diese Werkzeuge finden bekannte Schwachstellen in Dependencies. Aber: Eine Schwachstelle in einem Entwicklungswerkzeug, das nur lokal läuft, ist nicht dasselbe wie eine Schwachstelle in einem Paket, das im Zahlungsprozess eurer Nutzer aktiv ist. Priorisiere nach Erreichbarkeit.
 
-## Kundengespräch
+2. **Unbenutzte Dependencies entfernen.** Pakete, die nirgends importiert werden, bringen kein Feature, aber erhöhen die Angriffsfläche.
 
-„Euer MVP hängt an 40 Paketen, von denen zwölf nie importiert werden und zwei niemand mehr wartet. Bevor wir Features bauen, machen wir die Liste ehrlich, sonst bauen wir auf Sand *und* auf fremdem Code, den kein Prompt erklärt.“ Das ist Angebot 2, nicht Pedanterie. Ein Supply-Chain-Hit nach Launch ist teurer als zwei Tage Aufräumen. Derselbe Satz gilt für MCP-Server und GitHub Actions: ungeprüfte Marktplatz-Actions sind Dependencies mit CI-Rechten.
+3. **SBOMs generieren, wenn nötig.** Ein SBOM (Software Bill of Materials — eine Stückliste der verwendeten Software-Komponenten) ist wie eine Zutatenliste auf einer Lebensmittelverpackung. Enterprise-Kunden verlangen das oft. Für ein Seed-Startup reicht eine kürzere Liste: „Diese acht Pakete berühren Authentifizierung oder Zahlungen."
 
-Agents in der Umbau-Phase dürfen Dependabot-PRs vorbereiten. Mergen bleibt Gate. Ein Agent, der „mal alle majors bumpt“, ist Vibe auf der Supply Chain und gehört nicht in die Audit-Woche.
+4. **Pinning in CI.** In der CI-Umgebung: `npm ci` statt `npm install` (ersteres verwendet das Lockfile strikt). GitHub Actions mit SHA (einem eindeutigen Hash-Wert statt einer Versionsnummer) pinnen, nicht mit `@v4` (das kann sich unbemerkt ändern).
+
+## Das Kundengespräch
+
+„Euer MVP hängt an 40 Paketen, von denen zwölf nie importiert werden und zwei seit Jahren niemand mehr wartet. Bevor wir Features bauen, machen wir die Liste ehrlich — sonst bauen wir auf Sand *und* auf fremdem Code, den kein Prompt erklärt."
+
+Das klingt nach Pedanterie, ist aber Risikomanagement. Ein Supply-Chain-Vorfall nach dem Launch ist teurer als zwei Tage Aufräumen. Derselbe Grundsatz gilt für MCP-Server und GitHub Actions: Ungeprüfte Marktplatz-Actions sind Dependencies mit CI-Rechten — sie laufen in eurer Build-Umgebung und haben Zugriff auf eure Secrets.
+
+Agenten dürfen in der Umbau-Phase Dependabot-PRs (automatisch generierte Aktualisierungsvorschläge) vorbereiten. Aber mergen bleibt ein menschliches Gate. Ein Agent, der „mal alle großen Updates durchzieht", ist Vibe Coding auf der Supply Chain.
 
 <Merksatz>
 Die Manifest-Datei ist Teil der Architektur. Unbenutzte, ungepinnten und erfundene Pakete sind Produktionsrisiko — nicht Aufräum-Nice-to-have.

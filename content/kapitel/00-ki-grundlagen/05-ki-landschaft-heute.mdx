@@ -1,0 +1,102 @@
+---
+titel: Die KI-Landschaft heute
+dauerMinuten: 15
+zusammenfassung: Wer baut LLMs, was kosten sie, und warum gibt es so viele verschiedene Modelle?
+reihenfolge: 5
+---
+
+## Die großen Anbieter
+
+Stand 2025/2026 gibt es eine Handvoll Unternehmen, die die leistungsfähigsten LLMs entwickeln. Hier die wichtigsten:
+
+### OpenAI
+
+- **Modelle:** GPT-4o, GPT-4.1, o3, o4-mini
+- **Zugang:** API (pay-per-use), ChatGPT (Abo oder kostenlos mit Limits)
+- **Bekannt für:** Haben den LLM-Boom ausgelöst. Breit einsetzbar, großes Ökosystem.
+
+### Anthropic
+
+- **Modelle:** Claude Opus, Claude Sonnet, Claude Haiku
+- **Zugang:** API, Claude.ai (Abo oder kostenlos mit Limits)
+- **Bekannt für:** Starker Fokus auf Sicherheit und lange Kontextfenster (bis 200.000 Token). Besonders gut im Umgang mit komplexen Anweisungen.
+
+### Google
+
+- **Modelle:** Gemini Pro, Gemini Ultra, Gemini Flash
+- **Zugang:** API, Google AI Studio, integriert in Google-Produkte
+- **Bekannt für:** Multimodalität (Text, Bilder, Video, Audio in einem Modell).
+
+### Meta
+
+- **Modelle:** Llama 3, Llama 4 (Open Source)
+- **Zugang:** Kostenlos herunterladbar, lokal ausführbar
+- **Bekannt für:** Die stärksten frei verfügbaren Modelle. Können auf eigener Hardware laufen — ohne Cloud, ohne Kosten pro Anfrage.
+
+### Weitere
+
+- **Mistral** (Frankreich) — leistungsstarke, kompakte Open-Source-Modelle
+- **DeepSeek** (China) — sehr gute Modelle, die mit deutlich weniger Ressourcen trainiert wurden
+- **Cohere** — auf Business-Anwendungen spezialisiert
+- **xAI (Grok)** — integriert in die X-Plattform
+
+## Closed Source vs. Open Source
+
+Ein wichtiger Unterschied in der KI-Landschaft:
+
+**Closed Source** (OpenAI, Anthropic, Google): Du kannst das Modell nur über eine API nutzen. Die Gewichte (das trainierte Modell selbst) sind nicht öffentlich. Du zahlst pro Anfrage und hast keine Kontrolle darüber, was mit deinen Daten passiert.
+
+**Open Source / Open Weights** (Meta Llama, Mistral, DeepSeek): Die Modellgewichte sind öffentlich verfügbar. Du kannst das Modell herunterladen und auf deinem eigenen Computer oder Server laufen lassen. Keine laufenden Kosten pro Anfrage, volle Kontrolle über die Daten — aber du brauchst die passende Hardware.
+
+Für viele Aufgaben im Alltag sind die API-basierten Modelle praktischer. Aber wenn Datenschutz, Kosten bei hohem Volumen oder Offline-Fähigkeit wichtig sind, werden lokale Modelle relevant (dazu gibt es ein eigenes Kapitel später im Kurs).
+
+## Was kostet das?
+
+LLM-Nutzung über APIs wird nach **Token** abgerechnet — also nach der Menge an Text, die du sendest (Input) und die du zurückbekommst (Output). Token sind keine ganzen Wörter, sondern Wort-Stücke (mehr dazu im nächsten Kapitel).
+
+Grobe Größenordnungen (Stand 2025/2026):
+
+| Modell | Input-Kosten | Output-Kosten |
+|--------|-------------|---------------|
+| GPT-4o | ~2,50 $/1M Token | ~10 $/1M Token |
+| Claude Sonnet | ~3 $/1M Token | ~15 $/1M Token |
+| GPT-4.1-mini | ~0,40 $/1M Token | ~1,60 $/1M Token |
+| Claude Haiku | ~0,25 $/1M Token | ~1,25 $/1M Token |
+| Lokales Modell | 0 (nur Strom) | 0 (nur Strom) |
+
+„1M Token" = eine Million Token ≈ 750.000 Wörter ≈ ein dickes Buch.
+
+Für einzelne Fragen kostet eine Anfrage Bruchteile eines Cents. Bei automatisierten Workflows, die tausende Anfragen am Tag machen, summiert sich das allerdings. Deshalb ist Kosten-Bewusstsein bei professionellem LLM-Einsatz wichtig.
+
+## Warum gibt es so viele Modelle?
+
+Verschiedene Modelle haben verschiedene Stärken:
+
+- **Große Modelle** (GPT-4o, Claude Opus) sind die „klügsten", aber langsamer und teurer.
+- **Kleine Modelle** (GPT-4.1-mini, Claude Haiku, Llama 8B) sind schneller und billiger, aber machen bei komplexen Aufgaben mehr Fehler.
+- **Spezialisierte Modelle** sind auf bestimmte Aufgaben optimiert (Code, Mathe, Medizin).
+
+In der Praxis nutzt man oft mehrere Modelle in Kombination: Ein kleines, schnelles Modell für einfache Aufgaben (Zusammenfassungen, Formatierung) und ein großes für die schwierigen Stellen (Architektur-Entscheidungen, komplexe Bugs). Das nennt man **Routing** — und es wird in späteren Kapiteln relevant.
+
+## Was bedeutet das für diesen Kurs?
+
+Du musst nicht alle Modelle kennen. Aber du solltest wissen:
+
+1. Es gibt verschiedene Anbieter mit unterschiedlichen Stärken
+2. Modelle kosten Geld pro Anfrage (oder Hardware für lokale Nutzung)
+3. „Größer" bedeutet oft „besser", aber auch „teurer und langsamer"
+4. Die Landschaft ändert sich schnell — was heute top ist, kann in sechs Monaten überholt sein
+
+In den folgenden Kapiteln arbeiten wir hauptsächlich mit den APIs von OpenAI und Anthropic (weil sie am verbreitetsten sind) und mit lokalen Modellen über Ollama (weil sie kostenlos und datenschutzfreundlich sind).
+
+<Merksatz>
+Die LLM-Landschaft besteht aus wenigen großen Anbietern (OpenAI, Anthropic, Google, Meta) mit unterschiedlichen Modellen in verschiedenen Größen und Preisklassen. Closed-Source-Modelle sind praktisch, Open-Source-Modelle geben volle Kontrolle.
+</Merksatz>
+
+<Quelle
+  url="https://artificialanalysis.ai/"
+  lang="en"
+  typ="Artificial Analysis — LLM Benchmarks & Pricing"
+  dauer="10 Min"
+  account={false}
+/>

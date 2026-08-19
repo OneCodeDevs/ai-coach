@@ -1,50 +1,113 @@
 ---
-titel: Anti-Patterns
-dauerMinuten: 14
+titel: Anti-Patterns im Prompting
+dauerMinuten: 18
 zusammenfassung: Zu vage, zu lang, widersprüchlich, ohne Erfolgskriterium — die vier Fehler, die Agent-Läufe teuer machen.
 reihenfolge: 5
 ---
 
-Gute Prompts sind langweilig: Auftrag, Material, Format, Gate. Schlechte Prompts sind literarisch. In Reviews von Kundenrepos tauchen dieselben vier Muster auf. Du musst sie benennen können, bevor jemand „wir brauchen ein besseres Modell“ sagt.
+## Warum Anti-Patterns kennen?
 
-## 1. Zu vage
+Gute Prompts sind langweilig: Auftrag, Material, Format, Gate. Schlechte Prompts sind oft kreativ formuliert — aber erzeugen teure, unbrauchbare Ergebnisse. In Reviews tauchen dieselben vier Muster immer wieder auf. Du musst sie benennen können, bevor jemand sagt „wir brauchen ein besseres Modell" — denn meistens ist nicht das Modell das Problem, sondern der Prompt.
 
-„Mach das cleaner.“ „Handle Errors richtig.“ „Schreib Tests wo sinnvoll.“ Das Modell hat keine private Definition von *cleaner*. Es sampelt die häufigste Fortsetzung, oft Cosmetik: Rename, mehr `try/catch`, ein Kommentar.
+## Anti-Pattern 1: Zu vage
 
-Gegenmittel: beobachtbares Verhalten. „Wenn `user` fehlt, 401 und kein Stacktrace im Response. Bestehende `HttpError` nutzen. Test in `auth.test.ts`.“ Vagheit ist fehlende Akzeptanzkriterien, nicht fehlende Freundlichkeit.
+### Das Problem
 
-## 2. Zu lang
+„Mach das cleaner." „Handle Errors richtig." „Schreib Tests wo sinnvoll."
 
-Ein Prompt, der Style-Guide, Architekturtraktat, zwölf Randfälle und das Ticket mischt, verdrängt das Ticket. Das Context Window ist endlich. Was früh steht, kann später rausfallen oder in der Attention untergehen.
+Was bedeutet „cleaner"? Das Modell hat keine private Definition davon. Es sampelt die häufigste Interpretation — oft Kosmetik: ein Rename hier, ein zusätzliches `try/catch` dort, ein Kommentar. Nicht das, was du meintest.
 
-Gegenmittel: schneiden. Policy in Rules/System (kurz). Verfahren in eine Datei, die bei Bedarf gelesen wird. Im Task nur das, was diesen Lauf ändert. Die Kaggle-Whitepaper und die Hersteller-Guides sind sich einig: iterativ spezifizieren, nicht einmal alles kippen.
+### Warum passiert das?
 
-Ein Warnsignal: der System-Prompt ist länger als der Diff, den du erwartet.
+Menschen kommunizieren vage, weil sie davon ausgehen, dass der Gegenüber Kontext hat. Ein Kollege, der seit Monaten am Projekt arbeitet, versteht „mach das cleaner" vielleicht richtig. Ein LLM hat diesen Kontext nicht — es sieht nur diesen einen Satz.
 
-## 3. Widersprüchlich
+### Das Gegenmittel: Beobachtbares Verhalten
 
-„Sei vollständig und maximal knapp.“ „Ändere nichts an der API und füge das Feld in der Response hinzu.“ „Keine neuen Dateien“ plus „lege eine Util-Library an.“ Modelle lösen Widerspruch nicht moralisch. Sie folgen dem lautesten oder letzten Satz.
+Statt: „Handle Errors richtig."
+Besser: „Wenn `user` null ist, wirf einen `HttpError(401)` und gib keinen Stacktrace im Response zurück. Verwende die bestehende `HttpError`-Klasse aus `src/errors`. Schreibe einen Test in `auth.test.ts`."
 
-Gegenmittel: eine Prioritätenzeile. „Bei Konflikt: öffentliches API-Verhalten vor DRY vor lokaler Eleganz.“ Und dann den Prompt gegenlesen wie einen Vertrag. Anthropics Kollegen-Test gilt hier doppelt.
+Der Unterschied: Die zweite Version beschreibt ein prüfbares Ergebnis. Du kannst hinterher sagen „ja, das ist es" oder „nein, das ist es nicht". Vagheit ist fehlende Akzeptanzkriterien — nicht fehlende Freundlichkeit.
 
-## 4. Keine Erfolgskriterien
+## Anti-Pattern 2: Zu lang
 
-Ohne Gate endet der Lauf, wenn der Text selbstbewusst klingt. Genau das ist Halluzination plus Delivery. Anthropic für Agenten: gib einen Check, den das Modell selbst ausführen kann. Dasselbe Anti-Pattern sitzt schon im Prompt, bevor ein Agent Tools hat.
+### Das Problem
 
-Gegenmittel, das du in jedes Coding-Prompt schreiben kannst:
+Ein Prompt, der Style-Guide, Architekturtraktat, zwölf Randfälle und das eigentliche Ticket in einem Textblock mischt. Das Ergebnis: Das Ticket geht im Rauschen unter. Das Modell folgt den lautesten oder letzten Anweisungen — nicht unbedingt den wichtigsten.
 
-- Befehl, der grün oder rot ist (`npm test -- filter`, `./gradlew :app:testDebug`)
-- explizites Stopp-Kriterium („nicht fertig, solange der Befehl nicht 0 zurückgibt“)
-- Evidenz statt Behauptung (Ausgabe einfügen, nicht „tests pass“)
+### Warum ist das schlimm?
 
-KI-Campus („Crafting Precision Prompts“) drillt denselben Punkt didaktisch: Präzision ist messbar, nicht poetisch.
+Erinnerung: Das Context Window ist endlich. Was früh im Prompt steht, kann bei langen Texten in der Attention-Gewichtung untergehen. Das Modell „vergisst" zwar nichts innerhalb des Fensters — aber es gewichtet. Und ein 2.000-Zeilen-Manifest übertönt ein Drei-Zeilen-Ticket.
 
-## Was du im Review sagst
+### Das Gegenmittel: Trennen und Schneiden
 
-Nicht: „Der Prompt ist unfreundlich.“ Sondern: „Hier fehlt ein Gate, hier widerspricht Satz 2 Satz 7, hier sind 400 Zeilen Style-Guide im Task.“ Das ist die Sprache, mit der OneCode Prompt-Arbeit als Engineering verkauft, nicht als Wortmagie.
+- **Policy** → in den System-Prompt (kurz)
+- **Verfahrensbeschreibungen** → in ein Dokument, das der Agent bei Bedarf liest
+- **Im Task** → nur das, was *diesen einen Lauf* betrifft
+
+Ein Warnsignal: Wenn dein Prompt länger ist als der Diff, den du erwartest, stimmt das Verhältnis nicht.
+
+## Anti-Pattern 3: Widersprüchlich
+
+### Das Problem
+
+„Sei vollständig und maximal knapp."
+„Ändere nichts an der API — und füge das Feld in der Response hinzu."
+„Keine neuen Dateien" plus „lege eine Util-Library an."
+
+### Wie löst das Modell Widersprüche?
+
+Nicht moralisch. Nicht logisch. Sondern statistisch: Es folgt dem lautesten oder letzten Satz. Oder es ignoriert einen der widersprüchlichen Teile komplett — welchen, ist nicht vorhersagbar.
+
+### Das Gegenmittel: Prioritäten explizit machen
+
+Füge eine Prioritätenzeile ein: „Bei Konflikt: öffentliches API-Verhalten vor DRY vor lokaler Eleganz."
+
+Und dann: Den Prompt gegenlesen wie einen Vertrag. Satz für Satz. Widerspricht Satz 2 dem Satz 7? Dann muss einer weichen. Anthropics Faustregel: Zeig den Prompt einem Kollegen — wenn der verwirrt ist, ist es das Modell auch.
+
+## Anti-Pattern 4: Keine Erfolgskriterien
+
+### Das Problem
+
+Ohne eine klare Definition von „fertig" endet der Agent-Lauf, wenn der Text selbstbewusst *klingt*. „Ich habe die Änderung vorgenommen und die Tests sollten grün sein." Klingt gut — aber stimmt es? Ohne Check ist das eine Behauptung, keine Tatsache.
+
+### Warum ist das gefährlich?
+
+Genau das ist die Mechanik von Halluzination plus Delivery: Das Modell erzeugt plausibel klingenden Text, und ohne Prüfung wird dieser Text zur Wahrheit erklärt.
+
+### Das Gegenmittel: Prüfbare Gates
+
+In jedes Coding-Prompt gehört mindestens eines davon:
+- Ein **Befehl**, der grün oder rot zurückgibt: `npm test -- billing`, `./gradlew :app:testDebug`
+- Ein **explizites Stopp-Kriterium:** „Nicht fertig, solange der Befehl nicht Exit-Code 0 zurückgibt."
+- **Evidenz statt Behauptung:** Die Test-Ausgabe einfügen, nicht „Tests pass" behaupten.
+
+Für Nicht-Code-Aufgaben:
+- „Antworte mit ‚DONE' nur wenn alle Punkte der Checkliste abgehakt sind."
+- „Zeige den Screenshot des funktionierenden UI."
+- „Gib die URL zurück und bestätige einen 200-Status."
+
+## Die vier Anti-Patterns auf einen Blick
+
+| Anti-Pattern | Symptom | Gegenmittel |
+|--------------|---------|-------------|
+| Zu vage | Generische, oberflächliche Änderungen | Beobachtbares Verhalten definieren |
+| Zu lang | Ticket geht im Rauschen unter | Policy und Task trennen, kürzen |
+| Widersprüchlich | Unvorhersagbare Ergebnisse | Prioritäten explizit machen |
+| Ohne Gate | „Fertig" basiert auf Behauptung | Prüfbare Erfolgskriterien einbauen |
+
+## Im Review und Kundengespräch
+
+Wenn ein Agent-Lauf schlechte Ergebnisse liefert, ist die erste Frage nicht „brauchen wir ein besseres Modell?", sondern: „Welches der vier Anti-Patterns steckt im Prompt?"
+
+- „Hier fehlt ein Gate."
+- „Hier widerspricht Satz 2 dem Satz 7."
+- „Hier sind 400 Zeilen Style-Guide im Task-Prompt."
+- „Hier steht ‚mach sauber' ohne Definition von sauber."
+
+Das ist die Sprache, mit der Prompt-Arbeit als Engineering behandelt wird — nicht als Wortmagie.
 
 <Merksatz>
-Vier Defekte: unscharf, aufgebläht, intern im Streit, ohne Done. Das Gegenmittel ist immer Spezifikation plus Check, nie ein längeres Adjektiv.
+Vier Defekte: unscharf, aufgebläht, widersprüchlich, ohne Done-Kriterium. Das Gegenmittel ist immer Spezifikation plus Check — nie ein längeres Adjektiv oder ein teureres Modell.
 </Merksatz>
 
 <Quelle

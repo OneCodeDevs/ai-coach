@@ -1,46 +1,132 @@
 ---
 titel: Bestehende Server anbinden
-dauerMinuten: 14
+dauerMinuten: 30
 zusammenfassung: Allowlist, Config, Trust-Prompt — und warum zwanzig Server im Host kein System sind.
 reihenfolge: 2
 ---
 
-Den ersten Server anbinden ist Konfiguration, nicht Engineering. Der Fehler im Kundengespräch ist, das mit „MCP eingeführt“ zu verwechseln. Eingeführt ist MCP, wenn der Host eine kurze, geprüfte Liste von Servern hat, jeder mit klarer Aufgabe und engen Rechten.
+## Was bedeutet „einen Server anbinden"?
 
-## Wo die Config lebt
+Wenn wir sagen „einen MCP-Server anbinden", meinen wir: Deiner KI-Anwendung (dem Host) mitteilen, dass sie ein bestimmtes Werkzeug-Programm starten und benutzen darf.
 
-Der Host startet einen lokalen Server als Kindprozess: `command` plus `args`. Dieselbe Launch-Zeile, andere Datei.
+Das ist reine Konfiguration — du schreibst ein paar Zeilen in eine Datei, und der Host weiß danach, wo das Programm liegt und wie er es starten soll. Du schreibst keinen Code. Du baust nichts Neues. Du sagst nur: „Hier ist ein Server, starte ihn so."
 
-- **Cursor:** `.cursor/mcp.json` mit Schlüssel `mcpServers`
-- **VS Code:** `.vscode/mcp.json` mit Schlüssel `servers` und `type: stdio`
-- **Claude Code / Claude Desktop:** analog, oft über CLI (`claude mcp add`) oder die Desktop-Config
+**Wichtig:** „Server anbinden" ist nicht dasselbe wie „MCP eingeführt". MCP ist eingeführt, wenn der Host eine kurze, geprüfte Liste von Servern hat, jeder mit klarer Aufgabe und engen Rechten. Einfach nur einen Server in die Config schreiben ist der erste Schritt, nicht das Ziel.
 
-Remote-Server nutzen Streamable HTTP plus Auth (Bearer, API-Key, OAuth). Die spezifizierte Empfehlung für Remote ist OAuth, nicht ein ewig gültiges PAT in der JSON-Datei.
+## Wo lebt die Konfiguration?
 
-Nach dem Eintrag kommt ein Trust-Prompt. Der Host zeigt, *welcher* Befehl startet. Den Dialog nicht wegklicken. Die genaue Command-Line ist die Angriffsfläche: `npx irgendwas@latest` ist ein anderes Risiko als eine gepinnte Version mit Checksumme.
+Jeder Host hat eine Konfigurationsdatei (eine Textdatei im JSON-Format), in der die Server-Liste steht. JSON ist ein strukturiertes Textformat mit geschweiften Klammern und Schlüssel-Wert-Paaren — du wirst es sehen, sobald du die Datei öffnest.
+
+### Cursor
+
+Die Datei heißt `.cursor/mcp.json` und liegt im Projektordner. Sie hat einen Schlüssel `mcpServers`, unter dem jeder Server eingetragen wird:
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-filesystem-server", "/pfad/zum/repo"]
+    }
+  }
+}
+```
+
+Was passiert hier?
+- `"filesystem"` ist der Name, den du dem Server gibst (frei wählbar)
+- `"command"` ist der Befehl, mit dem der Server gestartet wird
+- `"args"` sind die Argumente (Optionen), die dem Befehl mitgegeben werden
+
+### VS Code
+
+Die Datei heißt `.vscode/mcp.json` mit einem Schlüssel `servers`. Zusätzlich steht `"type": "stdio"` dabei, um zu sagen, dass der Server lokal läuft.
+
+### Claude Code / Claude Desktop
+
+Ähnlich — oft über die Kommandozeile konfiguriert (`claude mcp add`) oder über eine Desktop-Konfigurationsdatei.
+
+### Remote-Server
+
+Manche Server laufen nicht lokal, sondern im Internet (zum Beispiel der Sentry-Server bei Sentry). Diese nutzen **Streamable HTTP** als Transport und brauchen eine Authentifizierung — einen Nachweis, dass du berechtigt bist. Die empfohlene Methode ist OAuth (ein Standard für sichere Anmeldung), nicht ein ewiges Passwort in der JSON-Datei.
+
+## Was ist ein Trust-Prompt?
+
+Nachdem du einen Server eingetragen hast und den Host startest, erscheint ein **Trust-Prompt** — ein Dialog, der dir zeigt: „Ich möchte diesen Befehl ausführen. Erlaubst du das?"
+
+Der Host zeigt dir die *exakte Kommandozeile*, die er starten will. Das ist wichtig, denn hier liegt die Angriffsfläche:
+
+- `npx irgendwas@latest` (die neueste Version von „irgendwas" aus dem Internet laden und ausführen) ist riskant — du weißt nicht, was in der neuesten Version steckt
+- Eine gepinnte Version mit Prüfsumme (Checksumme) ist sicherer — du weißt genau, welchen Code du startest
+
+**Diesen Dialog nicht einfach wegklicken.** Lies, was da steht.
 
 ## Was du zuerst anbindest
 
-Im Repo eines Kunden zählt Grounding, nicht der Marktplatz.
+Nicht alles auf einmal. Im Repo eines Kunden startest du mit dem, was den Agenten *wahrheitsfähig* macht — also Zugang zu den echten Daten gibt, statt sie erfinden zu lassen.
 
-1. **GitHub / Issues / PRs**, wenn der Agent Tickets lesen und kommentieren soll, ohne die REST-API zu halluzinieren.
-2. **Filesystem mit Root-Begrenzung** auf das Arbeitsverzeichnis, nie `$HOME`.
-3. **Datenbank read-only**, Schema als Resource, Queries als Tool mit Timeout und Row-Limit.
-4. **Observability** (Sentry, Logs) als Resource-lastiger Server, nicht als Schreibzugriff auf Prod.
+### 1. GitHub / Issues / PRs
 
-Offizielle und vendor-betriebene Server schlagen unbekannte npm-Pakete. Microsofts MCP-for-Beginners-Kurs ist der deutschsprachige Einstieg, den du einem Team geben kannst, das die Config selbst pflegen soll.
+Wenn der Agent Tickets lesen und kommentieren soll, braucht er den GitHub-Server. Ohne ihn würde er API-Endpunkte halluzinieren (also erfinden), die gar nicht existieren.
+
+### 2. Filesystem mit Begrenzung
+
+Ein Filesystem-Server, der **nur** den Projektordner sehen darf. Niemals das gesamte Home-Verzeichnis (`$HOME`) — dort liegen SSH-Schlüssel, Passwörter, persönliche Daten.
+
+**Analogie:** Du gibst dem Praktikanten den Schlüssel für *einen* Aktenschrank, nicht für das gesamte Büro.
+
+### 3. Datenbank (nur lesen)
+
+Das Datenbankschema als Resource (damit der Agent weiß, welche Tabellen existieren) und Abfragen als Tool — aber nur lesend, mit Timeout (Zeitlimit) und Zeilenlimit. Der Agent darf nachschauen, aber nichts löschen oder ändern.
+
+### 4. Observability (Sentry, Logs)
+
+Fehlermeldungen und Logs als Resource-lastiger Server: der Agent kann nachlesen, was schiefgelaufen ist. Aber kein Schreibzugriff auf die Produktion.
+
+### Wo kommen Server her?
+
+Es gibt **offizielle Server** (von den Herstellern der Dienste, z.B. von GitHub oder Sentry) und **Community-Server** (von Dritten gebaut). Offizielle und von Herstellern betriebene Server sind vertrauenswürdiger als zufällige npm-Pakete von Unbekannten.
+
+Microsofts „MCP für Anfänger"-Kurs ist ein guter Einstieg für Teams, die die Konfiguration selbst pflegen wollen.
 
 ## Die Checkliste vor dem Merge der Config
 
-- **Allowlist.** Jeder Server hat einen Owner im Team und einen Satz erlaubter Tools. Kein „wir haben mal 15 ausprobiert und die JSON liegt noch da“.
-- **`tools/list` lesen.** Namen, Descriptions, Parameter. Ein Tool `run_command` ohne Allowlist ist eine Remote-Shell.
-- **Secrets.** Tokens in OS-Keychain oder Host-Secret-Store, nicht in der committed `mcp.json`. Pro Server eigene Credentials, niemals ein Shared-PAT für GitHub *und* die Datenbank.
-- **Transport.** Lokal stdio. Remote nur TLS. Loopback binden (`127.0.0.1`), nicht `0.0.0.0`.
-- **Context-Budget.** Jeder Server wirft Tool-Schemas in das Fenster. Zehn Server mit je zwanzig Tools kosten Token, bevor der Nutzer eine Zeile getippt hat.
+Bevor die `mcp.json` ins Repository übernommen wird (also „gemerged" wird — also mit dem Hauptcode zusammengeführt), prüfst du:
+
+### Allowlist — Wer darf was?
+
+Jeder Server hat:
+- Einen **Owner** im Team (jemand, der verantwortlich ist)
+- Einen definierten Satz erlaubter Tools
+
+Kein „wir haben mal 15 Server ausprobiert und die Config liegt noch da". Jeder Server, der in der Datei steht, ist ein Produktionszugang.
+
+### `tools/list` lesen — Was bietet der Server an?
+
+Bevor du einen Server freigibst, schaust du dir seine Tool-Liste an: Namen, Beschreibungen, Parameter. Ein Tool namens `run_command` ohne Einschränkung ist im Grunde eine offene Kommandozeile — jeder Befehl kann ausgeführt werden. Das ist gefährlich.
+
+### Secrets — Wo liegen die Zugangsdaten?
+
+**Tokens** (Zugangscodes für APIs) gehören in den Schlüsselbund des Betriebssystems oder den Secret-Store des Hosts — **nicht** in die `mcp.json`, die ins Repository committed wird. Sonst kann jeder, der das Repo sieht, die Zugangsdaten lesen.
+
+Pro Server eigene Credentials (Zugangsdaten). Niemals ein einziges Passwort für GitHub *und* die Datenbank teilen.
+
+### Transport — Wie verbindet sich der Server?
+
+- Lokale Server: stdio (kein Netzwerk nötig)
+- Remote-Server: nur mit TLS (verschlüsselte Verbindung, erkennbar am `https://`)
+- Lokale HTTP-Server an `127.0.0.1` binden (nur der eigene Rechner), nicht an `0.0.0.0` (das ganze Netzwerk)
+
+### Context-Budget — Was kostet das an Tokens?
+
+Jeder Server wirft seine Tool-Definitionen (Namen, Beschreibungen, Parameter-Schemas) in das Kontextfenster des Modells. Das Kontextfenster ist der begrenzte Platz, in dem das Modell alle Informationen gleichzeitig „sehen" kann.
+
+Zehn Server mit je zwanzig Tools bedeuten: Hunderte Zeilen an Definitionen werden ins Fenster geschoben, *bevor* der Nutzer eine einzige Zeile getippt hat. Das kostet Tokens (und damit Geld und Platz für die eigentliche Arbeit).
 
 ## Was du einem CTO sagst
 
-„Wir binden drei Server an, die euer Repo und eure Tickets wahrheitsfähig machen. Alles andere kommt später, mit Owner und Scope.“ Wenn jemand eine interne API hat, die kein Server abdeckt, ist das der Moment für Kapitel 3, nicht für noch ein `npx`.
+„Wir binden drei Server an, die euer Repo und eure Tickets wahrheitsfähig machen. Alles andere kommt später, mit Owner und Scope."
+
+Wenn jemand eine interne API hat, die kein bestehender Server abdeckt, ist das der Moment für Lektion 3 (eigenen Server bauen), nicht für noch ein `npx`-Paket aus dem Internet.
 
 <Merksatz>
 Anbinden heißt Allowlist, gepinnte Version, geprüfte Tool-Liste und eigene Credentials. Ein Host mit einem Dutzend ungeprüfter Server ist keine Plattform, sondern eine offene Werkzeugwand.

@@ -1,45 +1,111 @@
 ---
 titel: Businesslogik agentenlesbar dokumentieren
-dauerMinuten: 16
+dauerMinuten: 30
 zusammenfassung: Agenten scheitern an Fachregeln, die nur in Köpfen sitzen — Invarianten, Verbote, Beispiele, Zeiger auf Code.
 reihenfolge: 5
 ---
 
-Tools und Models sind selten der Engpass, den OneCode in komplexen Codebasen sieht. Der Engpass ist **Businesslogik**, die in Slack, in einem Jira-Epic von 2022 und in zwei widersprüchlichen Services lebt. Ein Agent interpoliert dann eine dritte Wahrheit. Halluzination ist hier keine Charakterfrage, sondern fehlendes Grounding (Kapitel 1).
+Du hast jetzt gelernt, wie du einem KI-Agenten sagst, **wie dein Projekt technisch funktioniert** — welche Befehle er ausführen soll, welche Dateien er beachten muss, welche Regeln gelten. Aber die härtesten Fehler passieren nicht bei der Technik. Sie passieren bei der **Fachlogik** — also den Regeln, die dein Geschäft definieren.
 
-Kontext-Engineering für Fachlichkeit heißt: die Regel so hinlegen, dass ein Agent sie **findet, zitiert und gegen einen Check fährt**, ohne den CFO zu fragen.
+## Das eigentliche Problem
 
-## Was „agentenlesbar“ konkret heißt
+Stell dir ein Abrechnungssystem vor. Es gibt eine Regel: „Eine bezahlte Rechnung darf nie wieder in den Entwurfsstatus zurückgesetzt werden." Diese Regel steht nirgends im Code als Kommentar. Sie steht in keiner Dokumentation. Sie existiert nur im Kopf des Gründers, der sie vor zwei Jahren in einem Slack-Thread erwähnt hat — und in einem Jira-Ticket von 2022, das niemand mehr liest.
 
-Menschen lesen Prosa. Agenten brauchen zusätzlich:
+Was passiert, wenn ein KI-Agent jetzt eine Funktion schreiben soll, die den Rechnungsstatus ändert? Er hat diese Regel nicht. Also macht er das, was ihm logisch erscheint — und erfindet eine dritte Variante, die nirgends dokumentiert ist. Das ist keine Bosheit und kein Modellfehler. Das ist **Halluzination durch fehlendes Grounding** — der Agent hat keine Fakten, also füllt er die Lücke mit Wahrscheinlichkeiten aus seinen Trainingsdaten.
 
-1. **Namen, die im Code vorkommen.** `Invoice.overdue`, nicht „die Rechnung die zu lange offen ist“.
-2. **Invarianten in einer Zeile.** „Eine Invoice geht nie von `paid` nach `draft`.“
-3. **Verbotene Zustände.** „Rabatt und Netto-Negativ gleichzeitig: illegal, 409.“
-4. **Kanonischen Ort.** „Quelle der Wahrheit: `packages/billing/src/transitions.ts`. Nicht in den Controllern duplizieren.“
-5. **Gegenbeispiele.** Gültiger Payload, ungültiger Payload. Few-Shot für die Domäne.
+**Kontext-Engineering für Fachlichkeit bedeutet:** Die Geschäftsregeln so aufschreiben, dass ein Agent sie **findet, versteht und gegen einen Test prüfen kann** — ohne den Gründer anrufen zu müssen.
 
-Ein Glossar von 30 Begriffen am Repo-Root (oder `docs/domain.md`, von AGENTS.md verlinkt) verhindert, dass „Kunde“, „Account“ und „Tenant“ drei Implementierungen bekommen. Der Agent sucht sonst den häufigsten englischen Treffer im Training, nicht euren.
+## Was „agentenlesbar" konkret heißt
 
-## Wo das liegen soll
+Menschen können Prosa lesen und zwischen den Zeilen interpretieren. KI-Agenten brauchen klarere Strukturen. Hier sind die fünf Bausteine:
 
-Nicht als 40-Seiten-PDF im Wiki, das kein Tool indexiert. Sondern:
+### 1. Namen, die im Code vorkommen
 
-- Kerninvarianten: `packages/billing/AGENTS.md` oder eine Rule mit Glob auf genau dieses Package
-- Übergänge und Checklisten: Skill `billing-change`, der den Testbefehl `pnpm test --filter billing` als Gate hat
-- Tabellen (Status × Event → Folge): Markdown-Tabelle neben dem State-Machine-Code, nicht statt ihm
+Verwende dieselben Begriffe wie im Code. Nicht: „die Rechnung, die zu lange offen ist". Sondern: **`Invoice.overdue`**. Wenn der Agent den Fachbegriff im Text liest und denselben Namen im Code findet, verbindet er beides. Wenn du umgangssprachliche Beschreibungen verwendest, sucht der Agent nach dem häufigsten englischen Wort in seinen Trainingsdaten — nicht nach eurer Benennung.
 
-Der Code bleibt die Wahrheit. Die Doku ist der Index. Wenn Doku und Code streiten, gewinnt der Test. Dann ist euer Job, den Test zu schreiben, nicht den Agenten um Entschuldigung zu bitten.
+### 2. Invarianten in einer Zeile
 
-## Was ihr nicht dokumentiert
+Eine **Invariante** ist eine Regel, die **immer** gelten muss, egal was passiert. Schreib sie kurz und eindeutig:
 
-- Secrets, echte Kontonummern, Kundenlisten
-- jedes private Refactor-Gelüst
-- UI-Copy, die der Designer nächste Woche ändert (außer sie ist rechtlich, z. B. Widerruf)
+> „Eine Invoice geht nie von `paid` nach `draft`."
 
-Rechtliche und finanzielle Regeln: lieber zu explizit, mit Owner-Namen. Der Agent soll bei Konflikt **stoppen**, nicht kreativ werden. Das steht als Satz in AGENTS.md: „Wenn Invariante und Ticket streiten, nicht implementieren, Frage stellen.“
+Nicht: „Im Allgemeinen sollte man vermeiden, bezahlte Rechnungen zurückzusetzen, es sei denn, es gibt gute Gründe." Der Agent wird „gute Gründe" halluzinieren.
 
-Im Pitch von Angebot 1: wir machen nicht „AI schneller“. Wir machen eure Fachregeln für Maschinen adressierbar. Ohne das bleibt jeder Agent ein sehr teurer Junior, der die Buchhaltung neu erfindet.
+### 3. Verbotene Zustände
+
+Manche Kombinationen dürfen nie gleichzeitig auftreten. Beschreib sie explizit:
+
+> „Rabatt und negativer Netto-Betrag gleichzeitig: illegal. HTTP 409 zurückgeben."
+
+Verbote sind mächtiger als Gebote, weil der Agent bei einem Verbot **stoppen** kann, statt kreativ weiterzumachen.
+
+### 4. Kanonischer Ort
+
+Sag dem Agenten, **wo die Wahrheit liegt**:
+
+> „Quelle der Wahrheit für Rechnungsstatus-Übergänge: `packages/billing/src/transitions.ts`. Nicht in den Controllern duplizieren."
+
+Ohne diesen Hinweis kopiert der Agent möglicherweise Logik in eine andere Datei — und du hast plötzlich zwei Stellen, die dieselbe Regel unterschiedlich implementieren.
+
+### 5. Gegenbeispiele (Few-Shot)
+
+**Few-Shot** bedeutet: Du zeigst dem Agenten ein paar konkrete Beispiele — einen gültigen Fall und einen ungültigen. Das ist oft wirkungsvoller als lange Erklärungen:
+
+> **Gültig:** `{ "status": "draft", "action": "send" }` → `{ "status": "sent" }`
+>
+> **Ungültig:** `{ "status": "paid", "action": "revert_to_draft" }` → **Verboten, 409**
+
+Der Agent lernt aus dem Muster, nicht nur aus der Regel.
+
+## Ein Glossar verhindert Begriffsverwirrung
+
+In vielen Projekten werden Begriffe wie „Kunde", „Account" und „Tenant" (Mandant) austauschbar verwendet. Für Menschen mag das aus dem Kontext klar sein. Für einen Agenten nicht — er sucht den häufigsten Treffer in seinen Trainingsdaten.
+
+Ein **Glossar** mit 20–30 Fachbegriffen im Hauptverzeichnis (z. B. `docs/domain.md`, verlinkt aus AGENTS.md) löst das Problem. Für jeden Begriff: eine Zeile mit Name, Bedeutung und der Klasse oder Tabelle im Code, die ihn repräsentiert.
+
+Ohne Glossar kann es passieren, dass der Agent für „Kunde", „Account" und „Tenant" drei verschiedene Implementierungen erstellt — obwohl alle dasselbe meinen.
+
+## Wo soll die Fachlogik liegen?
+
+Nicht als 40-seitiges PDF in einem Wiki, das kein Tool indexieren kann. Sondern dort, wo der Agent sie automatisch findet:
+
+| Art der Regel | Wo ablegen |
+| --- | --- |
+| **Kerninvarianten** (immer relevant) | `packages/billing/AGENTS.md` oder Cursor-Rule mit Glob auf das Package |
+| **Übergänge und Checklisten** (schrittweise Verfahren) | Skill, z. B. `billing-change`, mit Test-Gate (`pnpm test --filter billing`) |
+| **Zustandstabellen** (Status × Event → Folge) | Markdown-Tabelle **neben** dem State-Machine-Code, nicht statt ihm |
+| **Glossar** | `docs/domain.md`, verlinkt aus AGENTS.md |
+
+Die goldene Regel: **Der Code bleibt die Wahrheit. Die Dokumentation ist der Index.** Wenn Dokumentation und Code sich widersprechen, gewinnt der Test. Dann ist dein Job, den fehlenden Test zu schreiben — nicht den Agenten für sein Ergebnis zu beschuldigen.
+
+## Was du NICHT dokumentierst
+
+Nicht jede Information gehört in agentenlesbare Dateien:
+
+- **Secrets** (API-Keys, Passwörter, echte Kontonummern) — die gehören in Umgebungsvariablen, nie in ein Repository
+- **Kundenlisten** oder persönliche Daten — Datenschutz geht vor
+- **Refactoring-Wünsche**, die noch nicht entschieden sind — der Agent soll den aktuellen Stand umsetzen, nicht deine Zukunftspläne
+- **UI-Texte**, die der Designer nächste Woche ändert — es sei denn, sie sind rechtlich relevant (z. B. Widerrufsbelehrung)
+
+### Rechtliche und finanzielle Regeln: Lieber zu explizit
+
+Bei Regeln, die rechtliche oder finanzielle Konsequenzen haben, gilt: **Lieber zu viel als zu wenig.** Schreib den Owner (Verantwortlichen) dazu. Und füge einen expliziten Stopp-Satz ein:
+
+> „Wenn eine Invariante und ein Ticket sich widersprechen: nicht implementieren, Frage stellen."
+
+Der Agent soll bei Konflikten **anhalten**, nicht kreativ werden. Kreativität bei der Buchhaltung ist das Letzte, was du willst.
+
+## Das Gesamtbild
+
+Kontext-Engineering für Fachlogik lässt sich in fünf Punkten zusammenfassen:
+
+1. **Invariante**: Was muss immer gelten?
+2. **Verbot**: Was darf nie passieren?
+3. **Beispiel**: Wie sieht ein gültiger/ungültiger Fall aus?
+4. **Zeiger**: Wo im Code liegt die Wahrheit?
+5. **Test**: Welcher Befehl prüft, ob die Regel eingehalten wird?
+
+Ohne diese fünf Punkte bleibt jeder Agent ein sehr teurer Junior-Entwickler, der die Buchhaltung bei jedem Diff neu erfindet.
 
 <Merksatz>
 Fachlogik für Agenten: Invariante, Verbot, Beispiel, Zeiger auf den kanonischen Code, Test als Richter. Was nur im Kopf des Gründers steht, wird im Diff zur dritten Variante.

@@ -1,37 +1,67 @@
 ---
 titel: Single-Agent vs Multi-Agent
-dauerMinuten: 15
+dauerMinuten: 25
 zusammenfassung: Ein Agent mit guten Tools schlägt drei Agenten ohne Vertrag — Komplexität nur bei nachgewiesenem Nutzen.
 reihenfolge: 2
 ---
 
-„Multi-Agent“ verkauft sich gut. Im Repo eines CTO bedeutet es meist: mehr Fenster, mehr Übergaben, mehr Gelegenheit, dass Agent B die Annahme von Agent A nicht mehr sieht. Microsofts Einführung sagt dasselbe in der Klassik: hierarchische Agenten und MAS existieren, du nimmst sie, wenn die Teilaufgaben echte Schnittstellen haben. Anthropic sagt: erst der einzelne augmentierte Loop.
+Wenn jemand „Multi-Agent-System" sagt, klingt das nach einem Team aus KI-Mitarbeitern, die sich absprechen und gemeinsam Großes leisten. Die Realität ist meist ernüchternder: mehr Fenster, mehr Übergaben, mehr Gelegenheit für Missverständnisse. Bevor du entscheidest, ob du einen oder mehrere Agenten brauchst, musst du verstehen, was diese Begriffe eigentlich bedeuten.
 
-## Was Single-Agent hier heißt
+## Was „Agent" in diesem Kontext heißt
 
-Ein Modell, eine Tool-Menge, eine Schleife: lesen, ändern, testen, wiederholen, bis Stopp oder Gate. Context Engineering (Compaction, gezieltes Retrieval, Sub-Agent nur als *Recherche mit Rückgabe*) bleibt intern. Der Sub-Agent, der einen Report zurückgibt und stirbt, ist kein Multi-Agent-System. Er ist ein Worker mit eigenem Fenster, genau weil Context ein Budget ist.
+Ein Agent ist — in der Welt der KI-gestützten Software-Entwicklung — ein KI-Modell, das in einer Schleife arbeitet: Es liest etwas (Code, ein Ticket, eine Fehlermeldung), macht etwas (ändert eine Datei, ruft ein Werkzeug auf), prüft das Ergebnis (laufen die Tests?) und wiederholt das, bis es fertig ist oder eine Grenze erreicht.
 
-Das ist der Default für Bugfixes, kleine Features, Testlücken. OneCode-Angebot 1 startet hier: Rules im Repo, MCP-Tools, CI als Wahrheitsquelle, Mensch am Merge.
+Stell dir einen Handwerker vor, der allein in einer Werkstatt steht. Er hat seine Werkzeuge, sein Material und einen Auftrag. Er arbeitet Schritt für Schritt, prüft zwischendurch, und liefert am Ende das Ergebnis ab. Das ist ein Single-Agent.
+
+## Was Single-Agent konkret bedeutet
+
+Ein Modell, eine Werkzeugsammlung, eine Arbeitsschleife: lesen, ändern, testen, wiederholen, bis Stopp oder ein Kontrollpunkt erreicht ist.
+
+**Context** (Kontext) ist dabei das zentrale Budget. Context bedeutet hier: alles, was das Modell „im Kopf" hat — der aktuelle Code, die Aufgabe, bisherige Ergebnisse. Dieses Fenster ist begrenzt (wie ein Schreibtisch, auf den nur eine bestimmte Menge Papier passt). Techniken wie Compaction (Zusammenfassung bisheriger Arbeit) und gezieltes Retrieval (nur die relevanten Informationen nachladen) halten den Kontext schlank.
+
+Manchmal schickt ein Single-Agent einen „Sub-Agent" los — zum Beispiel: „Recherchiere mir, welche Dateien betroffen sind, und gib mir eine Zusammenfassung zurück." Dieser Sub-Agent hat sein eigenes kleines Kontextfenster, liefert eine knappe Antwort und verschwindet wieder. Das ist *kein* Multi-Agent-System. Es ist ein Helfer mit eigenem Notizblock, der eine Teilfrage beantwortet.
+
+**Wann Single-Agent reicht:** Für die meisten alltäglichen Aufgaben — Bugfixes, kleine Features, Testlücken schließen. Ein Agent mit guten Werkzeugen (Dateizugriff, Tests starten, Issues lesen) und klaren Regeln im Repository kommt erstaunlich weit.
 
 ## Wann ein zweiter Agent sich lohnt
 
-Nur wenn mindestens eines gilt:
+Nur wenn mindestens eine dieser Bedingungen zutrifft:
 
-- **Eigene Ground Truth.** Reviewer-Agent sieht den Diff und die Policy, Implementierer sieht Working Tree und Tests. Unterschiedliche Tools, unterschiedliche Erfolgsdefinition.
-- **Hart getrennte Rechte.** Der Agent, der Prod-Logs liest, darf nicht committen. Der Commit-Agent darf keine Prod-Credentials haben. Das ist Isolation, nicht „Team-Simulation“.
-- **Teilaufgaben, die du nicht vorab listen kannst**, und ein Orchestrator, der Worker mit *kleinen* Briefings schickt. Klassiker: große Migration über viele Pakete.
+### 1. Eigene Wahrheitsquelle
 
-Wenn du dieselben Dateien, dieselben Tests und denselben Prompt nur auf drei Personas aufteilst („Architect“, „Coder“, „Critic“), hast du Evaluator-Optimizer oder Voting nachgebaut, plus Koordinationsmüll. Bau das Pattern explizit, nicht als Rollenspiel.
+Die zwei Agenten brauchen *unterschiedliche* Informationen und haben *unterschiedliche* Erfolgskriterien. Beispiel: Ein Agent implementiert die Lösung (er sieht den Code und die Tests). Ein zweiter Agent prüft den Diff (die Änderungen) gegen die Unternehmensrichtlinien. Beide schauen auf verschiedene Dinge und bewerten nach verschiedenen Maßstäben.
+
+### 2. Hart getrennte Berechtigungen
+
+Der Agent, der Produktions-Logs (also Protokolldateien aus dem echten, laufenden System) lesen darf, sollte *nicht* die Berechtigung haben, Code zu ändern und zu committen (in die Versionskontrolle einzuchecken). Und der Agent, der Code schreibt, sollte keine Zugangsdaten zur Produktionsumgebung haben. Das ist eine Sicherheitstrennung — wie ein Kassierer, der nicht gleichzeitig die Buchhaltung macht.
+
+### 3. Unbekannte Teilaufgaben mit Orchestrator
+
+Die Aufgabe ist so groß, dass man vorher nicht weiß, welche Teilschritte nötig sind — und ein Orchestrator (Dirigent-Agent) schickt Worker (Arbeiter-Agenten) mit kleinen, klaren Aufträgen los. Klassisches Beispiel: Eine große Migration über viele Pakete oder Dateien.
+
+### Das Persona-Problem
+
+Wenn du dieselben Dateien, dieselben Tests und denselben Prompt einfach auf drei „Persönlichkeiten" aufteilst — einen „Architekten", einen „Codierer" und einen „Kritiker" — dann hast du im Grunde nur das Evaluator-Optimizer-Pattern oder Voting aus dem vorherigen Kapitel nachgebaut, aber mit Extra-Aufwand für die Koordination. Bau das Pattern lieber direkt und explizit, statt es als Rollenspiel zu verkleiden.
 
 ## Was Komplexität kostet
 
-Jeder Hopping: Latenz, Token, Verlust an Kontext, neue Halluzinationskante („Worker hat gesagt, die API heißt X“). Fehler verstärken sich, Anthropic warnt davor explizit. Debugging wird zum verteilten System: du brauchst Traces, welche Teilaufgabe welches Tool mit welchem Argument aufgerufen hat.
+Jede Übergabe zwischen Agenten kostet:
 
-Frameworks (Agent SDK, Foundry, LangGraph-Klasse) verbergen genau diese Hops. Wenn du sie nutzt, musst du die darunterliegenden Calls lesen können. Falsche Annahmen über das Framework sind laut Anthropic eine häufige Kundenfehlerquelle.
+- **Latenz:** Mehr Zeit, weil Daten hin- und hergeschickt werden.
+- **Tokens:** Mehr Verbrauch (und damit Geld), weil jeder Agent seinen eigenen Kontext aufbauen muss. Tokens sind die Einheiten, in denen KI-Modelle Text messen — jedes Wort, jede Zahl verbraucht Tokens, und du zahlst pro Token.
+- **Kontextverlust:** Was Agent A weiß, muss Agent B erst erklärt werden. Dabei geht Information verloren — wie beim Stille-Post-Spiel.
+- **Neue Fehlerquellen:** Agent B arbeitet mit dem, was Agent A behauptet hat. Wenn Agent A halluziniert (sich etwas ausdenkt), baut Agent B darauf auf. Fehler verstärken sich.
+- **Debugging wird schwerer:** Statt einem Ablauf musst du jetzt ein verteiltes System (mehrere Teile, die zusammenarbeiten) nachvollziehen. Du brauchst Traces — also Protokolle, die zeigen, welcher Agent welches Werkzeug mit welchen Daten aufgerufen hat.
 
-## Entscheidungsregel für das Angebot
+Frameworks wie Agent SDK, Foundry oder LangGraph verbergen diese Komplexität hinter einer schönen Oberfläche. Das ist praktisch zum Starten, aber gefährlich in Produktion: Wenn du nicht verstehst, was unter der Haube passiert, kannst du Fehler nicht finden. Anthropic nennt falsche Annahmen über das Framework als eine der häufigsten Fehlerquellen bei Kunden.
 
-Zeichne den Happy Path auf ein Blatt. Wenn er eine Linie mit zwei programmatischen Gates ist, lieferst du Chaining. Wenn er „Copilot, mach das Issue“ ist, plus CI und Review, lieferst du Single-Agent. Wenn der Kunde „ein Schwarm“ will, fragst du, welche Teilaufgabe welchen *anderen* Erfolg hat. Kann er das nicht sagen, bleibst du bei einem Agenten und besseren Tools.
+## Entscheidungsregel
+
+Zeichne den gewünschten Ablauf auf ein Blatt Papier:
+
+1. **Eine Linie mit zwei automatischen Prüfpunkten?** → Prompt Chaining reicht.
+2. **„Agent, mach das Issue", plus Tests und Review?** → Single-Agent.
+3. **Der Kunde will „einen Schwarm"?** → Frag: Welche Teilaufgabe hat welchen *eigenen* Erfolgsmaßstab? Wenn er das nicht beantworten kann, bleib bei einem Agenten mit besseren Werkzeugen.
 
 <Merksatz>
 Ein zweiter Agent ist ein zweites Context-Fenster mit eigener Berechtigung — oder er ist Theater. Komplexität nur, wenn Isolation oder unbekannte Teilaufgaben es erzwingen.

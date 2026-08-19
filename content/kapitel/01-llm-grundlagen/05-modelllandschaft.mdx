@@ -1,33 +1,114 @@
 ---
 titel: Modelllandschaft und Kostenmodelle
-dauerMinuten: 18
+dauerMinuten: 20
 zusammenfassung: Welches Modell für welchen Job — und warum der Context die Rechnung sprengt.
 reihenfolge: 5
 ---
 
-Kunden hören Produktnamen. Du musst Kosten- und Eignungslogik hören. Drei Achsen reichen für ein Gespräch:
+## Warum es so viele Modelle gibt
 
-1. **Fähigkeit** — Reasoning, Instruction-Following, Tool Use, langer Context
-2. **Latenz** — interaktiver Chat vs. Batch
-3. **Preis** — meist getrennt für Input- und Output-Token, oft mit Rabatt für Cache-Hits und Batch
+Im Kapitel 00 hast du einen Überblick über die Anbieter bekommen. Jetzt geht es um die Frage, die im Arbeitsalltag entscheidend ist: **Welches Modell nehme ich wann?** Und: **Was kostet das?**
 
-## Warum der teuerste Call nicht der teuerste Lauf ist
+Es gibt nicht „das eine beste Modell". Stattdessen gibt es Modelle mit unterschiedlichen Stärken, und die Wahl hängt von drei Achsen ab:
 
-Ein Agent liest viel und schreibt wenig. Input-Token dominieren. Eine 80k-Token-Codebasis in jedem Turn zu schicken, macht ein „günstiges“ Modell teurer als ein teures Modell mit hartem Context-Budget.
+### 1. Fähigkeit
 
-**Prompt Caching** (bei Anthropic u. a.) senkt genau diese Wiederholungskosten: der statische System-Prompt plus Kapiteltext kostet nach dem ersten Write nur noch einen Bruchteil. Deshalb cachen wir in dieser Plattform den Tutor-System-Prompt.
+Wie gut ist das Modell bei der jeweiligen Aufgabe? Relevante Dimensionen:
+- **Reasoning** — komplexe Schlussfolgerungen, Architektur-Entscheidungen, schwierige Bugs
+- **Instruction-Following** — hält es sich an präzise Anweisungen und Formate?
+- **Tool Use** — kann es Werkzeuge (APIs, Dateisystem, Suche) effektiv einsetzen?
+- **Langer Context** — wie gut arbeitet es mit 50.000+ Token Kontext?
 
-## Grobe Einsatzregel für OneCode
+Größere Modelle sind bei fast allen Dimensionen besser — aber nicht immer *genug* besser, um den Mehrpreis zu rechtfertigen.
 
-- **Klein / schnell** (Haiku-Klasse, Flash, lokale 14B): Routing, Klassifikation, erstes Feedback, Routine-Edits
-- **Mittel** (Sonnet-Klasse): der Arbeitsalltag im Repo
-- **Groß** (Opus-Klasse, starke Reasoning-Modelle): harte Architektur, verfahrene Bugs, Auswertung
-- **Lokal**: Datenschutz, Offline, Demos ohne Cloud — mit ehrlichem Qualitätsabschlag
+### 2. Latenz (Geschwindigkeit)
 
-Im Kundengespräch nie „wir nutzen immer Modell X“ sagen. Sagen: „wir matchen Modell an Risiko und Wiederholrate, und wir messen Token.“
+Wie schnell antwortet das Modell? Für einen interaktiven Chat erwartest du Antworten in 1–3 Sekunden. Für einen Batch-Job, der 1.000 Dateien analysiert, ist die Geschwindigkeit pro Anfrage weniger wichtig als der Gesamtdurchsatz.
+
+Kleine Modelle antworten schneller. Große Modelle brauchen länger — besonders bei langen Outputs.
+
+### 3. Preis
+
+Hier wird es für die Praxis besonders relevant.
+
+## Wie LLM-Kosten funktionieren
+
+LLM-APIs werden nach **Token** abgerechnet — getrennt für Input (was du sendest) und Output (was du zurückbekommst).
+
+### Input-Token vs. Output-Token
+
+- **Input-Token:** Alles, was du dem Modell schickst — System-Prompt, Konversationshistorie, Dateien, deine Frage. Wird vor der Verarbeitung gezählt und berechnet.
+- **Output-Token:** Alles, was das Modell zurückgibt — seine Antwort, generierter Code, Erklärungen.
+
+Output-Token sind bei den meisten Anbietern 3–5x teurer als Input-Token. Warum? Weil Output-Erzeugung rechenintensiver ist (jedes Token braucht einen eigenen Vorwärtspass durch das Netz).
+
+### Prompt Caching: Wiederholungskosten senken
+
+Wenn du denselben System-Prompt oder dieselbe Datei in vielen aufeinanderfolgenden Requests mitschickst, berechnen einige Anbieter (Anthropic, OpenAI) diese wiederholten Teile günstiger — das nennt sich **Prompt Caching**. Der statische Teil muss nur einmal verarbeitet werden und wird danach aus einem Cache geladen.
+
+Das ist besonders relevant für Agent-Systeme, die denselben System-Prompt in jedem Turn mitschicken. Ohne Caching zahlst du denselben System-Prompt 20x voll. Mit Caching zahlst du ihn 1x voll und 19x stark reduziert.
+
+### Warum der teuerste Call nicht der teuerste Lauf ist
+
+Ein Coding-Agent **liest viel und schreibt wenig**. Input-Token dominieren die Kosten. Wenn ein Agent in jedem Turn 80.000 Token Codebasis mitschickt, macht das ein „günstiges" Modell teurer als ein teureres Modell, das mit weniger Kontext auskommt.
+
+Deshalb ist „welches Modell ist am billigsten?" die falsche Frage. Die richtige Frage ist: „Wie viel Kontext brauche ich, und wie oft wiederholt er sich?"
+
+## Modellklassen für die Praxis
+
+Eine grobe Einteilung, die für den Alltag funktioniert:
+
+### Klein / schnell (z. B. Claude Haiku, GPT-4.1-mini, lokale 8B–14B-Modelle)
+
+- **Wofür:** Einfache Aufgaben — Klassifikation, Zusammenfassungen, Formatierung, Routing-Entscheidungen, erste Entwürfe
+- **Vorteil:** Schnell, billig, gut genug für Routine
+- **Nachteil:** Scheitert bei komplexen Aufgaben, macht bei schwierigen Bugs Fehler
+
+### Mittel (z. B. Claude Sonnet, GPT-4o)
+
+- **Wofür:** Der Arbeitsalltag — Code schreiben, Refactoring, Tests, Code-Review, Dokumentation
+- **Vorteil:** Gutes Gleichgewicht aus Qualität, Geschwindigkeit und Preis
+- **Nachteil:** Bei wirklich harten Problemen (Architektur, verfahrene Bugs) nicht immer ausreichend
+
+### Groß / Reasoning (z. B. Claude Opus, o3, Gemini Ultra)
+
+- **Wofür:** Schwere Aufgaben — Architektur-Entscheidungen, komplexe Bugs, die „mittel"-Modelle nicht lösen, Evaluierung von Ergebnissen
+- **Vorteil:** Höchste Qualität, bestes Reasoning
+- **Nachteil:** Langsam, teuer, für Routine-Aufgaben Verschwendung
+
+### Lokal (z. B. Llama 3 8B/70B via Ollama)
+
+- **Wofür:** Datenschutz-sensitive Aufgaben, Offline-Nutzung, Demos ohne Cloud-Abhängigkeit, hohe Stückzahlen ohne Token-Kosten
+- **Vorteil:** Keine laufenden Kosten, volle Kontrolle, keine Daten an Dritte
+- **Nachteil:** Braucht gute Hardware, Qualität unter den großen Cloud-Modellen
+
+## Kosten grob abschätzen
+
+Eine Beispielrechnung für einen typischen Agent-Lauf:
+
+- System-Prompt: 2.000 Token
+- Konversation (5 Turns): 15.000 Token
+- Gelesene Dateien: 30.000 Token
+- Tool-Outputs: 10.000 Token
+- **Input gesamt: ~57.000 Token**
+- Output (5 Antworten): ~5.000 Token
+
+Bei Claude Sonnet (~3 $/1M Input, ~15 $/1M Output):
+- Input: 57.000 × $0,000003 = $0,17
+- Output: 5.000 × $0,000015 = $0,08
+- **Gesamt pro Session: ~$0,25**
+
+Das klingt billig — und für einzelne Sessions ist es das. Aber wenn ein Team von 10 Entwicklern je 30 Sessions am Tag hat: 10 × 30 × $0,25 = $75/Tag = ~$1.500/Monat. Deshalb ist Kosten-Bewusstsein kein Geiz, sondern Engineering.
+
+## Im Kundengespräch: Was du sagst
+
+**Nicht:** „Wir nutzen immer Modell X, das ist das beste."
+**Sondern:** „Wir matchen das Modell an die Aufgabe — klein und schnell für Routine, groß und teuer nur wo es zählt. Und wir messen Token, damit die Kosten vorhersagbar bleiben."
+
+Das signalisiert Kompetenz: Du verstehst, dass es Tradeoffs gibt, und du triffst bewusste Entscheidungen statt Bauchgefühl.
 
 <Merksatz>
-Kosten sind Token mal Preis, nicht Modellname mal Bauchgefühl. Langer Context ohne Cache ist der stille Budgetkiller.
+Kosten sind Token mal Preis, nicht Modellname mal Bauchgefühl. Input-Token dominieren bei Agents. Langer Kontext ohne Cache ist der stille Budgetkiller. Klein für Routine, groß für harte Stellen.
 </Merksatz>
 
 <Quelle

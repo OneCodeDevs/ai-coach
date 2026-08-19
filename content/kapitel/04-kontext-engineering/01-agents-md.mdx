@@ -1,47 +1,79 @@
 ---
 titel: AGENTS.md als Standard
-dauerMinuten: 16
+dauerMinuten: 30
 zusammenfassung: Eine Markdown-Datei im Repo-Root, die Coding-Agenten herstellerübergreifend lesen — README bleibt menschlich.
 reihenfolge: 1
 ---
 
-Angebot 1 von OneCode heißt im Pitch „wir bauen das System in dein Repo“. Die Datei, mit der das System *sichtbar* wird, sollte nicht proprietär sein. **AGENTS.md** ist genau das: ein offenes Markdown-Dokument, das Codex, Copilot, Cursor, Gemini CLI, Aider (via Config) und andere an derselben Stelle suchen. Es wird von der Agentic AI Foundation unter der Linux Foundation betreut. Kein Pflicht-YAML, keine Pflicht-Überschriften. Der Agent parst den Text, den du schreibst.
+Stell dir vor, du bekommst einen neuen Kollegen. Am ersten Tag setzt er sich an den Schreibtisch und fragt: „Wie starte ich das Projekt? Welche Regeln gelten hier? Was darf ich auf keinen Fall tun?" Normalerweise würde ein erfahrener Entwickler danebensitzen und alles erklären. Aber was, wenn der neue Kollege eine KI ist — ein sogenannter **Coding-Agent** (ein KI-Programm, das selbständig Code schreibt, Tests ausführt und Pull Requests erstellt)?
 
-## README bleibt für Menschen
+Genau dafür gibt es **AGENTS.md**: eine einfache Textdatei, die du in dein Projekt legst und die dem KI-Agenten alles erklärt, was er wissen muss.
 
-README: Quickstart, Screenshot, Beitragsregeln, Link zum Slack. AGENTS.md: was ein Agent braucht, das Menschen nervt oder überfrachtet.
+## Was ist AGENTS.md?
 
-Typischer Inhalt, der in Kundenrepos den Durchsatz hebt:
+AGENTS.md ist eine **Markdown-Datei** — also eine gewöhnliche Textdatei mit einfacher Formatierung (Überschriften, Listen, Fettdruck). Du legst sie ins Hauptverzeichnis (die „Wurzel") deines Projekts. Der Name `AGENTS.md` ist dabei kein Zufall: Verschiedene KI-Tools haben sich auf genau diesen Dateinamen geeinigt.
 
-- wie Bootstrap, Dev-Server, Test, Lint, Typecheck **wirklich** laufen (exakte Commands, Filter, Reihenfolge)
-- wo die Fallen liegen (`pnpm` nicht `npm`, Testdb braucht Docker, `.env.example` ist Pflicht)
-- Konventionen, die ein Linter nicht fängt (keine Business-Logik in Controllern, IDs sind ULIDs)
-- Sicherheitsgrenzen (keine Production-Secrets, `migrations/` nur mit Pair)
-- PR-Titel, was vor dem Commit laufen muss
+Das Besondere: **AGENTS.md ist herstellerübergreifend.** Egal ob du mit OpenAI Codex, GitHub Copilot, Cursor, Gemini CLI, Claude Code oder Aider arbeitest — sie alle suchen nach dieser Datei und lesen sie. Du musst also nicht für jedes Tool eine eigene Konfigurationsdatei pflegen. Eine Datei, viele Agenten.
 
-Die Official-Site sagt es unsentimental: wenn du Test-Commands hineinschreibst, wird der Agent sie ausführen und bei Rot nachbessern. Das ist gewollt. Schreib keine Commands hinein, die in CI anders heißen als lokal.
+AGENTS.md wird von der **Agentic AI Foundation** unter dem Dach der Linux Foundation betreut. Das ist keine einzelne Firma, sondern eine offene Organisation. Kein Hersteller kontrolliert das Format allein.
 
-## Verschachtelung statt eines Manifestos
+## Warum nicht einfach die README nutzen?
 
-Monorepos bekommen **mehrere** AGENTS.md. Die Datei, die dem editierten File am nächsten liegt, gewinnt bei Konflikt. Der User-Prompt gewinnt über alles. OpenAI selbst hält dutzende dieser Dateien in großen Repos.
+Jedes Softwareprojekt hat (hoffentlich) eine `README.md`. Die ist für **Menschen** gedacht: Wie installiere ich das Projekt? Wie sieht die App aus? Wo finde ich den Slack-Kanal des Teams?
 
-Praxis:
+Das Problem: Ein KI-Agent braucht andere Informationen als ein Mensch. Menschen wissen, dass `npm` und `pnpm` verschiedene Paketmanager sind. Ein Agent nicht — er nimmt das, was er am häufigsten in seinen Trainingsdaten gesehen hat, also vermutlich `npm`. Wenn dein Projekt aber `pnpm` verwendet, läuft alles schief.
+
+**README bleibt für Menschen. AGENTS.md erklärt den Betrieb den Agenten.**
+
+Stell es dir wie zwei Schilder am Eingang einer Werkstatt vor:
+- Das eine Schild (README) sagt: „Willkommen! Hier bauen wir Fahrräder. Sprechstunde Mo–Fr."
+- Das andere Schild (AGENTS.md) sagt: „Schraubenschlüssel 13er, Drehmoment max 25 Nm, Rahmen nie ohne Grundierung lackieren."
+
+## Was gehört in eine AGENTS.md?
+
+Typischer Inhalt, der KI-Agenten in echten Projekten produktiv macht:
+
+- **Exakte Befehle** zum Starten, Testen und Prüfen des Projekts (nicht „führe die Tests aus", sondern `pnpm test --filter billing`). Ein Agent führt genau den Befehl aus, den du hineinschreibst. Wenn der Befehl stimmt, behebt er Fehler automatisch.
+- **Stolperfallen**, die ein Neuling nicht kennt: „Verwende `pnpm`, nicht `npm`". „Die Testdatenbank braucht Docker". „Ohne `.env.example` startet nichts."
+- **Konventionen**, die kein automatisches Prüftool (Linter) erkennt: „Keine Business-Logik in Controllern." „IDs sind ULIDs, keine UUIDs."
+- **Sicherheitsgrenzen**: „Keine echten Zugangsdaten (Secrets) im Code." „Änderungen an `migrations/` nur im Vier-Augen-Prinzip."
+- **PR-Format**: Wie sollen Titel aussehen? Was muss vor einem Commit laufen?
+
+Wichtig: Schreib keine Befehle hinein, die lokal anders heißen als in der CI-Pipeline (dem automatischen Prüfsystem, das bei jedem Push läuft). Wenn in AGENTS.md `npm test` steht, aber in CI `pnpm turbo test` läuft, wird der Agent die Tests lokal grün machen — und CI schlägt trotzdem fehl.
+
+## Verschachtelung: Mehrere AGENTS.md in einem Projekt
+
+Große Projekte (sogenannte **Monorepos** — ein einzelnes Repository, das mehrere Apps oder Pakete enthält) profitieren von **mehreren** AGENTS.md-Dateien. Jede Datei gilt für ihren Bereich:
 
 ```
-AGENTS.md                  # Repo: Toolchain, CI, Secrets
-apps/web/AGENTS.md         # Next, App Router, Verbote
-packages/billing/AGENTS.md # Invarianten der Abrechnung
+AGENTS.md                  # Gilt fürs ganze Repo: Toolchain, CI, Secrets
+apps/web/AGENTS.md         # Nur für die Web-App: Next.js, App Router
+packages/billing/AGENTS.md # Nur für die Abrechnung: Geschäftsregeln
 ```
 
-Nicht denselben Style-Guide dreimal kopieren. Root = Querschnitt. Package = Fachliches. Wiederholung erzeugt Drift.
+Die Regel ist einfach: **Die nächste Datei gewinnt.** Wenn der Agent eine Datei in `packages/billing/` bearbeitet, liest er zuerst `packages/billing/AGENTS.md`. Was dort steht, hat Vorrang vor der Datei im Hauptverzeichnis.
+
+Und über allem steht der **User-Prompt** — also das, was du dem Agenten direkt im Chat sagst. Deine Anweisung überschreibt jede AGENTS.md.
+
+Kopiere nicht denselben Inhalt in jede Datei. Die Root-Datei enthält Querschnittsthemen (Toolchain, CI). Die Package-Dateien enthalten Fachliches. Wenn du kopierst, veraltet eine Kopie irgendwann — und der Agent bekommt widersprüchliche Informationen.
 
 ## Was AGENTS.md nicht ist
 
-Es ist keine Skill-Library, kein Ersatz für CI, keine Policy-Engine. Es ist Onboarding-Text für Maschinen. Lange Checklisten („so machst du ein Release in 40 Schritten“) gehören in einen Skill, der nur bei Releases geladen wird. Sonst zahlst du 40 Schritte in **jedem** Bugfix-Turn.
+AGENTS.md ist kein Allheilmittel. Es ist **Onboarding-Text für Maschinen** — vergleichbar mit dem Einarbeitungszettel für den ersten Tag.
 
-Migration: alte `AGENT.md` umbenennen, Symlink halten, wenn ein Tool den Singular noch sucht. Aider: `read: AGENTS.md` in `.aider.conf.yml`. Gemini CLI: Filename in Settings. Cursor liest AGENTS.md nativ, zusätzlich zu `.cursor/rules`.
+Was AGENTS.md **nicht** ersetzen kann:
+- **Kein Ersatz für CI** (die automatische Prüfpipeline). AGENTS.md beschreibt Regeln. CI erzwingt sie.
+- **Keine Skill-Library.** Lange Anleitungen mit 40 Schritten (z. B. „So machst du ein Release") gehören in einen **Skill** (dazu mehr in Lektion 4). Wenn du 40 Schritte in AGENTS.md packst, liest der Agent sie bei **jedem** kleinen Bugfix mit — das kostet unnötig Token (Recheneinheiten, die du pro Anfrage bezahlst) und verwirrt.
+- **Keine Policy-Engine.** AGENTS.md kann bitten, aber nicht erzwingen. Wenn du verhindern willst, dass jemand Secrets committet, brauchst du einen technischen Check, nicht nur einen Satz.
 
-Im Kundengespräch: „Eine Datei, viele Agenten. Wir locken euch nicht in unser Format ein.“ Das ist der Standard, auf den Angebot 1 und die Übergabe in Angebot 2 zeigen.
+## Migration von älteren Formaten
+
+Manche Tools suchen noch nach `AGENT.md` (Singular) statt `AGENTS.md` (Plural). Falls du eine alte Datei hast: umbenennen und einen Symlink (eine Verknüpfung) für das alte Format anlegen, bis alle Tools aktuell sind.
+
+Für spezifische Tools:
+- **Aider**: Trage `read: AGENTS.md` in die `.aider.conf.yml` ein.
+- **Gemini CLI**: Stelle den Dateinamen in den Einstellungen ein.
+- **Cursor**: Liest AGENTS.md automatisch, zusätzlich zu seinen eigenen `.cursor/rules`.
 
 <Merksatz>
 AGENTS.md ist die herstellerübergreifende Einweisung. README erklärt das Projekt Menschen, AGENTS.md erklärt den Betrieb den Agenten. Die nächste Datei zum Edit gewinnt, der Chat überschreibt beide.

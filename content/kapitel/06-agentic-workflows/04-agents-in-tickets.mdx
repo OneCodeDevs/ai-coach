@@ -1,43 +1,71 @@
 ---
 titel: Agents in Tickets und Issues
-dauerMinuten: 15
+dauerMinuten: 26
 zusammenfassung: Das Issue ist der Auftrag. Ohne Akzeptanzkriterien liefert der Agent eine plausible Geschichte, kein Done.
 reihenfolge: 4
 ---
 
-Im IDE-Chat verschwindet die Entscheidung mit der Session. Im Issue bleibt sie. Deshalb hängt Angebot 1 Agents an Tickets: der Auftrag ist versioniert, der Output ist ein PR gegen genau dieses Issue, der Mensch reviewed das Artefakt. GitHub Copilot Cloud Agent ist das Referenzprodukt: Issue zuweisen oder `@copilot`, Recherche und Plan, Commits auf einem Branch, PR wenn ihr so weit seid.
+In der IDE (der Entwicklungsumgebung — dem Programm, in dem man Code schreibt) tippt man Anweisungen in einen Chat und bekommt Ergebnisse. Aber wenn man den Chat schließt, ist die Entscheidung weg — niemand kann später nachvollziehen, warum etwas so gemacht wurde. **Issues** (also Aufgaben-Tickets in einem System wie GitHub, Jira oder Linear) sind das Gegenteil: Sie bleiben, sind versioniert (man sieht jede Änderung) und sind für das ganze Team sichtbar.
 
-## Was ein agentenfähiges Ticket enthält
+Deshalb hängen wir Agenten an Tickets statt an Chat-Fenster. Der Auftrag ist dokumentiert, das Ergebnis ist ein PR gegen genau dieses Ticket, und ein Mensch reviewed das Artefakt.
 
-Nicht „bitte Login fixen“. Sondern:
+## Wie ein agentenfähiges Ticket aussieht
 
-- **Ist / Soll** in einer Sprache, die ein Test widerspiegeln kann.
-- **Akzeptanzkriterien** als Checkboxen, nicht als Stimmung.
-- **Out of scope.** Sonst erweitert der Agent den Auftrag, weil er hilfreich trainiert ist.
-- **Betroffene Fläche**, soweit bekannt (Dienst, Dateien, Feature-Flag).
-- **Risikoklasse:** darf der Agent allein bis zum PR, oder ist es ein Gate-Thema (Auth, Daten)?
+Ein Ticket wie „Bitte Login fixen" reicht nicht — weder für einen Menschen noch für einen Agenten. Aber für den Agenten ist es besonders kritisch: Er wurde darauf trainiert, hilfreich zu sein. Bei vagen Aufträgen interpretiert er selbst, was gemeint sein könnte — und liefert etwas, das plausibel aussieht, aber nicht das ist, was du wolltest.
 
-Das ist keine Bürokratie für den Agenten. Es ist Context Engineering: der Issue-Text ist der Auftragsprompt, den das ganze Team sieht. Schlechte Tickets erzeugen gute Demos und schlechte Merge-Kandidaten.
+Ein gutes Ticket enthält:
 
-## Der Lauf
+### Ist / Soll
 
-1. Mensch (oder Triage-Routing) hängt den Agenten ans Issue.
-2. Agent liest Repo-Instructions, MCP (Issues, Code), schreibt Plan. Beim Cloud Agent könnt ihr den Plan *vor* dem großen Diff iterieren. Das ist ein frühes, billiges Gate.
-3. Implementierung auf einem Feature-Branch, nicht auf `main`. Ein Issue, ein Branch, ein PR: die GitHub-Grenze ist hart (kein Multi-Repo in einem Lauf, 59 Minuten Timeout beim Cloud Agent). Große Themen schneidet ihr in Issues, nicht in Hoffnung.
-4. CI auf dem PR. Rot heißt zurück an den Agenten oder an den Menschen, je nach Policy.
-5. Review-Pflicht. Schließen des Issues erst nach Merge, nicht nach „Agent sagt done“.
+**Ist-Zustand:** Was passiert gerade? „Wenn ein Nutzer sein Passwort falsch eingibt, erscheint keine Fehlermeldung." **Soll-Zustand:** Was soll passieren? „Nach falschem Passwort erscheint eine rot hinterlegte Meldung: ‚Passwort falsch. Bitte erneut versuchen.'" Formuliere es so, dass man einen automatischen Test daraus ableiten kann.
 
-Microsoft Applied Skills *Resolve GitHub issues by using GitHub Copilot* prüft genau diese Kette in VS Code Agent Mode: Issue anlegen, untersuchen, mit Agent Mode lösen, schließen. Das Lab ist der Nachweis, den du Kunden hinlegen kannst, ohne euer internes Playbook zu leaken.
+### Akzeptanzkriterien als Checkboxen
+
+Nicht: „Es soll gut funktionieren." Sondern:
+- [ ] Fehlermeldung erscheint innerhalb 500ms
+- [ ] Meldung verschwindet bei erneutem Versuch
+- [ ] Nach 5 Fehlversuchen wird das Konto für 15 Minuten gesperrt
+
+Checkboxen statt Prosa. Ein Agent kann Checkboxen abarbeiten — Stimmungen nicht.
+
+### Out of scope
+
+Was *nicht* gemacht werden soll. Ohne diese Angabe erweitert der Agent gerne den Auftrag, weil er darauf trainiert ist, hilfreich zu sein. Wenn du schreibst „Login fixen", aber nicht sagst „Design bleibt unverändert", kann es passieren, dass der Agent gleich das ganze Login-Formular redesignt.
+
+### Betroffene Fläche
+
+Soweit bekannt: Welcher Dienst, welche Dateien, welches Feature-Flag (ein Schalter, mit dem man neue Features ein- und ausschalten kann, ohne den Code zu ändern) ist betroffen?
+
+### Risikoklasse
+
+Darf der Agent allein bis zum PR arbeiten, oder geht es um ein sensibles Thema (Authentifizierung, Nutzerdaten, Zahlungen), das ein extra Gate braucht?
+
+Das klingt nach Bürokratie — ist aber das Gegenteil. Es ist **Context Engineering**: Der Issue-Text ist der Auftragsprompt, den das ganze Team sieht. Schlechte Tickets erzeugen eindrucksvolle Demos und schlechte Merge-Kandidaten.
+
+## Der typische Ablauf
+
+1. **Zuweisung:** Ein Mensch oder ein automatisches Routing weist den Agenten dem Issue zu. Bei GitHub Copilot Cloud Agent reicht es, `@copilot` im Issue zu erwähnen oder den Agenten als Assignee (Zuständigen) einzutragen.
+
+2. **Recherche und Plan:** Der Agent liest die Repository-Anweisungen (zum Beispiel `AGENTS.md`), nutzt MCP-Tools, um den Code und verknüpfte Issues zu verstehen, und schreibt einen Plan. Bei Cloud Agents kannst du diesen Plan *vor* der eigentlichen Umsetzung sehen und Feedback geben. Das ist ein frühes, billiges Gate — korrigieren ist hier viel günstiger als nach 500 Zeilen Code.
+
+3. **Implementierung:** Der Agent arbeitet auf einem Feature-Branch — einer Arbeitskopie, getrennt von `main`. Die Regel: Ein Issue, ein Branch, ein PR. GitHub Cloud Agent hat hier klare Grenzen: maximal ein Repository pro Lauf, 59 Minuten Timeout. Große Aufgaben müssen in mehrere Issues aufgeteilt werden — nicht in Hoffnung.
+
+4. **CI prüft:** Auf dem PR laufen automatische Tests. Rot (Tests fehlgeschlagen) bedeutet: zurück an den Agenten oder an den Menschen, je nach vereinbarter Regel.
+
+5. **Review und Merge:** Ein Mensch prüft den Code und die Ergebnisse. Das Issue wird erst geschlossen, wenn der PR gemerged ist — nicht wenn der Agent sagt „Ich bin fertig".
 
 ## Wo Teams scheitern
 
-Agent auf 40 verwaiste Nice-to-haves gleichzeitig. Keine Definition of Done. Kein Mensch, der den PR in 24 Stunden sieht: dann verfault der Branch, und „Agents bringen nichts“ ist die Retrospektive über eure Queue, nicht über das Modell.
+Die häufigsten Fehler mit Agenten in Tickets:
 
-Custom Agents (Frontend-only, Docs, Tests) lohnen, wenn die Tickets schon so geschnitten sind. Sonst ist Routing-Pattern plus ein Default-Agent ehrlicher.
+- **Zu viel gleichzeitig:** 40 alte Nice-to-have-Tickets gleichzeitig auf den Agenten werfen. Ohne Priorisierung und ohne Kapazitätsplanung entsteht Chaos.
+- **Keine Definition of Done:** Der Agent öffnet einen PR, niemand hat definiert, wann der als „fertig" gilt. Also liegt er da und sammelt Staub.
+- **Review-Stau:** Kein Mensch schaut innerhalb von 24 Stunden auf den PR. Der Branch veraltet (andere Änderungen werden in der Zwischenzeit in `main` gemerged, und der Branch passt nicht mehr). Nach einer Woche ist der Merge-Konflikt (widersprüchliche Änderungen) größer als die ursprüngliche Aufgabe. Die Retrospektive (Rückblick-Meeting) sagt „Agenten bringen nichts" — aber das Problem war die Review-Queue, nicht das Modell.
+- **Kein Out-of-scope:** Der Agent erweitert hilfreich den Auftrag und produziert einen riesigen PR, den niemand reviewen will.
 
-## Was du im Workshop zeigst
+## Custom Agents für verschiedene Ticket-Typen
 
-Ein echtes, kleines Issue aus ihrem Backlog. Vorher die Kriterien schärfen. Nachher den PR: welche Checks grün, welche Frage der Reviewer stellen muss. Der Learning-Moment ist selten der generierte Code. Es ist, dass das Ticket zum Vertrag wurde.
+Wenn eure Tickets schon gut geschnitten sind (Frontend, Docs, Tests als separate Kategorien), können spezialisierte Agenten — mit eigenen Werkzeugen und Regeln — Sinn ergeben. Das ist dann das Routing-Pattern aus der vorherigen Lektion, angewendet auf Ticket-Typen. Wenn eure Tickets aber nicht sauber kategorisiert sind, ist ein guter Default-Agent mit klaren Regeln ehrlicher als drei spezialisierte Agenten, die am falschen Ticket arbeiten.
 
 <Merksatz>
 Das Issue ist der Prompt mit Audit-Trail. Der Agent liefert einen Branch gegen Kriterien — Done ist Merge nach Review, nicht der letzte Chat-Satz.

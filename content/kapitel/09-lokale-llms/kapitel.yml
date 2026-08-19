@@ -2,7 +2,7 @@ slug: lokale-llms
 nummer: 9
 titel: Lokale LLMs für Entwickler
 untertitel: Datenschutz, Offline, Demos — und der ehrliche Qualitätsabstand zur Cloud.
-dauerMinuten: 63
+dauerMinuten: 108
 lernziele:
   - Vier Gründe für lokale Modelle nennen und den Qualitätsabschlag gegenüber Frontier-Cloud nicht beschönigen
   - Ollama, LM Studio und llama.cpp in je einem Satz voneinander trennen

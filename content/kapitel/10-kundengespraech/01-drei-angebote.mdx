@@ -1,37 +1,63 @@
 ---
 titel: Die drei Angebote in eigenen Worten
-dauerMinuten: 18
+dauerMinuten: 30
 zusammenfassung: Pitch, Pain, Lösung — so, dass ein CTO nach 90 Sekunden weiß, welches Angebot er nicht braucht.
 reihenfolge: 1
 ---
 
-OneCode verkauft kein „wir machen AI“. OneCode verkauft drei geschnittene Angebote plus den Bonus lokal. Im Gespräch gewinnt, wer **unterscheidet**. Wer alles in einen Satz kippt, klingt nach Agentur mit Prompt-Folien. Der skeptische CTO will wissen: Welches Problem, welcher Scope, was bleibt bei uns hängen?
+## Das Drei-Angebote-Modell: Warum drei statt eins?
 
-Lerne die drei so, dass du sie ohne Zettel sagen kannst. Auswendig klingt nach Skript. In eigenen Worten klingt nach Handwerk. Unten steht die kanonische Form — du musst sie *übersetzen*, nicht vorlesen.
+Viele Dienstleister verkaufen „wir machen alles". Das Problem: Wenn alles in einem Topf ist, kann der Kunde nicht entscheiden, was er wirklich braucht. Er fühlt sich überfordert oder kauft zu viel — und ist später unzufrieden.
+
+Das **Drei-Angebote-Modell** löst dieses Problem durch klare Trennung: Drei verschiedene Pakete für drei verschiedene Situationen. Jedes hat seinen eigenen **Pain** (Schmerzpunkt — das Problem des Kunden), seinen eigenen **Scope** (Umfang — was genau geliefert wird) und seine eigene Zielgruppe.
+
+Im Gespräch gewinnt, wer **unterscheidet**. Wer alles in einen Satz kippt, klingt nach Agentur mit Prompt-Folien. Der skeptische CTO (Chief Technology Officer — der technische Leiter eines Unternehmens) will wissen: **Welches Problem löst ihr? Wie groß ist der Scope? Was bleibt bei uns hängen?**
+
+Lerne die drei Angebote so, dass du sie **ohne Zettel** in eigenen Worten erklären kannst. Auswendig aufsagen klingt nach Skript. In eigenen Worten klingt nach Handwerk. Unten steht die kanonische Form (die offizielle Version) — du musst sie *übersetzen*, nicht vorlesen.
 
 ## Angebot 1 — AI-Native Software Delivery System
 
-**ICP:** Founder und CTO, Team das schon liefert, Tools schon da.
+### Für wen?
 
-**Pitch:** Mehr Output und Zuverlässigkeit im Agentic Engineering. Wir bauen das System ins Repo: Regeln, Kontext, Validierung. Hands-on im Code, keine Slides. Das Team behält Kontrolle durch Human Quality Gates.
+**ICP** (Ideal Customer Profile — das ideale Kundenprofil): Gründer und CTOs mit einem Team, das bereits Software ausliefert. Die Werkzeuge (Cursor, Claude Code, Copilot etc.) sind schon da.
 
-**Pain:** Tools sind da, das System nicht. Unklar, welcher Agent welche Aufgabe mit welchem Kontext fährt und wann ein Mensch prüfen muss. Bei harter Businesslogik, großen Repos und übergreifenden Änderungen laufen Agents gegen die Wand.
+### Der Pitch in einem Absatz
 
-**Lösung:** Agents in Repository, Tickets, Tests, CI/CD. Rules, Context Files, Agent Tasks, Guardrails, automatische Validierung. Konkrete Abläufe: Features, Bugfixes, Tests, Refactors, Migrationen.
+Mehr Output und Zuverlässigkeit im **Agentic Engineering** (der Einsatz von KI-Agenten, die selbstständig Programmieraufgaben erledigen). Ihr baut das System ins Repository (die Codebasis): Regeln, Kontext, Validierung. Hands-on im Code, keine PowerPoint-Folien. Das Team behält Kontrolle durch **Human Quality Gates** (menschliche Prüfstationen vor kritischen Änderungen).
 
-Dein Satz: „Wir verkaufen nicht den Agenten. Wir verkaufen die Schienen, auf denen eure Agenten nicht entgleisen.“
+### Der Pain (das Problem)
+
+Die Werkzeuge sind da, aber das **System** fehlt. Es ist unklar:
+- Welcher Agent fährt welche Aufgabe?
+- Mit welchem Kontext (welchen Informationen)?
+- Wann muss ein Mensch prüfen?
+
+Bei harter Geschäftslogik (den komplexen Regeln, die das Kerngeschäft abbilden), großen Codebases und übergreifenden Änderungen laufen Agents gegen die Wand — sie machen Fehler, die ein Mensch sofort sehen würde, aber das System nicht abfängt.
+
+### Die Lösung
+
+Agents in Repository, Tickets, Tests und CI/CD (Continuous Integration / Continuous Deployment — die automatische Pipeline, die Code testet und bereitstellt) einbetten. Konkret:
+- **Rules** (Regeln, die der Agent lesen und befolgen soll)
+- **Context Files** (Dateien, die dem Agent Hintergrundwissen geben)
+- **Agent Tasks** (definierte Aufgaben für den Agent)
+- **Guardrails** (Sicherheitsleitplanken — automatische Prüfungen, die Fehler stoppen)
+- **Automatische Validierung** (Tests, Evals, Secret-Scans)
+
+Für konkrete Abläufe: Features bauen, Bugs fixen, Tests schreiben, Code umstrukturieren (Refactoring), Migrationen durchführen.
+
+**Dein Satz:** „Wir verkaufen nicht den Agenten. Wir verkaufen die Schienen, auf denen eure Agenten nicht entgleisen."
 
 ## Angebot 2 — From AI (Vibe) Code to Production Software
 
-**ICP:** Founder mit laufendem Prototyp, oft AI-natives Startup.
+### Für wen?
 
-**Pitch:** Der Prototyp läuft. Wir machen ihn produktionsreif — wartbar, skalierbar, sicher. Fester Scope, wenige Wochen: Audit, Umbau der tragenden Teile, Übergabe.
+**ICP:** Gründer mit einem laufenden Prototyp, oft ein AI-natives Startup (ein Startup, das von Anfang an KI-Werkzeuge für die Entwicklung nutzt).
 
-**Pain:** MVP funktioniert, ist technisch nicht belastbar. Architektur, Tests, Security, Fehlerbehandlung fehlen oder sind Flickenteppich. Jedes Feature wird langsamer und riskanter.
+### Was ist „Vibe Coding"?
 
-**Lösung:** Eine Woche Audit (Architektur, Datenmodell, Auth/Permissions, Dependencies) → priorisierte Risikoliste mit Aufwand. Umbau der kritischen Pfade: Modulgrenzen, Tests wo es weh tut, CI/CD, Fehlerbehandlung, Logging, Monitoring. Übergabe **agentenfähig**: Rules, Context Files, Skills — damit Mensch und Agent weiterbauen, statt den Haufen zu vergrößern.
+**Vibe Coding** ist ein Begriff, den Andrej Karpathy (ein bekannter KI-Forscher, ehemals bei OpenAI und Tesla) geprägt hat: Man beschreibt einer KI, was man will, kopiert den generierten Code, führt ihn aus — und wenn es funktioniert, macht man weiter. „Vibes" statt Engineering.
 
-Fraunhofer IESE zum Vibe Coding: schnell in der Ideation, ungeeignet als alleiniger Produktionsprozess. Karpathy-Zitat im Kopf, euer Angebot im Mund: wir holen den Prototyp aus dem Vibe in Engineering.
+Das funktioniert erstaunlich gut für **Prototypen** (funktionsfähige Vorab-Versionen). Es funktioniert **nicht** für Software, die unter echter Last (vielen Nutzern gleichzeitig) zuverlässig laufen muss. Fraunhofer IESE (ein deutsches Forschungsinstitut für Software-Engineering) formuliert es so: Vibe Coding ist nützlich in der Ideenfindung, aber ungeeignet als alleiniger Produktionsprozess.
 
 <Zitat
   lang="en"
@@ -39,23 +65,68 @@ Fraunhofer IESE zum Vibe Coding: schnell in der Ideation, ungeeignet als alleini
   text="I'm building a project or webapp, but it's not really coding – I just see stuff, say stuff, run stuff, and copy-paste stuff, and it mostly works."
 />
 
-Dein Satz: „Wir schmeißen den Prototyp nicht weg. Wir machen die tragenden Wände tragend und übergeben euch ein Repo, in dem Agents nicht weiter schimmeln.“
+### Der Pitch
+
+Der Prototyp läuft. Ihr macht ihn **produktionsreif** — wartbar (andere Entwickler verstehen den Code), skalierbar (er hält mehr Nutzer aus), sicher (keine offensichtlichen Sicherheitslücken). Fester Scope, wenige Wochen: Audit, Umbau der tragenden Teile, Übergabe.
+
+### Der Pain
+
+Das MVP (Minimum Viable Product — die einfachste funktionsfähige Version des Produkts) funktioniert, ist aber technisch nicht belastbar:
+- **Architektur** (die Struktur des Codes) ist gewachsen statt geplant
+- **Tests** fehlen oder decken nur den Happy Path ab
+- **Security** (Sicherheit) ist oberflächlich oder nicht vorhanden
+- **Fehlerbehandlung** ist Flickenteppich
+- Jedes neue Feature wird langsamer und riskanter
+
+### Die Lösung
+
+1. **Eine Woche Audit** — Architektur, Datenmodell (wie die Datenbank aufgebaut ist), Auth/Permissions (Login und Berechtigungen), Dependencies (verwendete Programmbibliotheken). Ergebnis: Eine priorisierte Risikoliste mit geschätztem Aufwand.
+2. **Umbau der kritischen Pfade** — Modulgrenzen setzen, Tests wo es weh tut (an den riskantesten Stellen), CI/CD einrichten, Fehlerbehandlung, Logging (Protokollierung), Monitoring (Überwachung).
+3. **Übergabe agentenfähig** — Rules, Context Files, Skills (alles, was KI-Agenten brauchen, um im Projekt weiterzuarbeiten). Damit Mensch und Agent **weiterbauen** können, statt den Haufen zu vergrößern.
+
+**Dein Satz:** „Wir schmeißen den Prototyp nicht weg. Wir machen die tragenden Wände tragend und übergeben euch ein Repo, in dem Agents nicht weiter schimmeln."
 
 ## Angebot 3 — Qualitäts- und Sicherheitsgate für KI-generierten Code
 
-**ICP:** Teams, die schon Agents mergen — oder Angst davor haben, es zu tun.
+### Für wen?
 
-**Pitch:** Der Code eurer Agents — mit uns sicher nach Production. Automatisierte Qualitäts-, Security- und Skalierbarkeitsprüfungen. End-to-End vom PR bis zum Verhalten in Produktion.
+**ICP:** Teams, die schon KI-Agents mergen (also KI-generierten Code in die Hauptversion übernehmen) — oder Angst davor haben, es zu tun.
 
-**Pain:** AI-Code entsteht schneller, als ihr prüfen könnt. Reviews sind Stichproben. Was durchrutscht, merkt ihr beim Kunden. Es fehlt Transparenz über Fehler, Kosten und Verhalten.
+### Der Pitch
 
-**Lösung:** Evals, Guardrails, Quality Gates. Logging, Monitoring, Fallbacks, Kostenkontrolle. Kritische Fälle über Human-in-the-Loop. Das ist Kapitel 8 als Produkt.
+Der Code eurer Agents — mit uns sicher nach Production (in den Echtbetrieb). Automatisierte Qualitäts-, Security- und Skalierbarkeitsprüfungen. End-to-End vom PR (Pull Request — dem Vorschlag, Code zu übernehmen) bis zum Verhalten in Produktion.
 
-Dein Satz: „Wir machen den Merge langweilig. Langweilig ist das Kompliment.“
+### Der Pain
 
-## Bonus und Abgrenzung
+KI-Code entsteht schneller, als Menschen ihn prüfen können. Reviews (Code-Prüfungen) sind Stichproben. Was durchrutscht, merkt ihr beim Kunden. Es fehlt Transparenz über:
+- **Fehler** — Was geht schief und warum?
+- **Kosten** — Was kostet jeder Agent-Lauf?
+- **Verhalten** — Was tut der Agent wirklich?
 
-Lokal (Kapitel 9) ist Aufsatz, kein viertes Angebot mit eigenem Sales-Deck, außer Datenschutz erzwingt es. Kombis sind erlaubt und häufig: 2, dann 1; 1 plus 3; 3 allein, wenn das Delivery-System intern schon existiert. Verboten ist, alle drei als Bundle zu verkaufen, weil der Kalender Angst hat. Scope ist Respekt.
+### Die Lösung
+
+Das ist im Grunde **Kapitel 8 als Produkt**:
+- **Evals** (systematische Bewertungen) messen die Qualität
+- **Guardrails** (Sicherheitsleitplanken) stoppen Verstöße
+- **Quality Gates** (Prüfstationen) kontrollieren den Merge
+- **Logging, Monitoring** (Protokollierung und Überwachung) machen alles nachvollziehbar
+- **Fallbacks** (Ersatzlösungen) und **Kostenkontrolle** begrenzen den Schaden
+- **Human-in-the-Loop** (Mensch in der Schleife) für kritische Entscheidungen
+
+**Dein Satz:** „Wir machen den Merge langweilig. Langweilig ist das Kompliment."
+
+## Bonus: Lokal (Kapitel 9)
+
+Lokale Modelle sind ein Aufsatz, kein viertes Angebot mit eigenem Verkaufsdeck — es sei denn, Datenschutz erzwingt es. Dann wird „lokal" zum harten Constraint (einer Einschränkung, die man nicht umgehen kann), nicht zur Geschmacksfrage.
+
+## Kombinationen und Grenzen
+
+Kombinationen sind erlaubt und häufig:
+- **2, dann 1** — Erst den Prototyp härten, dann das Delivery-System aufbauen
+- **1 plus 3** — System bauen und gleichzeitig Gates einrichten
+- **3 allein** — Wenn das Team das Delivery-System schon hat, aber Gates fehlen
+
+**Verboten** ist, alle drei als Bundle zu verkaufen, weil der Kalender Angst hat. Scope ist Respekt — dem Kunden und sich selbst gegenüber.
 
 <Merksatz>
 1 ist das System für laufende Delivery. 2 ist der befristete Umbau vom Vibe zur Last. 3 ist das Gate vor Production. Copilot ist keines von dreien.

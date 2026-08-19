@@ -1,31 +1,83 @@
 ---
 titel: Tokenisierung und Embeddings
-dauerMinuten: 15
+dauerMinuten: 20
 zusammenfassung: Wie Text zu Zahlen wird, bevor ein Modell überhaupt nachdenken kann.
 reihenfolge: 1
 ---
 
-Ein Sprachmodell sieht keinen Text. Es sieht Integer. Sobald du das verinnerlicht hast, werden Context-Limits, Kosten und seltsame Wortbrüche plötzlich erwartbar statt mysteriös.
+Im vorherigen Kapitel hast du gelernt, dass ein LLM das nächste „Wort" vorhersagt. Aber genau genommen stimmt das nicht — ein Sprachmodell sieht keine Wörter. Es sieht Zahlen. Und der Prozess, der Text in Zahlen verwandelt, heißt **Tokenisierung**. Sobald du das verinnerlicht hast, werden Context-Limits, Kosten und seltsame Wortbrüche plötzlich erwartbar statt mysteriös.
 
-## Von Zeichen zu Token
+## Was ist ein Token?
 
-Tokenisierung zerlegt Text in Stücke, die das Modell kennt. Das sind selten ganze Wörter. Häufig sind es Teilworte, Satzzeichen oder häufige Buchstabenfolgen. `unbelievable` kann drei Token sein, ein Leerzeichen davor ein eigenes, und ein deutscher Umlaut kostet oft mehr als ein ASCII-Buchstabe.
+Ein **Token** ist ein Stück Text, das das Modell als eine Einheit behandelt. Meistens ist ein Token *kein* ganzes Wort. Stattdessen ist es oft:
 
-Zwei praktische Folgen für den Alltag:
+- Ein häufiges Teilwort (z. B. „un", „believ", „able" statt „unbelievable" als ganzes Wort)
+- Ein einzelnes Satzzeichen (Komma, Punkt, Klammer)
+- Ein Leerzeichen (ja, Leerzeichen sind eigene Token!)
+- Eine häufige Buchstabenfolge
 
-1. **Zählen ist nicht Zählen von Wörtern.** Eine Seite Prosa ist nicht dieselbe Tokenmenge wie eine Seite minifizierter JSON. Code, XML-Tags und Base64 sind token-ineffizient.
-2. **Das Modell kennt keine „Wörter“.** Es kennt Token-IDs. Deshalb kann es mitten im Wort umbrechen, seltsam hyphenieren oder bei seltenen Identifiers halluzinieren.
+Das Modell hat ein festes **Vokabular** — eine Liste aller Token-Stücke, die es kennt. Bei GPT-4 sind das etwa 100.000 verschiedene Token. Jedes Token hat eine eindeutige Nummer (ID). Der Text „Hallo Welt" wird also in eine Folge von Zahlen verwandelt, bevor das Modell irgendetwas damit anfangen kann.
 
-Nach der Tokenisierung kommt die Einbettung: jede ID wird auf einen Vektor abgebildet. Ab da rechnet das Netz nur noch mit Geometrie.
+## Warum nicht einfach ganze Wörter?
 
-## Embeddings sind Bedeutung als Koordinate
+Ganze Wörter als Token zu verwenden klingt intuitiver — warum macht man es nicht so? Drei Gründe:
 
-Ein Embedding ist ein Vektor, der semantische Nähe abbilden soll. Sätze mit ähnlicher Bedeutung liegen näher beieinander als Sätze, die nur dieselben Buchstaben teilen. Genau das nutzt semantische Suche und damit RAG: Dokumente werden eingebettet, die Frage ebenfalls, der nächste Nachbar kommt in den Prompt.
+1. **Es gibt zu viele Wörter.** Allein im Deutschen gibt es hunderttausende Wortformen (Deklination, Konjugation, Komposita). Ein Vokabular, das alle kennt, wäre riesig und ineffizient.
+2. **Unbekannte Wörter.** Bei ganzen Wörtern wüsste das Modell mit Wörtern, die es nie gesehen hat, nichts anzufangen. Mit Teilworten kann es auch unbekannte Wörter zerlegen.
+3. **Effizienz.** Häufige Wortkombinationen (wie „the" oder „ist") brauchen nur ein Token, seltene Wörter werden in mehrere zerlegt.
 
-Das ist kein Verstehen. Es ist eine brauchbare Annäherung. Deshalb scheitert RAG, wenn Chunks zu grob, zu klein oder ohne den nötigen Nachbar-Kontext geschnitten sind — nicht weil „das Modell dumm ist“.
+## Praktische Folgen der Tokenisierung
+
+Zwei Dinge, die im Arbeitsalltag direkt relevant werden:
+
+### 1. Textlänge ≠ Token-Anzahl
+
+Eine Seite deutscher Prosa hat eine andere Token-Anzahl als eine Seite Code, eine Seite JSON oder eine Seite Base64-kodierten Datei. Code mit vielen geschweiften Klammern, XML-Tags oder minifiziertes JSON sind besonders **token-ineffizient** — sie verbrauchen viele Token für wenig Inhalt.
+
+Als Faustregel: Ein Token entspricht im Englischen etwa 4 Zeichen oder ¾ eines Wortes. Im Deutschen sind es oft etwas weniger Wörter pro Token, weil deutsche Wörter länger sind und Umlaute (ä, ö, ü) mehr Token kosten als ASCII-Buchstaben.
+
+### 2. Das Modell „kennt" keine Wörter
+
+Weil das Modell mit Token-IDs arbeitet, kann es mitten im Wort umbrechen, seltsam hyphenieren oder bei seltenen Fachbegriffen und Identifiern halluzinieren. Es hat keine Vorstellung von „Wortgrenzen" — es sieht nur eine Folge von Stücken.
+
+Das erklärt auch, warum LLMs beim Buchstabenzählen scheitern: Sie sehen nicht die einzelnen Buchstaben, sondern Token-Chunks, die mehrere Buchstaben zusammenfassen.
+
+## Was passiert nach der Tokenisierung?
+
+Nachdem der Text in Token-IDs zerlegt wurde, passiert der nächste Schritt: Jede Token-ID wird in einen **Embedding-Vektor** umgewandelt.
+
+## Was ist ein Embedding?
+
+Ein **Embedding** ist ein Vektor — also eine Liste von Zahlen (typischerweise 768 bis 4096 Zahlen lang) — der die *Bedeutung* eines Tokens kodiert. Stell dir das wie Koordinaten in einem hochdimensionalen Raum vor:
+
+- Wörter mit ähnlicher Bedeutung liegen in diesem Raum nahe beieinander.
+- „König" und „Königin" sind näher als „König" und „Toaster".
+- „Python" (Programmiersprache) und „JavaScript" sind näher als „Python" (Schlange) und „JavaScript".
+
+Nach der Embedding-Schicht rechnet das neuronale Netz nur noch mit diesen Vektoren — also mit Geometrie. Die Attention-Mechanismen (aus dem vorherigen Kapitel) arbeiten auf diesen Vektoren, nicht auf dem ursprünglichen Text.
+
+## Warum sind Embeddings für die Praxis wichtig?
+
+Embeddings sind die Grundlage für **semantische Suche** und damit für **RAG (Retrieval-Augmented Generation)** — ein Konzept, das in späteren Kapiteln vorkommt.
+
+Die Idee: Du hast eine Sammlung von Dokumenten. Jedes Dokument (oder jeder Abschnitt) wird in einen Embedding-Vektor umgewandelt und gespeichert. Wenn jetzt eine Frage kommt, wird diese ebenfalls eingebettet. Dann sucht man den nächsten Nachbarn — also das Dokument, dessen Vektor am ähnlichsten ist — und gibt dieses als Kontext mit in den Prompt.
+
+Das ist kein echtes „Verstehen". Es ist eine brauchbare statistische Annäherung. Deshalb scheitert RAG, wenn Textabschnitte zu grob oder zu fein geschnitten sind — nicht weil „das Modell dumm ist", sondern weil die Vektoren die Bedeutung nicht gut genug abbilden.
+
+## Der gesamte Weg vom Text zur Antwort
+
+1. Du tippst Text ein: „Erkläre mir Tokenisierung"
+2. **Tokenisierung:** Der Text wird in Token-IDs zerlegt (z. B. [123, 4567, 89, 1234])
+3. **Embedding:** Jede ID wird auf einen Vektor abgebildet
+4. **Verarbeitung:** Das Transformer-Netz rechnet mit den Vektoren (Attention etc.)
+5. **Output:** Das Modell erzeugt Wahrscheinlichkeiten für das nächste Token
+6. **Sampling:** Ein Token wird ausgewählt (mehr dazu in einer späteren Lektion)
+7. **De-Tokenisierung:** Die Token-IDs werden zurück in lesbaren Text verwandelt
+
+Dieser Ablauf passiert für *jedes einzelne Output-Token* erneut — deshalb dauert die Generierung von langen Antworten länger als von kurzen.
 
 <Merksatz>
-Token sind die Währung des Modells. Embeddings sind die Karte, auf der ähnliche Bedeutungen Nachbarn sind. Beides ist Mechanik, kein Bewusstsein.
+Token sind die Währung des Modells — sie bestimmen Kosten, Context-Limits und Verarbeitungsgeschwindigkeit. Embeddings sind die Karte, auf der ähnliche Bedeutungen Nachbarn sind. Beides ist Mechanik, kein Bewusstsein.
 </Merksatz>
 
 <Quelle

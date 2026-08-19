@@ -1,43 +1,86 @@
 ---
 titel: Output messbar machen
-dauerMinuten: 15
+dauerMinuten: 25
 zusammenfassung: Erfolg ist gemergter, nicht regressierender Wert — nicht Tokens, nicht LOC, nicht Chat-Sterne.
 reihenfolge: 6
 ---
 
-Ohne Messung ist Angebot 1 eine Demo. Der Pitch verspricht mehr Output und Zuverlässigkeit. Also musst du beide Größen operationalisieren, bevor der Workshop endet. GitHub liefert für Copilot Cloud Agent bereits Lifecycle-Metriken: erstellte vs. gemergte PRs, Medianzeit bis Merge. Das ist der Anfang, nicht das Dashboard.
+Wenn ein Team anfängt, KI-Agenten für die Software-Entwicklung einzusetzen, stellt sich schnell die Frage: Bringt das eigentlich etwas? Ohne Messung bleibt der Einsatz eine Demo — beeindruckend in der Präsentation, aber nicht nachweisbar nützlich im Alltag.
+
+Messen klingt trocken, ist aber der Unterschied zwischen „wir glauben, es hilft" und „wir wissen, es hilft — und wo es noch nicht hilft". Hier schauen wir uns an, was man messen sollte, was nicht, und wie man das praktisch umsetzt.
 
 ## Was zählt
 
-**Durchsatz, der überlebt.** Anzahl Issues, die *nach Review* auf `main` landeten, in einem Slice, den der Agent angefasst hat. Nicht „PRs geöffnet“. Geöffnete und verworfene PRs sind Lernsignal (Prompt, Ticketqualität, zu großer Scope), kein Ruhm.
+### 1. Durchsatz, der überlebt
 
-**Zeit.** Cycle time Issue-zu-Merge, getrennt nach Risikoklasse. Wenn Agent-PRs schneller mergen, weil niemand sie liest, hast du das Gate abgeschaltet, nicht gewonnen.
+Die wichtigste Frage: Wie viele Issues wurden *nach menschlichem Review* in `main` gemerged — also tatsächlich in die offizielle Codebasis übernommen?
 
-**Qualität nach Merge.** Incidents, Hotfixes, Reverts, flaky Tests, die der Agent eingeführt hat, in einem festen Fenster (z. B. 14 Tage). Brauchst du eine Zahl für den Vertrag: Defects/Merge oder „keine P1 aus Agent-PRs ohne menschlichen Owner“.
+Nicht: „Wie viele PRs hat der Agent geöffnet?" Geöffnete PRs, die anschließend verworfen werden, sind kein Erfolg. Sie sind ein Lernsignal: War der Prompt (die Anweisung) schlecht? War das Ticket unklar? War der Scope (Umfang) zu groß?
 
-**Kosten.** Input/Output-Tokens plus Actions-Minuten plus Cloud-Agent-Credits, *pro gemergtem Issue*. Ein billiges Modell, das dreimal in der CI scheitert und neu schreibt, ist teurer als ein teurer Call, der einmal grün wird. Prompt Caching und enge MCP-Tool-Listen sind Hebel, die in dieser Zahl auftauchen.
+**Analogie:** In einer Bäckerei zählt nicht, wie viele Brote in den Ofen geschoben werden. Es zählt, wie viele Brote verkaufsfähig aus dem Ofen kommen.
 
-**Gate-Gesundheit.** Anteil PRs, die ohne menschlichen Review gemerged wurden (Ziel: nahe 0, außer dokumentierte Ausnahme). Anteil destruktiver Tool-Calls ohne HITL (Ziel: 0).
+### 2. Zeit — Issue bis Merge
 
-## Was nicht zählt
+**Cycle Time** (Durchlaufzeit): Wie lange dauert es vom Erstellen eines Issues bis zum Merge des zugehörigen PRs? Getrennt nach Risiko-Klasse — ein einfacher Textfix darf schneller durchlaufen als eine Änderung an der Zahlungslogik.
 
-Zeilen Code, Commit-Frequenz, „der Agent hat 40 Dateien angefasst“, Thumbs-up im Chat, interne Demo-Wow-Runden. Evaluator-Scores ohne Kalibrierung gegen menschliche Reviews. Eine 95-Prozent-„LGTM“-Rate eines LLM-Reviewers, der nie Nein sagt.
+Achtung auf einen Trugschluss: Wenn Agent-PRs schneller gemerged werden, *weil niemand sie richtig liest*, hast du nicht den Prozess verbessert — du hast das Quality Gate abgeschaltet. Schnell ist nur dann gut, wenn die Qualität stimmt.
 
-## Das einfachste Pattern, das funktioniert
+### 3. Qualität nach dem Merge
 
-Messung folgt der Architektur. Wenn Chaining plus CI euer Bugfix-Pfad ist, misst du diesen Pfad. Du baust kein Multi-Agent-System, um mehr Graphen zu haben. Anthropic: Komplexität nur, wenn Outcomes besser werden. Die Baseline ist: ein Mensch allein, dieselben Ticketklassen, zwei Sprints. Dann Agent plus Gates. Wenn Merge-Rate steigt *und* Defects nicht, skalierst du. Wenn Defects steigen, schärfst du Tickets, Tools und Gates, nicht die Agentenzahl.
+Was passiert *nachdem* der Code in `main` gelandet ist? Innerhalb eines festen Zeitfensters (zum Beispiel 14 Tage) misst du:
 
-## Im Kickoff festnageln
+- **Incidents:** Ausfälle oder Fehler im laufenden System, die auf den neuen Code zurückgehen.
+- **Hotfixes:** Dringende Reparaturen, die nach dem Merge nötig waren.
+- **Reverts:** Wurde der Code komplett rückgängig gemacht, weil er Probleme verursacht hat?
+- **Flaky Tests:** Automatische Tests, die manchmal grün und manchmal rot sind (also unzuverlässig), und die der Agent eingeführt hat.
 
-Drei Zahlen, Owner, Datenquelle:
+Eine brauchbare Kennzahl: Defects pro Merge — also: Wie viele Fehler tauchen pro gemergtem PR auf? Oder einfacher: „Keine P1-Vorfälle (kritische Fehler) aus Agent-PRs ohne menschlichen Verantwortlichen."
 
-1. Merge-Quote Agent-PRs
-2. Reverts oder P1 in 14 Tagen
-3. Kosten pro Done-Issue
+### 4. Kosten
 
-Hängt die drei an vorhandene Systeme: GitHub Metrics oder ein wöchentliches Sheet, kein neues BI-Projekt. Owner ist der Engineering-Lead, nicht „das Modell“. Ohne Owner verschwinden die Zahlen nach dem Workshop.
+Was kostet ein gemergtes Issue? Die Rechnung setzt sich zusammen aus:
 
-Alles andere ist Beobachtung. Der Statusbericht an den Founder ist diese drei Zeilen plus zwei Beispiele: ein Ticket, das das Pattern getragen hat, eines, das zu Recht am Gate gestorben ist. Das zweite Beispiel verkauft die Quality Gates besser als jedes Diagramm.
+- **Input/Output-Tokens:** Die Einheiten, in denen KI-Modelle Text messen. Jede Anweisung an das Modell und jede Antwort verbraucht Tokens, und du zahlst pro Token.
+- **Actions-Minuten:** Die Rechenzeit, die GitHub Actions für Tests und Builds verbraucht.
+- **Cloud-Agent-Credits:** Bei GitHub Copilot Cloud Agent gibt es ein Credit-System für die Nutzung.
+
+**Wichtig:** Ein billiges Modell, das drei Mal in der CI scheitert und jedes Mal den Code neu schreibt, ist am Ende *teurer* als ein teureres Modell, das beim ersten Versuch einen grünen PR liefert. Prompt Caching (das Zwischenspeichern häufiger Anfragen) und eine gezielte Werkzeug-Auswahl (nicht alle Tools aktivieren, sondern nur die relevanten) sind Stellschrauben, die hier auftauchen.
+
+### 5. Gate-Gesundheit
+
+Zwei Fragen, die regelmäßig geprüft werden sollten:
+
+- **Anteil PRs, die ohne menschlichen Review gemerged wurden.** Ziel: nahe 0 Prozent (außer bei dokumentierten Ausnahmen). Wenn dieser Wert schleichend steigt, ist das Quality Gate eingeschlafen.
+- **Anteil destruktiver Tool-Aufrufe ohne menschliche Bestätigung** (HITL — Human in the Loop). Ziel: 0. Kein Agent darf eine Datenbank löschen oder ein Secret rotieren, ohne dass ein Mensch bestätigt hat.
+
+## Was *nicht* zählt
+
+Manche Metriken klingen beeindruckend, sagen aber nichts aus:
+
+- **Zeilen Code (LOC):** Mehr Code ist nicht besser. Oft ist weniger Code besser.
+- **Commit-Frequenz:** „Der Agent hat 40 Commits gemacht" sagt nichts über Qualität.
+- **„Der Agent hat 40 Dateien angefasst":** Breite ist kein Wert.
+- **Thumbs-up im Chat:** Nutzer drücken „Daumen hoch", wenn die Antwort nett aussieht — nicht wenn sie korrekt ist.
+- **Demo-Wow-Runden:** Ein beeindruckender Live-Durchlauf sagt nichts über den Alltag.
+- **LLM-Reviewer-Scores ohne Kalibrierung:** Wenn ein KI-Modell 95 Prozent aller PRs mit „sieht gut aus" bewertet, hat es keinen Wert als Reviewer — es sagt immer Ja.
+
+## Das einfachste Muster, das funktioniert
+
+Die Messung folgt der Architektur. Wenn Prompt Chaining plus CI euer Bugfix-Pfad ist, messt du diesen Pfad. Du baust kein Multi-Agent-System, um mehr Graphen im Dashboard zu haben.
+
+Die Baseline (Ausgangslage zum Vergleich) ist: ein Mensch allein, dieselben Ticket-Kategorien, zwei Sprints (also etwa vier Wochen). Dann Mensch plus Agent mit Gates. Wenn die Merge-Rate steigt *und* die Fehler nicht steigen, skalierst du. Wenn die Fehler steigen, schärfst du Tickets, Werkzeuge und Gates — nicht die Agentenanzahl.
+
+## Was du im Kickoff festnagelst
+
+Drei Zahlen, ein Verantwortlicher, eine Datenquelle:
+
+1. **Merge-Quote** der Agent-PRs (Anteil der geöffneten PRs, die tatsächlich gemerged wurden).
+2. **Reverts oder kritische Fehler** in 14 Tagen nach Merge.
+3. **Kosten pro fertigem Issue** (Tokens + Minuten + Credits).
+
+Hänge die drei an vorhandene Systeme: GitHub Metrics, ein wöchentliches Spreadsheet — kein neues BI-Projekt (Business Intelligence — eine eigene Analyse-Plattform). Verantwortlich ist der Engineering-Lead, nicht „das Modell". Ohne einen menschlichen Verantwortlichen verschwinden die Zahlen nach dem ersten Monat.
+
+Alles andere ist Beobachtung. Der Statusbericht besteht aus diesen drei Zeilen plus zwei Beispielen: ein Ticket, das das Pattern getragen hat, und eines, das zu Recht am Gate gestorben ist. Das zweite Beispiel verkauft die Quality Gates besser als jedes Diagramm.
 
 <Merksatz>
 Erfolg ist gemergter Wert ohne Nachbrand, zu bekannten Kosten. Chat-Beifall ist keine Metrik. Komplexität verdient ihr euch mit besseren Zahlen, nicht mit mehr Agenten.

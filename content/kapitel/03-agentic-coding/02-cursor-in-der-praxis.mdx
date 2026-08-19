@@ -1,42 +1,126 @@
 ---
 titel: Cursor in der Praxis
-dauerMinuten: 16
+dauerMinuten: 28
 zusammenfassung: Rules, gezielter Context und Plan-Modus — Cursor wird brauchbar, wenn der Agent nicht raten muss, wo er ist.
 reihenfolge: 2
 ---
 
-Cursor ist für viele OneCode-Entwickler das Alltags-IDE. Der Agent ist gut, wenn du ihn wie einen Kollegen onboardingst, der jedes Mal das Gedächtnis verliert. Genau das tun Rules: sie legen persistente Anweisungen in den Prompt, weil das Modell zwischen Completions nichts behält.
+## Was ist Cursor?
 
-## Die Hebel, die zählen
+**Cursor** ist ein Code-Editor (eine IDE), der auf **VS Code** basiert. VS Code kennst du vielleicht als den beliebtesten kostenlosen Editor von Microsoft. Cursor nimmt diese Basis und baut KI tief ein: Autocomplete, Chat und einen vollwertigen Agenten, der Dateien lesen, schreiben und Terminal-Befehle ausführen kann.
 
-1. **Project Rules** in `.cursor/rules` als `.mdc`. Frontmatter steuert, *wann* sie geladen werden: immer, per Glob, per Beschreibung (Agent entscheidet), oder nur per `@`.
-2. **AGENTS.md** als schlichte Markdown-Alternative ohne Metadaten. Gut für herstellerübergreifende Basics, schlechter für pfad-spezifisches Splitting.
-3. **User Rules** in den Cursor-Einstellungen: dein Ton, deine persönlichen Verbote. Die gehören nicht ins Kundenrepo.
-4. **Team Rules** (Team/Enterprise): org-weit, können erzwungen werden. Precedence: Team vor Project vor User.
+Warum ist das relevant? Weil Cursor für viele Entwickler das **Alltags-Werkzeug** geworden ist. Es ist nicht ein Plugin, das man zu VS Code hinzufügt, sondern ein eigenständiges Produkt, in dem die KI von Anfang an mitgedacht ist.
 
-Eine Rule, die immer gilt, kostet Token **in jedem** Agent-Turn. Deshalb: immer-an nur für echte Invarianten. UI-Konventionen an `src/components/**`. API-Konventionen an `src/server/**`. Lange Verfahren nicht in Rules (das werden Skills).
+Aber Cursor ist nur so gut wie die Informationen, die du dem Agenten gibst. Stell dir vor, du stellst einen neuen Kollegen ein, der zwar brillant ist, aber **jeden Morgen sein Gedächtnis verliert**. Er weiß nicht, welche Programmiersprache ihr benutzt, welche Ordnerstruktur das Projekt hat, oder welche Regeln gelten. Genau so ist ein KI-Agent: Er startet jede Unterhaltung bei null.
 
-Cursor selbst sagt: unter 500 Zeilen, splitten, auf kanonische Dateien zeigen statt sie zu kopieren. Style-Guides gehören in den Linter, nicht in den Prompt.
+Die Lösung sind **Rules** (Regeln), **Context** (Kontext) und **Plan-Modus**. Schauen wir uns alle drei an.
+
+## Rules: Das Gedächtnis des Agenten
+
+### Was sind Rules?
+
+Rules sind Textdateien, die dem Agenten bei jeder Unterhaltung automatisch mitgegeben werden. Sie sind wie ein **Onboarding-Dokument für einen neuen Mitarbeiter**: „So arbeiten wir hier, das sind unsere Konventionen, das darfst du nicht anfassen."
+
+Weil das KI-Modell zwischen einzelnen Unterhaltungen (sogenannten **Completions**) nichts behält, sind Rules die einzige Möglichkeit, dauerhafte Anweisungen zu hinterlegen.
+
+### Welche Arten von Rules gibt es?
+
+Cursor kennt vier Ebenen, von allgemein bis spezifisch:
+
+#### 1. Project Rules (`.cursor/rules/*.mdc`)
+
+Das sind Dateien im Projektordner, also direkt im Code-Repository. Sie gelten für alle, die an diesem Projekt arbeiten. Jede Datei hat einen **Frontmatter** (ein Kopfbereich mit Metadaten), der steuert, **wann** die Rule geladen wird:
+
+- **`alwaysApply: true`** — wird in jede Unterhaltung geladen, egal was du tust
+- **`globs: "src/components/**"`** — wird nur geladen, wenn du an Dateien in diesem Pfad arbeitest
+- **`description: "..."`** — der Agent entscheidet selbst, ob die Rule zum aktuellen Auftrag passt
+- **Manuell per `@`** — du ziehst die Rule explizit in den Chat
+
+#### 2. AGENTS.md
+
+Eine einfache Markdown-Datei im Projekt-Root. Keine speziellen Metadaten, kein `.mdc`-Format. Vorteil: Diese Datei wird auch von anderen Tools gelesen (Claude Code, Copilot, Codex). Nachteil: Du kannst nicht steuern, wann sie geladen wird, und du kannst sie nicht nach Dateipfaden aufteilen.
+
+#### 3. User Rules
+
+Diese setzt du in den Cursor-Einstellungen. Sie gelten für **dich persönlich**, in jedem Projekt. Hier gehören Dinge hin wie: „Antworte auf Deutsch", „Verwende keine Emojis", „Ich bevorzuge funktionale Programmierung". Sie gehören **nicht** ins Kundenrepo, weil sie deine persönliche Arbeitsweise betreffen.
+
+#### 4. Team Rules (Team/Enterprise)
+
+In größeren Organisationen können Team-Admins Rules zentral vorgeben. Diese können sogar erzwungen werden, sodass einzelne Entwickler sie nicht umgehen können. Die Rangfolge: Team schlägt Project schlägt User.
+
+### Rules richtig einsetzen: weniger ist mehr
+
+Jede Rule, die **immer** geladen wird, verbraucht **Token** (die Einheit, in der KI-Modelle Text messen). Je mehr Token im Prompt stehen, desto weniger Platz bleibt für den eigentlichen Auftrag.
+
+Stell dir vor, du gehst in ein Restaurant und gibst dem Kellner einen 20-seitigen Brief mit deinen Ernährungsvorlieben. Irgendwann liest er den Rest nicht mehr. Genauso ist es mit dem **Context Window** (dem Textfenster, das ein KI-Modell auf einmal verarbeiten kann): Es ist begrenzt.
+
+Deshalb gelten diese Faustregeln:
+
+- **`alwaysApply`** nur für echte Invarianten: Dinge, die wirklich *immer* gelten (z.B. „Wir verwenden TypeScript strict")
+- **UI-Konventionen** an den passenden Pfad binden (`src/components/**`)
+- **API-Konventionen** an `src/server/**`
+- Jede Rule unter **500 Zeilen** halten, bei Bedarf aufteilen
+- Was in den **Linter** gehört (Formatierung, Code-Style), gehört in den Linter, nicht in den Prompt
+
+Cursor selbst empfiehlt: „Zeige auf kanonische Dateien, statt sie zu kopieren." Das heißt: Statt die gesamte Coding-Guideline in eine Rule zu packen, schreibst du „Lies `docs/style-guide.md` für unsere Konventionen."
 
 ## Context gezielt setzen
 
-Der Agent findet Dateien über Suche. Er findet sie schneller, wenn du sie ihm gibst. Praxis, die in Demos sitzt:
+### Was ist Context und warum ist er so wichtig?
 
-- `@` auf die zwei Dateien plus den Test, nicht auf den Monorepo-Root
-- Tickettext und reproduzierbarer Fehler in die erste Message
-- nicht die Build-Logs der letzten Stunde, außer der Auftrag ist der Build
+**Context** ist alles, was dem KI-Modell als Information zur Verfügung steht, wenn es deine Anfrage bearbeitet. Dazu gehören: deine Nachricht, die angehängten Dateien, die Rules und der bisherige Chatverlauf.
 
-Je mehr irrelevanter Context, desto eher „vergisst“ er die Rule aus Turn 1. Das ist Kapitel 1, nur mit UI.
+Der Agent kann Dateien auch selbst finden (über Suche im Projekt). Aber er findet sie **schneller und zuverlässiger**, wenn du sie ihm gibst.
 
-Plan-Modus (bzw. erst lesen, dann vorschlagen, dann editieren) ist Pflicht bei allem, was mehr als eine Datei oder eine unklare Ursache hat. Du reviewst den Plan wie ein Design-Doc in fünf Stichpunkten. Erst danach Auto-Run.
+### Praxis-Tipps
+
+Stell dir vor, du bittest jemanden, einen Fehler in deinem Haus zu reparieren. Du kannst sagen „Irgendwo tropft es" (wenig Context) oder „Im Bad, unter dem Waschbecken, das linke Rohr tropft seit gestern" (guter Context). Bei Cursor funktioniert das genauso:
+
+- **`@` auf die relevanten Dateien** plus den zugehörigen Test. Nicht auf den gesamten Projektordner.
+- **Tickettext und Fehlerbeschreibung** direkt in die erste Nachricht. Der Agent soll nicht raten müssen, was das Problem ist.
+- **Nicht die Build-Logs der letzten Stunde**, es sei denn, der Auftrag dreht sich genau um den Build.
+
+### Was passiert bei zu viel Context?
+
+Je mehr irrelevante Information im Fenster steht, desto eher „vergisst" der Agent die wichtigen Regeln aus früheren Nachrichten. Das Modell hat ein begrenztes Textfenster. Wenn das voll ist mit unwichtigen Dateien, rutschen die Rules und deine erste Anweisung mental nach hinten.
+
+Das ist wie ein überladenes Whiteboard: Irgendwann sieht niemand mehr, was wichtig ist.
+
+## Plan-Modus: Erst denken, dann schreiben
+
+### Was ist der Plan-Modus?
+
+Statt den Agenten sofort Code schreiben zu lassen, lässt du ihn erst **lesen und nachdenken**. Er analysiert die betroffenen Dateien, beschreibt seinen Lösungsansatz und fragt bei Unklarheiten nach. Erst wenn du den Plan bestätigst, beginnt er mit der Implementierung.
+
+Das ist wie bei einem Handwerker: Ein guter Handwerker schaut sich erst die Situation an, macht einen Kostenvoranschlag und bespricht den Plan. Er reißt nicht sofort die Wand ein.
+
+### Wann ist Plan-Modus Pflicht?
+
+- Bei allem, was **mehr als eine Datei** betrifft
+- Bei **unklaren Ursachen** (Bugs, die du nicht genau lokalisieren kannst)
+- Bei **Refactorings** (Umstrukturierungen von bestehendem Code)
+
+Du reviewst den Plan wie ein kurzes Design-Dokument in fünf Stichpunkten. Erst danach gibst du dem Agenten die Freigabe zum Schreiben.
 
 ## Was in der Praxis schiefgeht
 
-- Rules als Weltanschauung: Seiten über Clean Code, null Repo-Fakten. Der Agent braucht `pnpm test --filter billing`, nicht deine Werte.
-- Widerspruch zwischen User Rule („immer TypeScript strict“) und Projekt-JS. Dann gewinnt Zufall.
-- Agent anwerfen, weggehen, PR mergen. Cursor macht das einfach. OneCode tut das nicht ohne Gate.
+Drei häufige Fehler, die du kennen solltest:
 
-Im Kundengespräch: Cursor ist die Werkbank. Das Lieferversprechen sitzt in den versionierten Rules und in den Checks, nicht im Abo-Tier.
+### 1. Rules als Weltanschauung
+
+Manche Entwickler schreiben seitenweise über Clean Code, SOLID-Prinzipien und Softwarearchitektur in ihre Rules. Das ist nett, aber nutzlos. Der Agent braucht **konkrete Fakten über dein Repo**: Welcher Paketmanager? Welcher Testbefehl? Welche Ordnerstruktur? Statt philosophischer Leitsätze brauchst du: `pnpm test --filter billing`.
+
+### 2. Widersprüchliche Rules
+
+Wenn deine User Rule sagt „immer TypeScript strict" und das Projekt in JavaScript geschrieben ist, entscheidet der Zufall. Der Agent versucht beides zu erfüllen und produziert inkonsistenten Code. Rules müssen zueinander passen.
+
+### 3. Agent anwerfen und weggehen
+
+Cursor macht es einfach, den Agenten laufen zu lassen und dann den Pull Request zu mergen, ohne den Diff (die Zusammenfassung aller Änderungen) gelesen zu haben. Das ist, als würdest du einen Brief unterschreiben, ohne ihn gelesen zu haben. Genau dafür gibt es **Gates** (Kontrollpunkte), die wir in Lektion 6 besprechen.
+
+## Cursor im Kundengespräch
+
+Cursor ist die **Werkbank**. Aber das Lieferversprechen an den Kunden steckt nicht im Cursor-Abo, sondern in den versionierten Rules (die im Git-Repository liegen und nachvollziehbar sind) und in den automatisierten Checks. Ein teures Cursor-Business-Abo ohne Rules und Gates ist wie eine Profi-Werkstatt ohne Qualitätskontrolle.
 
 <Merksatz>
 Cursor-Agent ohne Rules ist ein talentierter Praktikant ohne Einarbeitung. Rules kurz und pfadscharf, Context per @ statt per Hoffnung, Plan vor Flächenbrand.

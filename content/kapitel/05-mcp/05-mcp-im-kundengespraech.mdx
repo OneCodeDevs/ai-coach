@@ -1,52 +1,114 @@
 ---
 titel: MCP im Kundengespräch
-dauerMinuten: 16
+dauerMinuten: 30
 zusammenfassung: Warum MCP der Hebel für Agenten im Repo ist — und welche Sätze du einem Founder oder CTO nicht sagst.
 reihenfolge: 5
 ---
 
-OneCode-Angebot 1 hängt nicht an einem Chatfenster. Es hängt daran, dass Agents im *Repository* arbeiten: Tickets, Tests, CI, Code. MCP ist die Schicht, die dem Agenten dafür echte Werkzeuge gibt, statt ihn APIs erfinden zu lassen. Das musst du verkaufen können, ohne USB-C-Poesie.
+## Warum dieses Kapitel existiert
 
-## Der Satz, der sitzt
+Du hast jetzt verstanden, was MCP technisch ist: Rollen, Primitives, Sicherheit. Aber technisches Wissen allein verkauft kein Projekt. Dieses Kapitel zeigt dir, wie du MCP im Gespräch mit Entscheidern (Founders, CTOs, Teamleads) erklärst — ohne zu viel zu versprechen und ohne in Fachjargon abzudriften.
 
-„Euer Agent kann nur so gut handeln, wie die Tools, die ihr ihm gebt. MCP ist der Standard, mit dem wir dieselben Tools in Cursor, VS Code und später in CI anschließen — einmal bauen, nicht pro IDE neu kleben.“
+## Das Problem, das MCP löst — in Kundensprache
 
-Danach die Schmerzpunkte aus dem Angebot, in MCP-Sprache:
+Ohne MCP passiert Folgendes: Der KI-Agent behauptet Dinge. Er „erfindet" API-Endpunkte, die nicht existieren. Er gibt dir eine GitHub-URL, die es nicht gibt. Er schreibt Code, der auf Annahmen basiert statt auf den echten Daten deines Repos.
 
-- **Kein Kontextmodell.** Resources und eng geführte Tools ersetzen den 80k-Token-Paste.
-- **Unklar, welcher Agent was darf.** Server-Allowlist plus Scopes *sind* die Berechtigungsmatrix.
-- **Keine Validierung.** Tests und CI bleiben Gates. MCP liefert den Zugriff, nicht das Merge-Recht.
+**Mit MCP** bekommt der Agent Zugang zu den echten Werkzeugen: Er liest das echte Ticket aus dem Ticketsystem. Er sieht die echte Dateistruktur. Er fragt die echte Datenbank (lesend). Er arbeitet mit Fakten, nicht mit Fantasie.
 
-## Was du nicht sagst
+### Der Satz, der sitzt
 
-Nicht: „MCP macht eure Agents autonom und sicher.“ Autonomie kommt aus der Schleife im Host, Sicherheit aus Least Privilege und Reviews. MCP macht beides *anschließbar*.
+> „Euer Agent kann nur so gut handeln, wie die Tools, die ihr ihm gebt. MCP ist der Standard, mit dem wir dieselben Tools in Cursor, VS Code und später in CI anschließen — einmal bauen, nicht pro IDE neu kleben."
 
-Nicht: „Wir schreiben euch einen Megaprompt, dann braucht ihr keine Tools.“ Das ist das Anti-Pattern aus Kapitel 1: Halluzination ohne Grounding. Tools, Compiler, Ticketsystemsind die Wahrheitsquelle.
+Dieser Satz funktioniert, weil er drei Dinge tut:
+1. Er stellt klar, dass der Agent nicht „magisch schlau" wird, sondern gute Werkzeuge braucht
+2. Er erklärt den Standardisierungsvorteil (einmal bauen, überall nutzen)
+3. Er zeigt eine Zukunftsperspektive (CI = Continuous Integration, also automatisierte Abläufe)
 
-Nicht: „Wir installieren den Marktplatz.“ Das ist die Demo, nach der Security den Stecker zieht. Du verkaufst drei geprüfte Server und einen Fahrplan für den vierten (den eigenen, interne API).
+## Die Schmerzpunkte in MCP-Sprache übersetzen
+
+Kunden haben Probleme, die sie in ihrer Sprache beschreiben. Du übersetzt sie in MCP-Lösungen:
+
+### „Der Agent erfindet Dinge"
+
+**MCP-Antwort:** Resources und eng geführte Tools ersetzen den 80.000-Token-Textblock, den man bisher ins Modell kopiert hat. Statt „lies diese 50 Seiten und merk dir alles" sagt man: „Hier ist ein Tool, frag die Datenbank. Hier ist eine Resource, das ist das Schema."
+
+Der Agent muss nichts mehr erfinden, weil er nachschlagen kann.
+
+### „Unklar, wer was darf"
+
+**MCP-Antwort:** Die Server-Allowlist plus Scopes (Berechtigungsbereiche) *sind* die Berechtigungsmatrix. Server X darf nur lesen. Server Y darf schreiben, aber nur nach menschlicher Bestätigung. Das ist keine abstrakte Policy — es ist die Konfiguration, die im Repo liegt.
+
+### „Keine Validierung, keine Kontrolle"
+
+**MCP-Antwort:** Tests und CI (automatisierte Prüfschritte) bleiben die Qualitäts-Gates. MCP liefert dem Agent den *Zugriff* auf Tools — aber nicht das Recht, ohne Prüfung in Produktion zu deployen. Der Mensch bleibt im Loop.
+
+## Was du NICHT sagst
+
+### Nicht: „MCP macht eure Agents autonom und sicher."
+
+Warum nicht? Weil Autonomie aus der Schleife im Host kommt (wie oft darf der Agent allein handeln, bevor er fragt?) und Sicherheit aus Least Privilege und Reviews. MCP macht beides *anschließbar* — es liefert es nicht automatisch mit.
+
+### Nicht: „Wir schreiben euch einen Megaprompt, dann braucht ihr keine Tools."
+
+Das ist das Anti-Pattern aus Kapitel 1 des Kurses: Halluzination ohne Grounding. Ein Agent ohne Tools erfindet. Tools, Compiler, Ticketsystem — das sind die Wahrheitsquellen. Ein Prompt allein ist keine.
+
+### Nicht: „Wir installieren den Marktplatz."
+
+Das ist die Demo, nach der die Security-Abteilung den Stecker zieht. Du verkaufst nicht „20 Server aus der Community". Du verkaufst drei geprüfte Server und einen Fahrplan für den vierten (den eigenen, für die interne API).
 
 ## Demo-Skript für den Workshop
 
-1. Host ohne MCP: Agent behauptet einen GitHub-Endpoint, der so nicht existiert.
-2. Denselben Host mit GitHub-MCP, read-scope: Agent listet das echte Issue.
-3. Filesystem-Server mit Root = Repo, Schreibtool hinter Bestätigung: eine Datei, ein Diff, kein Merge.
-4. Zeigen, was *nicht* angebunden ist: Prod-DB, Secrets, Deploy.
+Wenn du MCP einem Team zeigst, ist dieser Ablauf überzeugend:
 
-Der Kontrast „halluziniert vs. Tool-Ergebnis“ ist die Folie. Danach die Gate-Frage: „Wer darf mergen?“ Die Antwort ist nie der Server.
+### Schritt 1: Agent ohne MCP
+
+Stelle eine Frage zu einem GitHub-Issue im Repo des Kunden. Der Agent behauptet einen Endpoint, der nicht existiert. Er erfindet Ticket-Nummern. Peinlich — aber genau das passiert heute.
+
+### Schritt 2: Derselbe Agent mit GitHub-MCP (read-only)
+
+Dieselbe Frage. Der Agent ruft `list_issues` auf und zeigt das echte Issue mit der echten Nummer und dem echten Titel.
+
+**Der Kontrast** — halluziniert vs. echtes Ergebnis — ist die stärkste Folie, die du haben kannst.
+
+### Schritt 3: Filesystem-Server mit Schreibtool hinter Bestätigung
+
+Der Agent schreibt eine Datei im Repo. Aber: Ein Bestätigungs-Dialog erscheint, der dir zeigt, *was* geschrieben wird. Ein Diff (Vergleich vorher/nachher), kein blindes Merge.
+
+### Schritt 4: Zeigen, was NICHT angebunden ist
+
+Genauso wichtig: Zeig, dass die Prod-Datenbank, die Secrets (Passwörter) und der Deploy-Zugang bewusst *nicht* angebunden sind. Das demonstriert Kontrolle und Least Privilege — und beruhigt die Security-Leute im Raum.
+
+### Die Gate-Frage
+
+Nach der Demo stellst du die Frage: „Wer darf mergen?" Die Antwort ist nie der Server. Der Mensch entscheidet, wann Code in Produktion geht.
 
 ## Einwandbehandlung
 
-**„Ist das nicht Vendor-Lock-in?“** MCP ist der Ausweg aus Lock-in. Der Server ist austauschbar, der Host auch. Lock-in entsteht, wenn ihr nur die Copilot-Bordmittel ohne Vertrag nutzt.
+### „Ist das nicht Vendor-Lock-in?"
 
-**„Unsere Daten dürfen nicht in die Cloud.“** Lokaler stdio-Server, Daten verlassen den Rechner nur, wenn ein Tool das explizit tut. Remote-HTTP ist eine bewusste Entscheidung mit OAuth, nicht der Default.
+MCP ist das Gegenteil. Es ist ein offener Standard. Der Server, den ihr heute in Cursor nutzt, funktioniert morgen in VS Code. Lock-in entsteht, wenn ihr nur die proprietären Bordmittel einer IDE ohne Vertrag nutzt — weil euch dann niemand sonst unterstützen kann.
 
-**„Wir haben schon Plugins.“** Plugins sind Host-spezifisch. MCP ist die gemeinsame Steckdose. OneCode pflegt die Server im Repo, nicht fünf IDE-Einstellungen.
+### „Unsere Daten dürfen nicht in die Cloud."
 
-**„Sicherheit?“** Spezifikation erzwingt nichts. Ihr bekommt Allowlist, Pinning, getrennte Tokens, HITL für destruktive Calls, Logs. Das ist Teil des Lieferumfangs, kein Add-on.
+Perfekt — lokaler stdio-Server. Die Daten verlassen den Rechner nie. Sie gehen nur an das Modell, wenn ein Tool sie explizit weitergibt. Remote-HTTP ist eine bewusste Entscheidung mit OAuth-Authentifizierung, nicht der Default.
+
+Falls das Modell selbst in der Cloud läuft (was bei den meisten der Fall ist): Das ist eine separate Frage vom MCP-Transport. Die Daten, die der Server dem Modell gibt, gehen ans Modell — aber der Server selbst speichert nichts in einer fremden Cloud.
+
+### „Wir haben schon Plugins."
+
+Plugins sind Host-spezifisch: Ein VS-Code-Plugin funktioniert nicht in Cursor, ein Cursor-Plugin nicht in Claude Desktop. MCP ist die gemeinsame Steckdose. Du baust den Server einmal, und er funktioniert überall.
+
+### „Sicherheit?"
+
+Die Spezifikation erzwingt nichts — aber genau deshalb liefert ihr: Allowlist (nur geprüfte Server), Pinning (feste Versionen), getrennte Tokens pro Server, Human-in-the-Loop für destruktive Aktionen, Logs. Das ist Teil des Lieferumfangs, kein optionales Add-on.
 
 ## Brücke zum nächsten Kapitel
 
-MCP allein ist keine Delivery. Agentic Workflows sagen, *wann* welches Tool in welcher Schleife läuft und wo der Mensch steht. Ohne MCP redet der Agent. Mit MCP kann er im Repo handeln. Mit Gates darf er das in Produktion.
+MCP allein ist keine Delivery. Es sagt dem Agent, *was* er tun kann. Agentic Workflows (das nächste Thema) sagen, *wann* welches Tool in welcher Schleife läuft und wo der Mensch steht.
+
+- **Ohne MCP** redet der Agent nur (und erfindet).
+- **Mit MCP** kann er im Repo handeln.
+- **Mit Gates** darf er das kontrolliert in Produktion tun.
 
 <Merksatz>
 Im Kundengespräch ist MCP die standardisierte Werkzeugwand im Repository. Du verkaufst Grounding und eine Allowlist, nicht Autonomie und nicht den Marktplatz.

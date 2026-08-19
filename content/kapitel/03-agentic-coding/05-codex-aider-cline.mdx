@@ -1,40 +1,118 @@
 ---
 titel: Codex, Aider, Cline im Vergleich
-dauerMinuten: 16
+dauerMinuten: 26
 zusammenfassung: Drei weitere Agenten, drei Philosophien — Git, Freigabe, Ökosystem. Keiner ersetzt das Gate.
 reihenfolge: 5
 ---
 
-Kunden fragen nach dem einen Tool. Du antwortest mit Achsen. Cursor, Claude Code und Copilot hast du. Drei weitere tauchen in Ausschreibungen und in Senior-Teams auf: **OpenAI Codex**, **Aider**, **Cline**. Ziel ist nicht Vollständigkeit. Ziel ist, im Gespräch nicht ins Schwimmen zu geraten.
+Kunden fragen oft nach dem **einen** Tool. Die richtige Antwort ist keine Produktempfehlung, sondern eine Analyse nach Achsen: Wo läuft der Agent? Wie wird er gesteuert? Wie viel Kontrolle hat der Mensch?
 
-## Codex (OpenAI)
+Cursor, Claude Code und GitHub Copilot hast du bereits kennengelernt. Drei weitere Tools tauchen regelmäßig in Kundengesprächen und in erfahrenen Entwicklerteams auf: **OpenAI Codex**, **Aider** und **Cline**. Ziel dieser Lektion ist nicht Vollständigkeit, sondern: Du sollst im Gespräch nicht ins Schwimmen geraten, wenn jemand eines dieser Namen nennt.
 
-Codex ist OpenAIs Coding-Agent: CLI, IDE-Anbindung, Cloud-Jobs. Native Konvention ist **AGENTS.md** (OpenAI hat das Format mit vorangetrieben). Customization läuft über diese Datei plus projektlokale Config, nicht über ein `.mdc`-Ökosystem.
+## Was ist OpenAI Codex?
 
-Stärke: Anschluss an das OpenAI-Ökosystem, AGENTS.md als Lowest Common Denominator, gut wenn der Kunde schon GPT im Unternehmen standardisiert hat. Schwäche im Pitch: du musst trotzdem Tests, Secrets-Policy und Review bauen. Codex liest AGENTS.md, es erzwingt sie nicht wie ein Hook.
+### Das Unternehmen dahinter
 
-## Aider
+**OpenAI** ist das Unternehmen hinter ChatGPT und den GPT-Modellen. Du kennst vielleicht ChatGPT als Chatbot im Browser. **Codex** ist OpenAIs Produkt speziell für Code-Arbeit: ein KI-Agent, der als CLI (Command Line Interface, also ein Programm im Terminal), als IDE-Erweiterung und als Cloud-Dienst verfügbar ist.
 
-Aider ist Pair-Programming im Terminal, hart an **Git**. Es mappt das Repo (tree-sitter), nimmt Dateien per `/add` in den Chat, schreibt Commits, kann Lint und Tests selbst fahren. Chat-Modi trennen Ask, Architect und Code: erst reden, dann Entwurf, dann Patch.
+### Wie wird Codex gesteuert?
 
-Stärke: nachvollziehbare Diffs, wenig Magie, du siehst jeden Commit. Conventions-Datei (historisch `CONVENTIONS.md`, heute oft über `read: AGENTS.md` in `.aider.conf.yml`). Schwäche: kein volles IDE-Agent-UX, der Mensch bleibt nah am Loop. Für Kunden mit striktem Git-Workflow oft einfacher zu erklären als ein Cloud-Agent.
+Die zentrale Steuerungsdatei heißt **AGENTS.md**. OpenAI hat dieses Format maßgeblich mit vorangetrieben. AGENTS.md ist eine Markdown-Datei im Projektordner, die dem Agenten sagt, wie das Projekt aufgebaut ist, welche Befehle es gibt und welche Regeln gelten. Das Konzept ist dir aus den vorherigen Lektionen bekannt: Es entspricht Cursors Project Rules oder Claude Codes CLAUDE.md.
 
-## Cline
+Zusätzlich gibt es projektlokale Konfigurationsdateien, aber kein eigenes `.mdc`-Ökosystem wie bei Cursor.
 
-Cline sitzt in VS Code, JetBrains und als CLI. Der Markenkern: **jede Aktion braucht Freigabe**. Lesen, Schreiben, Terminal, Browser. Du kannst das lockern, der Default ist Human-in-the-Loop auf Tool-Ebene.
+### Stärken
 
-Stärke: sichtbar kontrollierbar, eigene Provider-Keys oder Cline-Abo, SDK für denselben Core in Automationen. Schwäche: der Loop ist langsamer, wenn jemand wirklich jede `sed`-Zeile klickt. Für regulierte Kunden ist genau das das Feature.
+- **Anschluss an das OpenAI-Ökosystem**: Wenn der Kunde bereits GPT-Modelle im Unternehmen standardisiert hat (z.B. über Azure OpenAI), ist Codex der natürliche Kandidat
+- **AGENTS.md als Lowest Common Denominator**: Diese Datei wird von mehreren Tools verstanden, nicht nur von Codex. Das reduziert die Abhängigkeit von einem einzigen Anbieter
 
-## Das Raster für das Gespräch
+### Schwäche im Kundengespräch
+
+Du musst trotzdem Tests, Secrets-Policy (Regeln zum Umgang mit Passwörtern und Zugangsdaten) und Review-Prozesse bauen. Codex **liest** AGENTS.md, aber es **erzwingt** die Regeln nicht so wie ein Hook (ein automatisches Skript, das Aktionen blockieren kann). Der Agent kann sich über eine Regel hinwegsetzen, wenn er es für richtig hält.
+
+## Was ist Aider?
+
+### Das Konzept
+
+**Aider** ist ein Open-Source-Tool (kostenlos, quelloffen) für **Pair-Programming im Terminal**. Pair-Programming bedeutet: Zwei Entwickler arbeiten zusammen an demselben Code. Bei Aider ist dein Partner die KI.
+
+### Was macht Aider besonders?
+
+Aider ist **hart an Git gebunden**. Git ist das Versionskontrollsystem, das fast alle Entwickler nutzen, um Änderungen am Code nachzuverfolgen. Stell dir Git als ein Logbuch vor: Jede Änderung wird mit Datum, Autor und Beschreibung festgehalten. Du kannst jederzeit zu einem früheren Zustand zurückspringen.
+
+Was Aider konkret tut:
+
+1. **Repo-Map**: Aider scannt das gesamte Projekt mit **tree-sitter** (einem Werkzeug, das die Struktur von Code versteht) und erstellt eine Übersichtskarte aller Dateien, Funktionen und Klassen
+2. **Dateien per `/add`**: Du fügst gezielt Dateien in den Chat, an denen gearbeitet werden soll
+3. **Automatische Commits**: Jede Änderung, die Aider macht, wird sofort als Git-Commit gespeichert. Das bedeutet: Du kannst jede einzelne KI-Änderung nachvollziehen und rückgängig machen
+4. **Lint und Tests**: Aider kann automatisch Linter (ein Werkzeug, das Code-Qualität prüft) und Tests ausführen
+
+### Die drei Chat-Modi
+
+Aider trennt bewusst verschiedene Gesprächsphasen:
+
+- **Ask**: Du stellst Fragen, Aider erklärt. Kein Code wird geändert.
+- **Architect**: Du und Aider entwerfen gemeinsam die Lösung. Es wird diskutiert, aber noch nicht programmiert.
+- **Code**: Jetzt wird tatsächlich Code geschrieben.
+
+Diese Trennung ist absichtlich. Sie verhindert, dass der Agent sofort losschreibt, bevor das Problem verstanden ist (das Prinzip kennst du aus dem Plan-Modus bei Claude Code und Cursor).
+
+### Stärke
+
+- **Nachvollziehbare Diffs**: Jeder Commit zeigt genau, was sich geändert hat. Wenig Magie, maximale Transparenz.
+- **Conventions-Datei**: Historisch heißt sie `CONVENTIONS.md`, heute wird oft AGENTS.md über die Aider-Konfiguration (`read: AGENTS.md` in `.aider.conf.yml`) eingebunden.
+- Für Kunden mit **striktem Git-Workflow** oft einfacher zu erklären als ein Cloud-Agent, der selbstständig PRs öffnet.
+
+### Schwäche
+
+Aider hat kein volles IDE-Agent-Erlebnis. Der Mensch bleibt nah am Loop. Das ist für manche Teams ein Vorteil (Kontrolle), für andere ein Nachteil (Geschwindigkeit).
+
+## Was ist Cline?
+
+### Das Konzept
+
+**Cline** ist ein KI-Agent, der in **VS Code**, **JetBrains**-IDEs und als CLI läuft. Sein Markenkern, also das, was ihn von anderen unterscheidet, ist ein einziges Prinzip: **Jede Aktion braucht deine Freigabe.**
+
+### Was bedeutet „jede Aktion"?
+
+Wenn Cline eine Datei lesen will: Freigabe. Wenn er etwas schreiben will: Freigabe. Terminal-Befehl ausführen: Freigabe. Browser öffnen: Freigabe. Du klickst buchstäblich bei jedem Schritt auf „Ja" oder „Nein".
+
+Stell dir das wie einen **Gabelstapler mit Totmann-Schalter** vor: Das Gerät fährt nur, solange du den Knopf gedrückt hältst. Lässt du los, stoppt alles sofort.
+
+### Kann man das lockern?
+
+Ja. Du kannst die Einstellungen ändern und bestimmte Aktionen ohne Nachfrage erlauben. Aber der **Default** ist maximale Kontrolle. Das ist Absicht.
+
+### Stärken
+
+- **Sichtbare Kontrolle**: Für regulierte Branchen (Banken, Versicherungen, Gesundheitswesen), in denen jede automatisierte Aktion protokolliert und genehmigt werden muss, ist genau das ein Feature, kein Bug
+- **Flexible KI-Anbindung**: Du kannst entweder Clines eigene Server nutzen (per Abo) oder deine eigenen API-Keys mitbringen (also direkt bei OpenAI, Anthropic etc. bezahlen)
+- **SDK**: Cline bietet ein Software Development Kit an, mit dem der gleiche Kern auch in eigenen Automatisierungen genutzt werden kann
+
+### Schwäche
+
+Der Loop ist **langsamer**, wenn jemand wirklich jede einzelne Aktion manuell bestätigt. Bei einem Refactoring mit 50 Dateien wird das anstrengend. Für Teams, die Geschwindigkeit über Kontrolle stellen, ist Cline nicht die erste Wahl.
+
+## Das Vergleichsraster
+
+Hier eine Übersicht der drei Tools nach den Achsen, die im Kundengespräch zählen:
 
 | Frage | Codex | Aider | Cline |
 | --- | --- | --- | --- |
-| Wo lebt der Agent? | CLI / IDE / Cloud | Terminal (+ Watch in der IDE) | Editor, CLI, Kanban |
-| Kontext-Datei | AGENTS.md | read-Files, Conventions | Instructions / Rules analog |
-| Git-Modell | Agent-Commits je nach Setup | Pairing mit Commits als Default | nach Freigabe |
-| Menschliches Gate | Config und Review | nah am Diff | Freigabe pro Tool-Call |
+| Wo läuft der Agent? | CLI, IDE, Cloud | Terminal (+ Watch in der IDE) | Editor, CLI |
+| Steuerungsdatei | AGENTS.md | Conventions / read-Files | Instructions / Rules |
+| Git-Verhalten | Agent-Commits je nach Setup | Pairing mit automatischen Commits | Commit nach Freigabe |
+| Menschliche Kontrolle | Konfigurierbar + Review | Nah am Diff, jeder Commit sichtbar | Freigabe pro Tool-Call |
 
-Was du nicht tust: ein Tool zum Gewinner küren. Was du tust: Modus (Kapitelanfang), Gate, wo die Instructions liegen. OneCode liefert das System im Repo so, dass derselbe Standard (AGENTS.md, Tests, Skills) mehrere Clients füttert. Tool-Lock-in ist ein Risiko, das du beim Namen nennst.
+## Was du im Gespräch nicht tust
+
+Du kürst **kein Tool zum Gewinner**. Jedes Tool hat einen anderen Sweet Spot. Was du stattdessen tust:
+
+1. **Modus klären**: Ist das Autocomplete, Chat oder Agent? (Lektion 1)
+2. **Gate klären**: Wie wird sichergestellt, dass der Agent keinen Schaden anrichtet?
+3. **Instructions klären**: Wo liegen die Projektregeln, die der Agent liest?
+
+Das System, das du baust (AGENTS.md, Tests, Skills, CI-Checks), funktioniert mit **mehreren** dieser Tools. Tool-Lock-in (die Abhängigkeit von einem einzigen Anbieter) ist ein Risiko, das du beim Namen nennst.
 
 <Merksatz>
 Codex spielt im OpenAI- und AGENTS.md-Netz, Aider im Git-Diff, Cline in der expliziten Freigabe. Vergleichbar sind Gate und Kontext, nicht das Logo.

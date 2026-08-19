@@ -1,42 +1,122 @@
 ---
 titel: Lokales Modell in der IDE (Aider/Ollama)
-dauerMinuten: 16
+dauerMinuten: 28
 zusammenfassung: Aider plus Ollama funktioniert — sobald du den stillen 2k-Context abstellst und den Cloud-Abstand misst.
 reihenfolge: 4
 ---
 
-Der Bonus wird konkret, wenn der Dev im Repo bleibt. **Aider** spricht Ollama über die lokale API. Das ist kein zweites Copilot-Abo, das ist ein Terminal-Agent gegen `localhost`. Genau deshalb ist die Default-Falle so gemein: sie sieht aus wie ein funktionierendes Setup und wirft den Großteil des Repos weg.
+## Was ist Aider — und warum Ollama?
 
-## Die Verdrahtung, die ihr dokumentiert
+**Aider** ist ein Open-Source-Programmier-Assistent, der im Terminal (der Kommandozeile) läuft. Er kann Code in deinem Projekt lesen und ändern — ähnlich wie ein KI-Agent, aber als Werkzeug, das du direkt aus der Kommandozeile steuerst.
 
-1. Ollama läuft, Modell ist gepullt (`ollama pull …`).
-2. `OLLAMA_API_BASE=http://127.0.0.1:11434` (Windows: `setx`, Shell neu).
-3. Context explizit: `OLLAMA_CONTEXT_LENGTH=8192 ollama serve` — oder höher, wenn VRAM den KV-Cache trägt.
-4. Aider mit `aider --model ollama_chat/<modell>` starten. Aider empfiehlt **`ollama_chat/`** gegenüber `ollama/`.
+Das Besondere: Aider kann nicht nur Cloud-Modelle (wie GPT-4 oder Claude) nutzen, sondern auch **lokale Modelle über Ollama**. Er spricht Ollama über die lokale API an — das ist kein zweites Copilot-Abo (kein zusätzlicher Cloud-Dienst), sondern ein **Terminal-Agent gegen `localhost`** (den eigenen Computer).
 
-Ohne Schritt 3 gilt Ollamas historischer Default: ein **winziges Fenster (~2k Token)**, und alles darüber wird **still verworfen**. Aider warnt genau davor: User merken nicht, dass der Agent die Datei nicht mehr sieht. Das ist schlimmer als ein hartes Limit mit Fehlermeldung. Für Coding ist 8k das absolute Minimum; 16k+ nur, wenn die Hardware den Cache hält. Aider kann den Fensterbedarf pro Request plus Kopf für die Antwort setzen — trotzdem explizit konfigurieren, nicht hoffen.
+Eine **IDE** (Integrated Development Environment — integrierte Entwicklungsumgebung) ist das Programm, in dem Entwickler Code schreiben, z. B. VS Code, IntelliJ oder Cursor. Aider läuft im Terminal neben der IDE oder direkt darin eingebettet.
 
-Unbekannte Modelle lösen in Aider Warnings aus. Das ist kein Bug, das ist Ehrlichkeit: der Client kennt Context-Taxonomie und Quirks nicht. Euer Artefakt nennt Modell, `num_ctx`, und ob die Warning bewusst akzeptiert wurde.
+## Die Verdrahtung Schritt für Schritt
 
-## Was ihr benchmarkt — gegen Cloud, nicht gegen Gefühl
+### 1. Ollama läuft und das Modell ist geladen
 
-Ein Prompt, denselben Diff, zwei Backends:
+Ollama muss gestartet sein. Das gewünschte Modell muss einmal heruntergeladen werden:
 
-- lokal: das Ollama-Modell, festes `num_ctx`, Temperature nahe 0
-- Cloud: das Modell, das der Kunde ohnehin zahlt (Sonnet-Klasse oder vergleichbar)
+```bash
+ollama pull codellama:7b
+```
 
-Bewerten: kompiliert der Vorschlag, sind die Tests grün, wie viele Turns, wie viele Halluzinationen von APIs, Sekunden bis zum ersten sinnvollen Patch. Schreibt die vier Zahlen ins Artefakt. Wenn lokal gewinnt, steht da meist Latenz oder Datenschutz, selten SWE-Qualität auf großen Repos.
+Oder ein anderes Coder-Modell, das zu eurer Hardware passt.
+
+### 2. Die API-Adresse setzen
+
+Aider muss wissen, wo Ollama läuft. Standardmäßig ist das:
+
+```bash
+OLLAMA_API_BASE=http://127.0.0.1:11434
+```
+
+Unter Windows: `setx OLLAMA_API_BASE http://127.0.0.1:11434` und die Shell (Kommandozeile) neu öffnen.
+
+### 3. Die kritischste Einstellung: Kontext-Länge
+
+Und hier kommt die **Default-Falle**, die schon viele Teams erwischt hat:
+
+Ollama hatte lange einen historischen Standard: ein **winziges Kontext-Fenster von etwa 2.000 Tokens**. Alles, was darüber hinausgeht, wird **still verworfen** — ohne Fehlermeldung, ohne Warnung.
+
+Was bedeutet das? Der Agent „sieht" deine Datei nicht mehr, weil sie zu lang ist — und du merkst es nicht. Er antwortet trotzdem, nur seine Antworten basieren auf einem Bruchteil des Codes. Das ist **schlimmer als eine Fehlermeldung**, weil du denkst, das System funktioniert, während es eigentlich blind ist.
+
+Die Lösung: Kontext explizit setzen:
+
+```bash
+OLLAMA_CONTEXT_LENGTH=8192 ollama serve
+```
+
+Oder höher (z. B. 16384), **wenn** dein VRAM den KV-Cache (siehe Lektion 3) dafür tragen kann. Für Coding ist 8.000 Tokens das **absolute Minimum**; 16.000+ nur, wenn die Hardware den Cache hält.
+
+### 4. Aider starten
+
+```bash
+aider --model ollama_chat/<modellname>
+```
+
+Aider empfiehlt das Prefix `ollama_chat/` gegenüber dem einfachen `ollama/` — es aktiviert den Chat-Modus, der besser für Konversationen geeignet ist.
+
+### Unbekannte Modelle
+
+Aider kennt viele Modelle und ihre Eigenheiten (z. B. maximale Kontext-Länge, unterstützte Features). Bei unbekannten Modellen zeigt Aider **Warnungen** an. Das ist kein Bug — das ist Ehrlichkeit: Der Client weiß nicht, wie sich das Modell verhält, und sagt das.
+
+Euer Artefakt (die Dokumentation) sollte vermerken: Welches Modell, welche `num_ctx`-Einstellung (Kontextgröße), und ob die Warnung bewusst akzeptiert wurde.
+
+## Gegen Cloud benchmarken — nicht gegen Gefühl
+
+Die wichtigste Regel beim Einsatz lokaler Modelle: **Miss gegen Cloud, nicht gegen Bauchgefühl.**
+
+### So geht der Vergleich
+
+Nimm denselben Prompt und denselben Code-Diff (dieselbe Code-Änderung) und lass ihn von zwei Systemen bearbeiten:
+
+**Lokal:**
+- Das Ollama-Modell
+- Feste Kontext-Einstellung (`num_ctx`)
+- Temperature nahe 0 (also möglichst wenig Zufälligkeit)
+
+**Cloud:**
+- Das Modell, das der Kunde ohnehin bezahlt (z. B. Claude Sonnet oder GPT-4)
+- Identische Einstellungen
+
+### Was ihr vergleicht
+
+1. **Kompiliert der Vorschlag?** — Ist der generierte Code syntaktisch korrekt?
+2. **Sind die Tests grün?** — Funktioniert der Code?
+3. **Wie viele Turns?** — Wie viele Gesprächsrunden braucht das Modell bis zum brauchbaren Ergebnis?
+4. **Halluzinationen** — Erfindet das Modell APIs, Funktionen oder Bibliotheken, die es nicht gibt?
+5. **Sekunden bis zum ersten sinnvollen Patch** — Wie lange dauert es, bis etwas Brauchbares kommt?
+
+Schreibt diese Zahlen ins Artefakt. Wenn lokal gewinnt, steht da meist **Latenz** (schnellere Antwort) oder **Datenschutz** als Grund — selten die Code-Qualität bei größeren Projekten.
 
 ## Wo lokal in der IDE sinnvoll ist
 
-- Kommentare, Renames, kleine Funktionen, commit messages
-- Code, der das Gebäude nicht verlassen darf
-- Flugmodus, Kundendemohost ohne Keys
-- Offline-Red-Team gegen eigene Prompts
+Lokale Modelle in der IDE glänzen bei:
 
-Wo nicht: Multi-File-Refactors, unbekannte Legacy, Tool-schwere Agents, alles was Angebot 1 als System verkauft. Dort bleibt die Cloud-Spur mit Gates. Ihr könnt Aider lokal als **Pre-Commit-Helfer** und Cloud-Agents als **System** positionieren — das ist konsistent mit Kapitel 8.
+- **Kommentare, Renames (Umbenennungen), kleine Funktionen** — überschaubare Aufgaben, die wenig Kontext brauchen
+- **Code, der das Gebäude nicht verlassen darf** — Compliance-Anforderungen, die Cloud-Nutzung verbieten
+- **Flugmodus, Demo-Laptop ohne API-Keys** — Offline-Situationen
+- **Offline-Red-Teaming** (gezieltes Testen auf Schwachstellen) gegen eigene Prompts — ohne dass die Testdaten an einen Cloud-Anbieter gehen
 
-API-Keys: nur setzen, wenn die Ollama-Instanz wirklich eine Auth voraussetzt. Ein offener Port im Hotel-WLAN ohne Bind an localhost ist ein eigenes OWASP-Thema (Excessive Agency plus Netzwerk). Bind `127.0.0.1`, nicht `0.0.0.0`, außer ihr wisst, warum.
+### Wo lokale Modelle nicht ausreichen
+
+- **Multi-File-Refactors** — Änderungen über viele Dateien gleichzeitig, die viel Kontext brauchen
+- **Unbekannter Legacy-Code** — große, alte Codebasen, die das Modell komplett verstehen müsste
+- **Tool-schwere Agents** — Agenten, die viele verschiedene Werkzeuge benutzen und komplexe Entscheidungsketten fahren
+- Alles, was **Angebot 1 als System** verkauft — dafür bleibt die Cloud-Spur mit Gates
+
+Ihr könnt Aider lokal als **Pre-Commit-Helfer** (ein Werkzeug, das vor dem Einreichen von Code kleinere Aufgaben erledigt) und Cloud-Agents als **System** positionieren. Das ist konsistent mit dem, was ihr in Kapitel 8 über Quality Gates gelernt habt.
+
+## Sicherheitshinweis: Der offene Port
+
+Standardmäßig bindet Ollama an `127.0.0.1` — das bedeutet, nur Programme auf demselben Computer können zugreifen. Das ist sicher.
+
+Gefährlich wird es, wenn jemand Ollama an `0.0.0.0` bindet (auf allen Netzwerk-Schnittstellen erreichbar) — z. B. im Hotel-WLAN. Dann kann jeder im selben Netzwerk euer lokales Modell benutzen. Das ist ein eigenes Sicherheitsthema (Excessive Agency — das Modell ist von außen erreichbar und steuerbar).
+
+**Regel:** `127.0.0.1` binden, nicht `0.0.0.0`, außer ihr wisst genau, warum und habt entsprechende Absicherungen.
 
 <Merksatz>
 Aider plus Ollama ist produktiv erst mit gesetztem Context. Default 2k plus stilles Verwerfen ist Sabotage. Miss gegen Cloud — beschönige den Abstand nicht.

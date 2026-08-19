@@ -1,38 +1,107 @@
 ---
 titel: GitHub Copilot Agent Mode
-dauerMinuten: 14
+dauerMinuten: 26
 zusammenfassung: Completions, Chat, Agent Mode in VS Code und der Cloud-Agent auf github.com sind vier Produkte in einer Lizenz.
 reihenfolge: 4
 ---
 
-Copilot ist in Kundenlandschaften der Default, weil die Lizenz schon da ist. Genau deshalb musst du intern aufräumen: **was von Copilot ist Autocomplete, was ist Agent, wo liegen die Instructions.** Sonst vergleicht der CTO „Copilot“ mit „Cursor Agent“ und ihr redet aneinander vorbei.
+## Was ist GitHub Copilot?
 
-## Die Schichten
+**GitHub Copilot** ist das KI-Coding-Tool von **GitHub** (einer Plattform, auf der Entwickler ihren Code speichern und zusammenarbeiten) und **Microsoft**. Es ist in vielen Unternehmen bereits vorhanden, weil die Lizenz oft im bestehenden GitHub- oder Microsoft-Vertrag enthalten ist.
 
-- **Completions.** Ghost Text in VS Code, JetBrains, neovim. Niedriges Risiko, hoher Lärm wenn das Repo inkonsistent ist.
-- **Chat.** Erklären, Tests vorschlagen, Inline-Edit mit Bestätigung.
-- **Agent Mode in der IDE.** Copilot darf mehrstufig Werkzeuge nutzen: Dateien lesen und schreiben, Terminal, Iteration. Das ist der lokale Agent, vergleichbar mit Cursor Agent, nicht mit Tab.
-- **Copilot coding agent (Cloud).** Du weist ein Issue zu, der Agent branch, commit, PR. Review auf github.com. Das ist Lieferkette, nicht Editor-Komfort.
+Genau das macht Copilot zum häufigsten Gesprächsthema bei Kunden: „Wir haben schon Copilot." Aber was meinen sie damit? Hinter dem einen Namen stecken **vier verschiedene Produkte** mit völlig unterschiedlichem Risikoprofil. Wenn du das nicht aufdröseln kannst, vergleicht der CTO „Copilot" mit „Cursor Agent" und ihr redet aneinander vorbei.
 
-Das Microsoft Applied-Skills-Lab (AZ-2007 / APL-2007) trainiert vor allem Completions, Chat, Docs, Tests, Refactor. Nützlich als Aufwärmen. Es ersetzt kein Issue-Lab und kein Gespräch über Cloud-Agent plus Required Checks.
+## Die vier Schichten von Copilot
 
-## Custom Instructions sind das Steuer
+### Schicht 1: Completions (Ghost Text)
 
-Ohne Instructions wiederholt Copilot denselben Onboarding-Irrtum in jedem PR: falscher Package-Manager, Tests nicht gefunden, Style aus einem anderen Jahrzehnt.
+Das ist der Modus, den die meisten Entwickler kennen und meinen, wenn sie „Copilot" sagen. Während du tippst, erscheint grauer Vorschlagstext. Du drückst Tab, um ihn zu übernehmen.
 
-Repo-weit:
+Das funktioniert in **VS Code**, **JetBrains**-IDEs (IntelliJ, WebStorm etc.) und sogar in **neovim** (einem Terminal-basierten Editor für Profis).
 
-- `.github/copilot-instructions.md` für alles, was immer gilt
-- `.github/instructions/*.instructions.md` mit `applyTo`-Globs für Pfade (Cloud Agent und Code Review auf github.com)
-- zusätzlich `AGENTS.md` / `CLAUDE.md` / `GEMINI.md`, je nachdem welcher Agent im Haus noch läuft
+**Risiko:** Gering. Du übernimmst Zeile für Zeile. **Problem:** Wenn das Repo inkonsistent ist (verschiedene Coding-Styles in verschiedenen Dateien), sind die Vorschläge „laut", also widersprüchlich und verwirrend.
 
-GitHub rät explizit: Instructions nicht länger als etwa zwei Seiten, nicht task-spezifisch, Build- und Test-Befehle hart notieren, dem Agenten sagen, er soll der Datei trauen statt das Repo jedes Mal neu zu erforschen.
+### Schicht 2: Chat
 
-VS Code liest dieselben Konventionen plus IDE-lokale Custom Instructions. Persönliche Instructions schlagen Repo, Repo schlägt Organisation. Konflikte erzeugen Zufallsqualität. Du räumst sie, du sammelst sie nicht.
+Ein Chatfenster in der IDE, in dem du Fragen stellen, Code erklären lassen, Tests vorschlagen oder kleine Edits mit Bestätigung durchführen kannst. Der Chat **liest**, **erklärt** und **schlägt vor**, aber er handelt nicht eigenständig.
+
+Das ist vergleichbar mit dem Chat-Modus in Cursor: Du stellst eine Frage, bekommst eine Antwort, entscheidest selbst, was du damit machst.
+
+### Schicht 3: Agent Mode in der IDE
+
+Hier wird es interessant. **Agent Mode** bedeutet: Copilot darf in VS Code **mehrstufig arbeiten**. Er kann:
+
+- Dateien lesen und schreiben
+- Terminal-Befehle ausführen
+- Über mehrere Schritte iterieren (also: ausprobieren, Ergebnis prüfen, weitermachen)
+
+Das ist ein **lokaler Agent**, vergleichbar mit dem Cursor Agent aus Lektion 2. Es ist **nicht** dasselbe wie Tab-Completions. Der Unterschied ist fundamental: Completions schlagen die nächste Zeile vor. Agent Mode übernimmt eine ganze Aufgabe.
+
+Wichtig zu verstehen: Agent Mode läuft auf deinem Computer, in deiner IDE. Du siehst, was passiert, und kannst eingreifen.
+
+### Schicht 4: Copilot Coding Agent (Cloud)
+
+Das ist die radikalste Stufe. Du weist auf github.com ein **Issue** zu (ein Issue ist ein Ticket, also eine Aufgabenbeschreibung). Der Cloud-Agent:
+
+1. Erstellt einen neuen **Branch** (eine Arbeitskopie des Codes)
+2. Schreibt Code und **Commits** (speichert Änderungen)
+3. Öffnet einen **Pull Request** (einen Vorschlag zur Codeänderung, den andere reviewen)
+
+Das alles passiert **nicht auf deinem Computer**, sondern in der Cloud auf den GitHub-Servern. Du reviewst das Ergebnis auf github.com.
+
+Das ist keine Editor-Hilfe mehr. Das ist **Lieferkette**. Ein autonomes System schreibt Code und schlägt ihn zur Integration vor. Wenn hier keine automatisierten Prüfungen (CI-Checks) laufen, hat ein KI-Agent ohne menschliche Kontrolle Push-Rechte auf dein Projekt.
+
+## Das Microsoft Applied-Skills-Lab
+
+Microsoft bietet offizielle Schulungen an (AZ-2007 / APL-2007), die Copilot-Nutzung trainieren. Diese Schulungen decken vor allem Completions, Chat, Dokumentation, Tests und Refactoring ab.
+
+Das ist ein **guter Einstieg**, aber es ersetzt nicht das Verständnis für Agent Mode und Cloud Agent. Und es erklärt nicht, wie man Custom Instructions einrichtet oder Required Checks auf dem PR des Cloud-Agenten erzwingt.
+
+## Custom Instructions: Das Steuer für Copilot
+
+### Warum sind Instructions so wichtig?
+
+Ohne Instructions wiederholt Copilot in jedem PR denselben Anfängerfehler: falscher Paketmanager (`npm` statt `pnpm`), Tests nicht gefunden, Code-Style aus einem anderen Jahrzehnt. Der Agent weiß nicht, wie dein Projekt funktioniert, wenn du es ihm nicht sagst.
+
+### Wo liegen die Instructions?
+
+Es gibt mehrere Orte, und die Reihenfolge ist wichtig:
+
+#### Repo-weit (für alle, die am Projekt arbeiten)
+
+- **`.github/copilot-instructions.md`** — die Hauptdatei für Anweisungen, die immer gelten. Hier stehen Build-Befehle, Testkommandos, Projektstruktur, Konventionen.
+
+- **`.github/instructions/*.instructions.md`** mit `applyTo`-Globs — pfadspezifische Anweisungen. Zum Beispiel: „Für alle Dateien in `src/api/**` gilt: Verwende immer Zod für Validierung." Diese werden vom Cloud Agent und von Copilot Code Review auf github.com gelesen.
+
+- **Zusätzlich** können im selben Repo auch `AGENTS.md`, `CLAUDE.md` oder `GEMINI.md` liegen, falls andere KI-Tools ebenfalls genutzt werden.
+
+#### Persönlich (nur für dich in deiner IDE)
+
+VS Code liest die Repo-Instructions plus deine **IDE-lokalen Custom Instructions**. Die Rangfolge: Persönliche Instructions schlagen Repo-Instructions, Repo schlägt Organisation.
+
+### Häufiger Fehler: Konflikte erzeugen Zufallsqualität
+
+Wenn deine persönlichen Instructions „immer Semicolons" sagen und das Repo „keine Semicolons", entscheidet der Zufall. Du **räumst** Konflikte, du **sammelst** keine Instructions an.
+
+### Was GitHub empfiehlt
+
+- Instructions nicht länger als **etwa zwei Seiten**
+- Nicht task-spezifisch (keine „Füge Feature X hinzu"-Anweisungen)
+- **Build- und Test-Befehle hart notieren**: `npm run test`, `npm run build`
+- Dem Agenten sagen, er soll der Datei **vertrauen**, statt das Repo jedes Mal neu zu erforschen
 
 ## Was du einem Kunden mit Copilot-First sagst
 
-Wir kämpfen nicht gegen die Lizenz. Wir bauen das fehlende System: Instructions, pfadspezifische Regeln, Required Checks auf dem PR des Cloud-Agenten, Review-Pflicht auf Secrets und Schema. Agent Mode ohne Instructions ist Autocomplete mit Schreibrechten. Das ist die ehrliche Reihenfolge.
+Viele Kunden haben Copilot bereits und fragen, ob sie ein zusätzliches Tool brauchen. Deine Antwort:
+
+Wir kämpfen nicht gegen die Lizenz. Copilot ist ein gutes Werkzeug. Aber wir bauen das **fehlende System** drumherum:
+
+- **Custom Instructions** im Repository, damit der Agent weiß, wie euer Projekt funktioniert
+- **Pfadspezifische Regeln**, damit API-Code anders behandelt wird als UI-Code
+- **Required Checks** auf dem PR des Cloud-Agenten, damit kein KI-Code ungeprüft in die Hauptversion fließt
+- **Review-Pflicht** auf Secrets (Passwörter, API-Schlüssel) und Datenbankschema-Änderungen
+
+Agent Mode ohne Instructions ist Autocomplete mit Schreibrechten. Das ist die ehrliche Reihenfolge.
 
 <Merksatz>
 Copilot Agent Mode ist ein Werkzeug-Loop, Completions sind Tab. Die Steuerdatei im Repo heißt zuerst copilot-instructions.md. Cloud-Agent ohne CI-Gate ist ein Praktikant mit Push-Recht.

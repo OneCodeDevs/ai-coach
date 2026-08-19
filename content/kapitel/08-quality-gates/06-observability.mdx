@@ -1,46 +1,112 @@
 ---
 titel: Observability, Tracing, Kostenkontrolle
-dauerMinuten: 16
+dauerMinuten: 30
 zusammenfassung: Ohne Trace ist ein Agent-Incident ein Geisterhaus. Token und Kosten gehören in denselben Span wie der Prompt.
 reihenfolge: 6
 ---
 
-Nicht-Determinismus ohne Observability ist Aberglaube: ihr ändert den Prompt, „es fühlt sich besser an“, nächste Woche explodiert die Rechnung oder der Agent dreht fünf nutzlose Tool-Loops. Langfuse sagt es ungeschminkt: ohne Tracing ist Debugging Ratespiel. Ein **Trace** ist der Lebenslauf eines Requests — Prompt, Retrieval, Tool-Calls, Antwort, Token, Latenz, Modell — kausal verknüpft, nicht als 40 Log-Zeilen ohne Correlation-Id.
+## Was bedeutet Observability?
+
+**Observability** (Beobachtbarkeit) bedeutet: Du kannst von außen verstehen, was innerhalb eines Systems passiert — nicht nur ob es läuft, sondern *warum* es sich so verhält, wie es sich verhält.
+
+Stell dir ein Auto vor. Das Armaturenbrett zeigt dir Geschwindigkeit, Drehzahl, Tankfüllung und Motortemperatur. Das ist Observability für Autos. Ohne Armaturenbrett fährst du blind — der Motor könnte überhitzen, und du merkst es erst, wenn Rauch aufsteigt.
+
+Bei KI-Agenten ist es genauso: Ohne Observability änderst du den Prompt (die Anweisung), „es fühlt sich besser an", und nächste Woche explodiert die Rechnung oder der Agent dreht fünf nutzlose Schleifen. Langfuse (ein Observability-Werkzeug speziell für KI-Anwendungen) sagt es ungeschminkt: **Ohne Tracing ist Debugging Ratespiel.**
+
+## Was ist ein Trace?
+
+Ein **Trace** (Spur, Nachverfolgung) ist der vollständige Lebenslauf eines einzelnen Vorgangs — von der Eingabe des Benutzers bis zur fertigen Antwort. Er enthält:
+
+- Welcher **Prompt** wurde gesendet?
+- Welche **Dokumente** wurden abgerufen (Retrieval)?
+- Welche **Werkzeuge** (Tools) wurden in welcher Reihenfolge aufgerufen?
+- Was hat das Modell **geantwortet**?
+- Wie viele **Tokens** (Textbausteine, die das Modell verarbeitet — die Einheit, in der KI-Kosten gemessen werden) wurden verbraucht?
+- Wie lange hat es gedauert (**Latenz**)?
+- Welches **Modell** wurde verwendet?
+
+Und das Wichtigste: All das ist **kausal verknüpft** — du siehst, was zu was geführt hat. Nicht 40 Logzeilen ohne Zusammenhang, sondern eine nachvollziehbare Kette von Ursache und Wirkung.
+
+Ein Trace besteht aus **Spans** (Abschnitten). Jeder Span ist ein Schritt im Vorgang: ein Modell-Aufruf, ein Werkzeug-Aufruf, eine Datenbankabfrage. Stell dir einen Zeitstrahl vor, auf dem du jeden Schritt einzeln anklicken und seine Details sehen kannst.
 
 ## Was mindestens in den Trace muss
 
-Für Angebot 3 (Transparenz über Fehler, Kosten, Verhalten) ist das Minimum:
+Für ein professionelles Angebot (Transparenz über Fehler, Kosten und Verhalten) ist das Minimum:
 
-- **Identität:** Trace-Id, Session/PR, User oder CI-Job, Environment.
-- **Modell:** requested vs. actually served (`gen_ai.request.model` / `gen_ai.response.model`). Provider routen.
-- **Usage:** `gen_ai.usage.input_tokens`, `gen_ai.usage.output_tokens`, Cache-Read/Write wenn der Provider sie liefert. Input inkl. Cache, weil genau das die Rechnung treibt.
-- **Operation:** `chat`, `execute_tool`, `invoke_agent` — sonst siehst du einen Blob statt einer Kette.
-- **Tool-Spans:** Name, Argument-Hashes oder redacted Args, Dauer, Erfolg.
-- **Outcome:** HTTP/Tool-Error, Eval-Score, Guardrail-Tripwire ja/nein.
+### Identität
+- **Trace-Id** — eine eindeutige Kennung für diesen Vorgang
+- **Session/PR** — zu welchem Gespräch oder Pull Request gehört er?
+- **User oder CI-Job** — wer hat ihn ausgelöst?
+- **Environment** — läuft das in der Entwicklungsumgebung oder in der Produktion?
 
-Langfuse ist zweckgebaut: Tokens, Prompt/Completion, Scores, Datasets, Alerts. OpenTelemetry GenAI-Conventions sind der Vendor-neutrale Unterbau — dieselben Attribute, exportierbar in euer APM. Claude Code kann Usage über OpenTelemetry metrics spiegeln. Ihr müsst nicht religiös ein Tool wählen; ihr müsst **dieselben Felder** erzwingen, sonst ist „wir haben Logging“ eine Lüge in vier Formaten.
+### Modell
+- **Angefordertes vs. tatsächlich verwendetes Modell** — Manche Anbieter routen Anfragen automatisch an andere Modelle. Ohne diese Information weißt du nicht, was wirklich passiert ist.
 
-Langfuse schickt Spans asynchron. Das ist die richtige Default-Aussage gegenüber Performance-ängstlichen CTOs: Tracing darf den User-Path nicht blockieren. Was es blockieren *darf*, ist der Merge, wenn der Smoke-Eval rot ist — das ist ein anderes Gate.
+### Usage (Verbrauch)
+- **Input-Tokens** — wie viele Tokens hat die Eingabe verbraucht?
+- **Output-Tokens** — wie viele hat die Antwort verbraucht?
+- **Cache-Read/Write** — wurden zwischengespeicherte Ergebnisse verwendet? Das spart Kosten.
+
+Input inklusive Cache, weil genau das die Rechnung treibt.
+
+### Operation
+- **Typ des Vorgangs** — `chat` (Konversation), `execute_tool` (Werkzeug ausführen), `invoke_agent` (Agent aufrufen). Ohne diese Unterscheidung siehst du einen Klumpen statt einer Kette.
+
+### Tool-Spans
+- **Name** des Werkzeugs
+- **Argument-Hashes** oder geschwärzte Argumente (nicht die Rohdaten — aus Datenschutzgründen)
+- **Dauer** und **Erfolg/Misserfolg**
+
+### Outcome (Ergebnis)
+- Fehler (HTTP-/Tool-Fehler)
+- Eval-Score (Bewertungsergebnis, falls ein Eval gelaufen ist)
+- Guardrail-Tripwire ja/nein (hat ein Sicherheits-Alarm ausgelöst?)
+
+## Welche Werkzeuge gibt es?
+
+### Langfuse
+
+**Langfuse** ist ein Open-Source-Werkzeug (freie Software, deren Quellcode öffentlich ist) speziell für die Beobachtbarkeit von KI-Anwendungen. Es trackt Tokens, Prompts, Antworten, Scores, Datasets und kann Alerts (Warnmeldungen) auslösen.
+
+Langfuse sendet Spans **asynchron** — das bedeutet, das Tracing verlangsamt die Antwort an den Benutzer nicht. Das ist wichtig für die Argumentation gegenüber CTOs, die sich Sorgen um Performance machen: „Tracing blockiert nicht den User-Path (den Weg des Benutzers durch die Anwendung). Was es blockieren *darf*, ist der Merge, wenn der Smoke-Eval rot ist."
+
+### OpenTelemetry
+
+**OpenTelemetry** (oft abgekürzt OTel) ist ein herstellerunabhängiger Standard für Tracing und Metriken. Die **GenAI-Conventions** sind eine Erweiterung speziell für KI-Anwendungen — sie definieren einheitliche Felder wie `gen_ai.request.model` oder `gen_ai.usage.input_tokens`.
+
+Der Vorteil: Einmal instrumentieren (also Tracing einbauen), dann in jedes beliebige Backend (Auswertungssystem) exportieren. Ihr müsst nicht religiös ein Tool wählen — ihr müsst **dieselben Felder erzwingen**. Sonst ist „wir haben Logging" eine Lüge in vier verschiedenen Formaten.
 
 ## Kosten sind eine Produktmetrik
 
-Kunden kaufen „der Agent arbeitet“. Sie zahlen Token. Deshalb aggregiert ihr **Kosten pro Task** (Ticket, PR, Eval-Lauf), nicht nur Dollar pro API-Call. Ein günstiges Modell, das 40 Turns mit 80k Context braucht, verliert gegen ein teures Modell mit hartem Budget.
+Kunden kaufen „der Agent arbeitet". Sie **zahlen** in Tokens. Deshalb müsst ihr **Kosten pro Aufgabe** aggregieren (zusammenfassen) — pro Ticket, pro PR, pro Eval-Lauf — nicht nur Dollar pro API-Call.
 
-Alerts, die Sinn ergeben:
+Warum? Ein günstiges Modell, das 40 Gesprächsrunden mit 80.000 Tokens Kontext braucht, um eine Aufgabe zu erledigen, kann **teurer** sein als ein teures Modell, das die Aufgabe in 3 Runden mit 10.000 Tokens löst.
 
-- Kosten oder Token pro Trace über Perzentil 99
-- Loop-Detektor: N identische Tool-Calls
-- Tripwire-Rate und Guardrail-Latenz
-- Cache-Hit-Rate fällt (Prompt-Prefix zerbrochen)
+Stell dir vor, du vergleichst zwei Handwerker: Einer ist billig pro Stunde, braucht aber eine Woche. Der andere ist teuer pro Stunde, ist aber in einem Tag fertig. Die Gesamtkosten entscheiden — nicht der Stundensatz.
 
-## Was ihr *nicht* loggt
+### Alerts (Warnmeldungen), die Sinn ergeben
 
-Hidden Context Exposure gilt für Traces genauso wie fürs Modell. Prompts enthalten oft Secrets, Kundendaten, interne Policies. Default: Inhalte redacted oder hashed, opt-in Raw-Prompts nur in Dev. Retention begrenzen. Self-host Langfuse, wenn der Kunde das gesetzlich braucht — das ist ein Discovery-Thema, kein Feature-Haken „wir loggen alles“.
+- **Kosten oder Token pro Trace über dem 99. Perzentil** — ein Vorgang, der deutlich mehr kostet als 99% aller anderen, verdient Aufmerksamkeit
+- **Loop-Detektor** — der Agent ruft dasselbe Werkzeug N-mal identisch auf (dreht sich im Kreis)
+- **Tripwire-Rate und Guardrail-Latenz** — wie oft lösen Sicherheits-Alarme aus, und wie lange dauern die Prüfungen?
+- **Cache-Hit-Rate fällt** — der Prompt-Anfang hat sich verändert, sodass der Zwischenspeicher nicht mehr greift (das bedeutet höhere Kosten)
 
-Im Pitch: „Ihr seht, welcher Agent welches Ticket mit welchem Modell, welchen Tools und welchen Kosten bearbeitet hat — und wo der Tripwire gegriffen hat.“ Das ist die fehlende Transparenz aus dem Pain von Angebot 3.
+## Was ihr *nicht* loggt — Datenschutz beim Tracing
+
+Hidden Context Exposure (das Risiko, dass vertrauliche Informationen aus dem Kontext leaken — siehe OWASP-Lektion) gilt für Traces genauso wie für das Modell selbst. Prompts enthalten oft Passwörter, Kundendaten, interne Richtlinien.
+
+**Standardeinstellung:** Inhalte geschwärzt oder als Hash (ein unumkehrbarer Fingerabdruck) gespeichert. Rohe Prompts nur in der Entwicklungsumgebung, und auch dort bewusst aktiviert (Opt-in).
+
+Aufbewahrungsfrist begrenzen. Langfuse selbst hosten (Self-host), wenn der Kunde das aus gesetzlichen Gründen braucht — das ist ein Thema für die Discovery-Phase (die Bedarfsermittlung beim Kunden), kein Feature-Haken „wir loggen alles".
+
+## Was du im Pitch sagst
+
+„Ihr seht, welcher Agent welches Ticket mit welchem Modell, welchen Werkzeugen und welchen Kosten bearbeitet hat — und wo der Tripwire gegriffen hat."
+
+Das ist die fehlende Transparenz, die Kunden brauchen: Nicht nur „es funktioniert", sondern **nachvollziehbar** warum, zu welchem Preis, und wo die Grenzen gegriffen haben.
 
 <Merksatz>
-Ein Agent ohne Trace ist nicht „schlank“, er ist unevaluierbar. Token, Tools und Tripwires gehören in denselben Span — ohne Secrets im Klartext.
+Ein Agent ohne Trace ist nicht „schlank", er ist unevaluierbar. Token, Tools und Tripwires gehören in denselben Span — ohne Secrets im Klartext.
 </Merksatz>
 
 <Quelle

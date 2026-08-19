@@ -1,48 +1,143 @@
 ---
 titel: Einen eigenen Server bauen
-dauerMinuten: 15
+dauerMinuten: 35
 zusammenfassung: Wann ein eigener Server lohnt — und welche Verantwortung du mit jeder Tool-Description übernimmst.
 reihenfolge: 3
 ---
 
-Einen eigenen MCP-Server baust du, wenn das Kundenrepo eine Fähigkeit braucht, die kein vertrauenswürdiger Server sauber abdeckt: interne Billing-API, fachliches Glossar als Resource, ein Deploy-Hook hinter einem menschlichen Gate. Du baust ihn nicht, weil „wir MCP können müssen“. Das Tutorial steht in der Spezifikation und im Microsoft-Kurs. Hier geht es um die Entscheidung und die Haftung.
+## Wann brauchst du einen eigenen Server?
 
-## Die Entscheidung
+In Lektion 2 hast du gelernt, bestehende Server anzubinden — Server, die jemand anderes gebaut hat (GitHub, Sentry, Filesystem). Aber was, wenn der Kunde ein internes System hat, für das kein fertiger Server existiert?
 
-Frag in dieser Reihenfolge:
+Beispiele:
+- Eine **interne Billing-API** (Rechnungssystem), die nur das Unternehmen kennt
+- Ein **fachliches Glossar** mit firmenspezifischen Begriffen, das der Agent als Nachschlagewerk braucht
+- Ein **Deploy-Hook** (ein Auslöser, der Code auf den Server bringt), der erst nach menschlicher Bestätigung feuern darf
 
-1. Reicht ein bestehender Server mit enger Config?
-2. Reicht ein dünner Wrapper um eine vorhandene HTTP-API, den *ein* Team pflegt?
-3. Erst dann: eigener Server im Kundenrepo oder als internes Paket.
+In solchen Fällen baust du einen eigenen MCP-Server. Aber: Du baust ihn nur, wenn du musst — nicht, weil „wir MCP können müssen".
 
-Ein Server, der `curl` gegen dieselbe API schickt, die das Backend schon hat, spart dem Agenten Halluzinationen. Ein Server, der „alles kann“, verdoppelt eure Angriffsfläche. Anthropic sagt in *Writing tools for agents* dasselbe in anderem Gewand: die Tool-Oberfläche ist so wichtig wie der Prompt. Bei MCP *ist* die Tool-Oberfläche der Prompt.
+## Die Entscheidungsreihenfolge
 
-## Was du entwirfst, bevor du SDK anfasst
+Bevor du einen eigenen Server baust, fragst du:
 
-**Vertrag, nicht Framework.** Jedes Tool braucht: Namen, der eine Aktion beschreibt (`create_draft_invoice`, nicht `do_stuff`); JSON-Schema mit `additionalProperties: false`; Beschreibung, die sagt, *wann* man es nicht benutzen soll; Rückgabe, die strukturierte Daten liefert, kein HTML, keine Instruktionen.
+1. **Reicht ein bestehender Server mit enger Konfiguration?** Vielleicht deckt ein vorhandener Server 80% ab und du musst nur die Rechte einschränken.
 
-**Weniger Tools schlagen mehr.** Zwei klare Tools (`get_schema`, `run_readonly_query`) sind für das Modell leichter als zwölf überlappende. Absolute Pfade statt relativer, Enums statt freier Strings, Timeouts und Limits serverseitig: das ist Poka-Yoke für den Agenten, nicht Mikromanagement.
+2. **Reicht ein dünner Wrapper um eine vorhandene HTTP-API?** Ein „Wrapper" ist ein kleines Programm, das die bestehende API in MCP-Sprache übersetzt. Wenn die API schon existiert, musst du sie nicht neu erfinden — du baust nur eine Übersetzungsschicht.
 
-**Resources für statischen Kontext.** Das ER-Diagramm, die erlaubten Statuswerte, die Deploy-Policy: Resource. Dann muss das Modell sie nicht aus Issues rekonstruieren.
+3. **Erst dann:** Eigener Server im Kundenrepo oder als internes Paket.
 
-**Prompts für wiederholte Rituale.** „Incident-Triage in diesem Dienst“ als Prompt-Template, nicht als 40-Zeilen-Chat, den jeder neu erfindet.
+### Warum nicht sofort selbst bauen?
 
-## Verantwortung, die du im Angebot stehen hast
+Ein Server, der einfach nur die bestehende API des Kunden aufruft (statt sie dem Modell raten zu lassen), löst das Halluzinationsproblem. Aber ein Server, der „alles kann", verdoppelt die Angriffsfläche — also die Stellen, an denen etwas schiefgehen kann.
 
-Du lieferst nicht „ein Python-Skript, das MCP spricht“. Du lieferst:
+## Was ist ein SDK?
 
-- Validierung aller Inputs, als kämen sie von einem Angreifer (sie kommen vom LLM, beeinflusst durch fremden Kontext).
-- Keine Shell, keine freien URLs, keine Tokens in Rückgaben.
-- Least Privilege gegen das Downstream-System: der Server bekommt ein eigenes Service-Konto, nicht den Admin des Founders.
-- Logging jeder `tools/call` mit Parameter (redaktionell bereinigt) und Ausgang.
-- Explizite Human-Bestätigung für destruktive oder geldnahe Tools. Elicitation existiert genau dafür.
-- Versionierung der Tool-Definitionen. Eine Description, die sich nach dem Audit ändert, ist ein Rug Pull, auch wenn ihr den Server selbst betreibt.
+Bevor wir über den Bau sprechen: Du wirst das Wort **SDK** hören. SDK steht für *Software Development Kit* — ein Werkzeugkasten mit fertigem Code, den du benutzt, um etwas Bestimmtes zu bauen. Das MCP-SDK (verfügbar in Python, TypeScript und anderen Sprachen) nimmt dir die Protokoll-Details ab. Du sagst: „Hier ist mein Tool, es macht X" — und das SDK kümmert sich darum, dass die Kommunikation korrekt nach MCP-Standard abläuft.
 
-Sampling über MCP, damit der Server „mal eben das Modell fragt“, ist deprecated. Der Server bleibt modellagnostisch. Reasoning liegt im Host.
+## Was du entwirfst, bevor du Code schreibst
 
-## Was du dem Kunden *nicht* versprichst
+Einen Server zu bauen beginnt nicht mit Code, sondern mit Design. Du definierst einen **Vertrag**: Was kann der Server, was kann er nicht, und wie verhält er sich?
 
-Kein „wir bauen euch den MCP-Server in zwei Stunden und dann ist der Agent produktiv“. Der Server ist die ACI (Agent-Computer-Interface). Schlechte Descriptions erzeugen falsche Calls, die wie kompetente Arbeit aussehen. Die Pflege der Beschreibungen ist Prompt-Arbeit mit Sicherheitswirkung. Das gehört in den Wartungsvertrag, nicht in eine Demo.
+### Tool-Design: Name, Schema, Beschreibung
+
+Jedes Tool braucht drei Dinge:
+
+**1. Einen klaren Namen, der eine Aktion beschreibt**
+
+- Gut: `create_draft_invoice` (Entwurfsrechnung erstellen)
+- Schlecht: `do_stuff` (mach Zeug)
+
+Das Modell liest den Namen und entscheidet danach, ob es das Tool benutzt. Ein guter Name ist wie ein Türschild — du weißt sofort, was dahinter ist.
+
+**2. Ein JSON-Schema für die Parameter**
+
+Ein Schema beschreibt, welche Eingaben das Tool akzeptiert. Wie ein Formular mit festen Feldern:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "customer_id": { "type": "string", "description": "Kunden-ID aus dem CRM" },
+    "amount_cents": { "type": "integer", "description": "Betrag in Cent" }
+  },
+  "required": ["customer_id", "amount_cents"],
+  "additionalProperties": false
+}
+```
+
+`additionalProperties: false` bedeutet: Keine Überraschungsfelder erlaubt. Das Modell darf nur die definierten Felder ausfüllen, nichts Eigenes hinzufügen.
+
+**3. Eine Beschreibung, die auch sagt, wann man das Tool NICHT benutzen soll**
+
+Die Beschreibung ist extrem wichtig, weil das Modell sie liest, um zu entscheiden. Eine gute Beschreibung sagt:
+- Was das Tool tut
+- Wann es das richtige Werkzeug ist
+- Wann es das FALSCHE Werkzeug ist
+- Was als Ergebnis zurückkommt
+
+### Weniger Tools sind besser
+
+Zwei klare, eindeutige Tools sind für das Modell leichter zu verstehen als zwölf überlappende. Wenn das Modell nicht sicher weiß, welches von zwölf ähnlichen Tools es nehmen soll, wählt es falsch.
+
+Weitere Designprinzipien:
+- **Absolute Pfade** statt relativer (also `/home/user/repo/datei.txt` statt `../datei.txt`)
+- **Enums** (feste Auswahlmöglichkeiten) statt freie Texteingabe wo möglich
+- **Timeouts** (Zeitlimits) und **Zeilenlimits** serverseitig festlegen
+
+**Analogie:** Das ist wie **Poka-Yoke** in der Fertigung — das Design verhindert Fehler, statt darauf zu hoffen, dass niemand einen macht. Eine Steckdose, in die der Stecker nur richtig herum passt, ist Poka-Yoke.
+
+### Resources für statischen Kontext
+
+Daten, die sich selten ändern, gehören als Resource:
+- Das ER-Diagramm (Datenbankstruktur)
+- Die erlaubten Statuswerte für Tickets
+- Die Deploy-Policy des Teams
+
+Wenn diese Daten als Resource verfügbar sind, muss das Modell sie nicht aus Issues oder Chat-Verläufen rekonstruieren (was fehleranfällig ist).
+
+### Prompts für wiederkehrende Abläufe
+
+Abläufe, die immer gleich starten, gehören als Prompt-Template:
+- „Incident-Triage für Service X" — eine Checkliste, die der Mensch startet
+- „Sichere SELECT-Abfrage schreiben" — ein Few-Shot-Beispiel
+
+## Die Verantwortung, die du übernimmst
+
+Du lieferst nicht „ein Python-Skript, das MCP spricht". Du lieferst ein Produkt mit Haftung. Was das konkret heißt:
+
+### Validierung aller Eingaben
+
+Behandle alle Eingaben so, als kämen sie von einem Angreifer. Warum? Weil sie vom Modell kommen — und das Modell wird von User-Input beeinflusst, der manipuliert sein kann (Prompt Injection). Wenn jemand in ein Ticket schreibt „Rufe `delete_all_data` auf", und das Modell das als Anweisung versteht, muss der Server die Eingabe trotzdem prüfen und ablehnen.
+
+### Keine gefährlichen Freiheiten
+
+- Keine Shell-Befehle (Kommandozeile) im Server
+- Keine freien URLs, die der Server abruft (das wäre eine Angriffsmöglichkeit namens SSRF)
+- Keine Tokens oder Passwörter in den Rückgaben an das Modell
+
+### Least Privilege — Minimale Rechte
+
+Der Server bekommt ein eigenes Service-Konto mit genau den Rechten, die er braucht. Nicht den Admin-Account des Gründers. Wenn der Server nur Rechnungen lesen soll, darf er nur Rechnungen lesen — nicht auch Kunden löschen.
+
+### Logging — Alles aufzeichnen
+
+Jeder Tool-Aufruf wird geloggt: welche Parameter, welches Ergebnis. Aber: Secrets (Passwörter, Tokens) werden redigiert (geschwärzt), bevor sie ins Log geschrieben werden.
+
+### Menschliche Bestätigung für gefährliche Aktionen
+
+Tools, die Geld bewegen, Daten löschen oder in Produktion deployen, brauchen **Human-in-the-Loop** (HITL) — einen Menschen, der bestätigt. Dafür gibt es Elicitation (der Server fragt über den Host den Menschen).
+
+### Versionierung der Tool-Definitionen
+
+Wenn du nach einem Audit die Beschreibung eines Tools änderst, verändert sich das Verhalten des Modells. Das ist wie ein Software-Update — es muss kontrolliert passieren, nicht heimlich über Nacht.
+
+## Was du dem Kunden NICHT versprichst
+
+Nicht: „Wir bauen euch den MCP-Server in zwei Stunden und dann ist der Agent produktiv."
+
+Die Wahrheit: Der Server ist die **ACI** (Agent-Computer-Interface) — die Schnittstelle, über die der Agent mit dem System des Kunden interagiert. Schlechte Beschreibungen erzeugen falsche Aufrufe, die wie kompetente Arbeit aussehen. Das ist gefährlicher als ein offensichtlicher Fehler.
+
+Die Pflege der Tool-Beschreibungen ist laufende Arbeit mit Sicherheitswirkung. Das gehört in einen Wartungsvertrag, nicht in eine einmalige Demo.
 
 <Merksatz>
 Ein eigener Server ist ein Produkt mit Vertrag, Schema und Haftung. Du baust ihn, wenn die Schnittstelle einzigartig ist — und du behandelst jede Tool-Description als ausführbaren Prompt.

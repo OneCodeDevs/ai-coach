@@ -1,28 +1,84 @@
 ---
 titel: Claude Code
-dauerMinuten: 16
+dauerMinuten: 28
 zusammenfassung: Terminal-Agent mit CLAUDE.md, Plan-Modus und einem Check, den das Modell selbst ausführen kann.
 reihenfolge: 3
 ---
 
-Claude Code ist kein Chat in der Sidebar. Es ist ein Agent im Terminal (und in IDEs), der Dateien liest, Befehle fährt und patches schreibt, während du zusiehst oder weggehst. Anthropic intern und die Public Docs ziehen daraus eine andere Arbeitsweise: du beschreibst das Ziel, Claude exploriert und baut. Das funktioniert nur, wenn du die zwei Engpässe ernst nimmst: **Context** und **Verifikation**.
+## Was ist Claude Code?
 
-## Context ist die knappe Ressource
+**Claude Code** ist ein KI-Agent von **Anthropic** (dem Unternehmen hinter dem Claude-Modell). Im Gegensatz zu Cursor, das ein grafischer Code-Editor ist, läuft Claude Code primär im **Terminal**. Das Terminal ist die Kommandozeile deines Computers, also das schwarze Fenster, in dem du Befehle eintippst.
 
-Jede gelesene Datei, jedes Teslog, jede Zwischenfrage liegt im Fenster. Wird es voll, sinkt die Qualität: frühe Regeln weichen, der Agent wiederholt Arbeit, er „vergisst“ das Verbot aus CLAUDE.md. Deshalb ist das wichtigste Operational-Pattern: Fenster klein halten, nicht „mehr Dateien anhängen“.
+Stell dir den Unterschied so vor: Cursor ist wie eine moderne Küche mit Touchscreen-Herd. Claude Code ist wie ein professioneller Koch, der nur ein Messer und ein Schneidebrett braucht, dafür aber extrem schnell und präzise arbeitet.
 
-Konkret:
+Claude Code ist **kein Chatbot**, der auf Fragen wartet. Es ist ein Agent, der eigenständig handelt: Er liest Dateien, führt Befehle aus, schreibt Code und kann über viele Schritte hinweg an einem Ziel arbeiten. Du kannst dabei zusehen oder auch weggehen (was du aber mit Vorsicht tun solltest).
 
-- CLAUDE.md unter etwa 200 Zeilen, Fakten statt Essays
-- `/compact` und gezieltes Neustarten statt einer Session über den ganzen Tag
-- Sub-Agenten für Recherche, nur das Ergebnis zurück in den Hauptlauf
-- nicht `find` über den ganzen Baum, wenn der Pfad bekannt ist
+Claude Code ist auch in IDEs wie VS Code und Cursor als Extension verfügbar, aber sein Kern bleibt das Terminal.
 
-## Die Schleife: explorieren, planen, bauen, prüfen
+## Der eine Engpass: Das Context Window
 
-Die Docs empfehlen Plan-Modus, bevor editiert wird. Claude darf lesen und fragen, nicht schreiben. Du lässt dir sagen, welche Dateien und welche Risiken. Dann erst Implementierung.
+### Was ist das Context Window?
 
-Danach der Satz, den du auswendig können musst:
+Jedes KI-Modell hat ein begrenztes Textfenster, das sogenannte **Context Window**. Alles, was das Modell „weiß", muss in dieses Fenster passen: deine Anweisungen, die gelesenen Dateien, die Terminal-Ausgaben, die Zwischenschritte. Stell dir das wie einen Schreibtisch vor: Er ist groß, aber irgendwann liegt so viel darauf, dass du die wichtigen Dokumente nicht mehr findest.
+
+### Warum ist das bei Claude Code besonders kritisch?
+
+Claude Code arbeitet autonom. Das heißt, er liest Dateien, führt Tests aus, liest die Ergebnisse, sucht nach weiteren Dateien. Jeder dieser Schritte füllt das Fenster. Je voller das Fenster wird, desto schlechter wird die Qualität:
+
+- **Frühe Regeln weichen:** Die Anweisung aus deiner CLAUDE.md (dazu gleich mehr), die ganz am Anfang stand, wird „vergessen", weil sie im riesigen Textstrom untergegangen ist
+- **Der Agent wiederholt Arbeit**, weil er nicht mehr weiß, was er schon getan hat
+- **Verbote werden ignoriert**, weil sie zu weit oben im Fenster stehen
+
+### Was kannst du dagegen tun?
+
+Das wichtigste Muster ist: **Fenster klein halten**, nicht „mehr Dateien anhängen".
+
+- **CLAUDE.md unter 200 Zeilen** halten: Fakten statt Aufsätze
+- **`/compact`** nutzen: Dieser Befehl fasst den bisherigen Chatverlauf zusammen und gibt dem Modell wieder Platz
+- **Gezielt neu starten** statt eine Session über den ganzen Tag laufen zu lassen
+- **Sub-Agenten** für Recherche einsetzen: Ein kleiner Helfer-Agent sucht die Information, nur das Ergebnis kommt zurück in den Hauptlauf
+- **Gezielte Pfade** statt Rundumsuche: Nicht `find` über das gesamte Projekt laufen lassen, wenn du den Pfad kennst
+
+## CLAUDE.md: Die Hausordnung
+
+### Was ist CLAUDE.md?
+
+CLAUDE.md ist eine Textdatei im Root (Hauptordner) deines Projekts. Sie enthält **dauerhafte Anweisungen** für Claude Code. Das ist das Äquivalent zu Cursors Project Rules, nur in einer einfachen Markdown-Datei.
+
+Stell dir CLAUDE.md als die **Hausordnung in einem Mietshaus** vor: Sie hängt im Flur, jeder neue Mieter (jede neue Session) liest sie beim Einzug. Sie enthält keine Romane, sondern klare Regeln.
+
+### Was gehört rein?
+
+- Build- und Test-Befehle: `pnpm test`, `pnpm build`
+- Projektstruktur: „API-Code liegt in `src/server/`, UI in `src/components/`"
+- Verbote: „Diese Tabelle in der Datenbank nicht anfassen", „Keine Änderungen an `config/production.ts`"
+- Konventionen: „Wir verwenden Single Quotes", „Fehler werden mit dem Logger gemeldet, nicht mit `console.log`"
+
+### Was gehört nicht rein?
+
+- Philosophie über Software-Design (das gehört in ein Wiki, nicht in den Prompt)
+- Task-spezifische Anweisungen (die gehören in die Chat-Nachricht)
+- Alles, was mehr als 200 Zeilen braucht (dann aufteilen)
+
+### Wie wird CLAUDE.md erstellt?
+
+Claude Code hat einen Befehl `/init`, der automatisch eine erste CLAUDE.md aus deinem Repo generiert. Das ist ein **Startpunkt**, kein fertiges Produkt. Du musst ergänzen, was Claude nicht sehen kann: Geschäftslogik, Invarianten (Dinge, die immer gelten müssen), Verbote.
+
+## Die Arbeitsschleife: Explorieren, Planen, Bauen, Prüfen
+
+### Schritt 1: Plan-Modus
+
+Die offizielle Empfehlung von Anthropic: **Erst lesen lassen, bevor geschrieben wird.** Im Plan-Modus darf Claude Code das Projekt durchsuchen und Fragen stellen, aber nichts verändern. Er zeigt dir:
+
+- Welche Dateien betroffen sind
+- Welche Risiken er sieht
+- Welchen Ansatz er vorschlägt
+
+Du prüfst den Plan, streichst was nicht passt, und gibst dann erst die Freigabe für die Implementierung.
+
+### Schritt 2: Implementierung mit Check
+
+Und jetzt kommt der Satz, den du dir merken solltest:
 
 <Zitat
   lang="en"
@@ -30,20 +86,45 @@ Danach der Satz, den du auswendig können musst:
   text="Give Claude a check it can run: tests, a build, a screenshot to compare. It's the difference between a session you watch and one you walk away from."
 />
 
-Ohne Check bist *du* die Testsuite. Mit Check iteriert der Agent bis grün oder bis er ehrlich scheitert. Härtere Varianten: Stop-Hooks, die das Beenden blockieren, solange der Check rot ist; ein zweiter Agent, der das Ergebnis anzweifelt.
+Was bedeutet das? Ein **Check** ist ein automatisierter Test, den der Agent selbst ausführen kann. Zum Beispiel:
 
-`/init` schreibt eine erste CLAUDE.md aus dem Repo. Das ist ein Start, kein Artefakt, das du einem Kunden ungeprüft übergibst. Du ergänzt, was Claude nicht sehen kann: Invarianten, Verbote, „diese Tabelle nicht anfassen“.
+- `pnpm test` (laufen alle Tests durch?)
+- `pnpm build` (lässt sich das Projekt fehlerfrei bauen?)
+- Ein Screenshot-Vergleich (sieht die Seite noch richtig aus?)
 
-## Permissions, Hooks, Skills
+**Ohne Check** bist du die Testsuite. Du musst jede Änderung selbst überprüfen. **Mit Check** iteriert der Agent: Er baut, testet, liest das Ergebnis. Wenn etwas rot ist (also fehlschlägt), versucht er es zu reparieren. Das wiederholt er, bis entweder alles grün ist oder er ehrlich zugibt, dass er nicht weiterkommt.
 
-Default: der Agent fragt vor gefährlichen Schritten. Für Routine (Tests, Linter) erlaubst du mehr. Für `rm`, Production-Deploys, `.env` bleibt die Nachfrage. Hooks sind die Stelle, an der Policy nicht mehr Bitte ist, sondern Block. Skills (Kapitel 4) sind versionierte Verfahren, die nicht jede Session ins Fenster laden.
+Härtere Varianten:
+- **Stop-Hooks**: Blockieren das Beenden der Session, solange der Check rot ist
+- **Review-Agent**: Ein zweiter Agent, der das Ergebnis des ersten anzweifelt
 
-Headless-Modus und GitHub Action sind relevant, sobald der Kunde „im PR“ will statt „im Laptop“. Dann gelten dieselben Regeln, nur ohne Blick über die Schulter: das Gate muss deterministisch sein.
+## Permissions und Hooks
 
-Im Angebot 1 ist Claude Code oft der Referenz-Agent im Repo, nicht weil er der einzige ist, sondern weil CLAUDE.md, Skills und Hooks ein System ergeben, das du übergeben kannst.
+### Was sind Permissions?
+
+Claude Code fragt standardmäßig vor **gefährlichen Aktionen** nach. Du kannst das anpassen:
+
+- **Mehr Freiheit** für Routine: Tests und Linter darf er ohne Nachfrage ausführen
+- **Strikte Nachfrage** für Risiko: `rm` (Löschen), Produktions-Deployments, Zugriff auf `.env`-Dateien (dort stehen Passwörter und API-Schlüssel)
+
+### Was sind Hooks?
+
+**Hooks** sind Skripte, die automatisch vor oder nach bestimmten Aktionen des Agenten laufen. Stell dir Hooks als **Türsteher** vor: Bevor der Agent etwas tut, prüft der Hook, ob das erlaubt ist.
+
+Der Unterschied zu Rules: Eine Rule ist eine **Bitte** an den Agenten. Ein Hook ist ein **Block**. Der Agent kann eine Rule ignorieren (absichtlich oder aus Versehen). Einen Hook kann er nicht umgehen.
+
+## Headless-Modus und CI-Integration
+
+Wenn der Kunde will, dass Claude Code nicht auf dem Laptop eines Entwicklers läuft, sondern **automatisiert in der CI-Pipeline** (das ist das System, das bei jedem Code-Update automatisch Tests und Builds durchführt), gibt es den **Headless-Modus**. Claude Code läuft dann ohne menschliche Interaktion, zum Beispiel als Teil einer GitHub Action.
+
+In diesem Fall ist die Kontrolle noch wichtiger: Es schaut niemand über die Schulter. Das Gate (die Kontrollstelle) muss **deterministisch** sein, also automatisiert und nicht von menschlicher Aufmerksamkeit abhängig.
+
+## Warum Claude Code im Kundenprojekt?
+
+Claude Code ist oft der **Referenz-Agent im Repository**, nicht weil er der einzige ist, sondern weil CLAUDE.md, Skills und Hooks zusammen ein System ergeben, das du einem Kunden **übergeben** kannst. Der Kunde bekommt nicht nur ein Tool, sondern ein dokumentiertes Verfahren: Hier ist die Hausordnung, hier sind die Sicherheitshaken, hier ist der Prüfschritt.
 
 <Merksatz>
-Claude Code skaliert mit einem Plan vor dem Patch und einem Check vor dem „done“. CLAUDE.md hält die Hausordnung klein. Das Context Window bleibt die harte Grenze, auch wenn das Modell stark ist.
+Claude Code skaliert mit einem Plan vor dem Patch und einem Check vor dem „done". CLAUDE.md hält die Hausordnung klein. Das Context Window bleibt die harte Grenze, auch wenn das Modell stark ist.
 </Merksatz>
 
 <Quelle

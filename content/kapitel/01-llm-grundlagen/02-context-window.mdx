@@ -1,35 +1,90 @@
 ---
 titel: Context Window als endliches Budget
-dauerMinuten: 15
+dauerMinuten: 20
 zusammenfassung: Warum lange Chats schlechter werden und was Compaction damit zu tun hat.
 reihenfolge: 2
 ---
 
-Das Context Window ist kein Gedächtnis. Es ist ein Hartes Limit: so viele Token dürfen in einem Request stecken — System-Prompt, Historie, Dateien, Tool-Outputs, die aktuelle Frage. Was nicht hineinpasst, existiert für diesen Schritt nicht.
+## Was ist das Context Window?
 
-## Was das Fenster wirklich füllt
+Das **Context Window** (auch: Kontextfenster) ist die maximale Menge an Text, die ein LLM in einem einzigen Verarbeitungsschritt „sehen" kann. Denke daran wie an den Arbeitsspeicher (RAM) eines Computers — nicht wie an eine Festplatte.
 
-In einem Coding-Agent füllen nicht deine zwei Sätze das Fenster, sondern:
+Jedes Modell hat eine feste Obergrenze:
+- GPT-4o: ca. 128.000 Token
+- Claude Sonnet: bis 200.000 Token
+- Llama 3 (8B): je nach Konfiguration 8.000–128.000 Token
 
-- der System-Prompt und die Rules
-- der bisherige Chat
-- gelesene Dateien
-- Diffs und Testergebnisse
-- MCP-Tool-Antworten (Logs sind berüchtigt)
+Alles, was nicht ins Fenster passt, existiert für das Modell in diesem Moment schlicht nicht. Es wird nicht „ausgeblendet" oder „schwächer wahrgenommen" — es ist *weg*.
 
-Deshalb kippt die Qualität in langen Sessions: frühe Entscheidungen rutschen raus oder werden zu einer verlustbehafteten Zusammenfassung. Das Modell „vergisst“ nicht emotional. Es sieht den Anfang schlicht nicht mehr, oder nur noch als Komprimat.
+## Was alles ins Fenster muss
 
-## Gegenmaßnahmen, die du Kunden erklären kannst
+Das Kontextfenster wird nicht nur von deiner Frage gefüllt. In einem typischen Coding-Agent stehen darin gleichzeitig:
 
-1. **Rules kurz halten.** Jedes überflüssige Manifesto kostet Budget in *jedem* Turn.
-2. **Nicht die ganze Repo-History in den Prompt kippen.** Gezielt Dateien holen.
-3. **Compaction.** Lange Verläufe zusammenfassen, Fakten in strukturierte Notizen legen.
-4. **Sub-Agents.** Eine teure Recherche in einem eigenen Fenster machen und nur das Ergebnis zurückgeben.
+- **Der System-Prompt:** Die grundlegenden Anweisungen, wie sich das Modell verhalten soll (oft 500–3000 Token)
+- **Regeln und Konfigurationen:** Projekt-spezifische Rules, Coding-Standards
+- **Die bisherige Konversation:** Jede Nachricht, die du und das Modell ausgetauscht haben
+- **Gelesene Dateien:** Wenn der Agent eine Datei öffnet, wird deren Inhalt ins Fenster gelegt
+- **Tool-Ergebnisse:** Ausgaben von Befehlen, Testergebnisse, Suchergebnisse, Logs
+- **Deine aktuelle Frage:** Erst jetzt kommt dein eigentlicher Auftrag
 
-Anthropic beschreibt Context als endliches Budget. Das ist die Formulierung, die im Kundengespräch sitzt: mehr Kontext ist nicht linear besser. Ab einem Punkt verdrängt Lärm die Aufgabe.
+All das zusammen muss unter die Obergrenze passen. Und hier wird es in der Praxis eng: Ein Agent, der mehrere Dateien liest, Tests ausführt und zehn Nachrichten Konversation hat, füllt sein Fenster schneller als man denkt.
+
+## Warum werden lange Sessions schlechter?
+
+Ein häufig beobachtetes Phänomen: Ein Coding-Agent arbeitet zu Beginn einer Session gut, wird aber nach einer Weile „vergesslich" oder macht Fehler, die er anfangs nicht gemacht hätte.
+
+Das ist kein Zufall und keine „Müdigkeit". Die Erklärung ist mechanisch:
+
+1. Mit jedem Turn wächst die Konversationshistorie.
+2. Tool-Outputs (Testergebnisse, Dateiinhalte, Logs) fressen besonders viel Platz.
+3. Irgendwann ist das Fenster voll. Jetzt muss etwas weichen.
+4. Ältere Nachrichten werden entweder abgeschnitten oder zu einer kurzen Zusammenfassung komprimiert (**Compaction**).
+5. Dabei gehen Details verloren — Entscheidungen, die du am Anfang getroffen hast, Einschränkungen, die du genannt hast.
+
+Das Modell „vergisst" nicht emotional. Es sieht den Anfang der Konversation schlicht nicht mehr — oder nur noch als verlustbehaftetes Komprimat.
+
+## Analogie: Das Schreibtisch-Modell
+
+Stell dir das Context Window wie einen Schreibtisch vor:
+
+- Der Schreibtisch hat eine feste Fläche (die Token-Obergrenze).
+- Jedes Dokument, das du aufschlägst, braucht Platz.
+- Wenn der Schreibtisch voll ist und du ein neues Dokument brauchst, muss ein altes runter.
+- Du kannst ein altes Dokument durch eine Post-It-Notiz ersetzen (Zusammenfassung) — aber dann fehlen Details.
+- Der System-Prompt ist wie ein Bilderrahmen, der *immer* auf dem Schreibtisch steht und Platz einnimmt.
+
+## Gegenmaßnahmen
+
+Jetzt, wo du das Problem verstehst, hier die wichtigsten Strategien dagegen:
+
+### 1. System-Prompt und Rules kurz halten
+
+Jedes überflüssige Wort im System-Prompt kostet Budget in *jedem einzelnen Turn*. Ein System-Prompt von 3.000 Token bedeutet: Bei 20 Turns hast du 60.000 Token nur für dieselbe Anweisung verbraucht. Deshalb sollten Rules präzise und kompakt sein — nicht ausschweifend.
+
+### 2. Gezielt statt gierig Kontext holen
+
+Nicht die gesamte Codebasis in den Prompt kippen. Stattdessen: gezielt die eine Datei lesen, die relevant ist. Einen Grep mit spezifischem Suchbegriff statt einer ganzen Ordnerstruktur. Je weniger irrelevanter Kontext mitgeschleppt wird, desto mehr Platz bleibt für das Wichtige.
+
+### 3. Compaction (Zusammenfassung)
+
+Viele Agent-Systeme fassen nach einer bestimmten Anzahl Turns die bisherige Konversation zusammen: Statt 50 Nachrichten werden die wichtigsten Fakten und Entscheidungen in einen kurzen Absatz komprimiert. Das spart Token, verliert aber Details. 
+
+### 4. Sub-Agents
+
+Eine aufwändige Recherche (z. B. „finde alle Stellen, an denen dieses Pattern vorkommt") kann in einem eigenen, separaten Kontextfenster ablaufen. Nur das *Ergebnis* wird zurück ins Hauptfenster geschrieben. So bleibt das Hauptfenster sauber.
+
+### 5. Neue Sessions starten
+
+Manchmal ist die einfachste Lösung: eine neue Konversation beginnen. Dabei gehen natürlich alle bisherigen Entscheidungen verloren — es sei denn, du hast sie in einer Datei (z. B. einer AGENTS.md oder einem Plan-Dokument) festgehalten, die der Agent am Anfang der neuen Session lesen kann.
+
+## Warum ist das für die Praxis wichtig?
+
+Wenn du mit KI-Tools arbeitest oder sie für Kunden einrichtest, ist das Context Window der wichtigste limitierende Faktor. Nicht die „Intelligenz" des Modells, nicht der Preis — sondern wie viel Information gleichzeitig verarbeitet werden kann.
+
+Ein Agent, der sauber mit seinem Kontextbudget umgeht, liefert bessere Ergebnisse als ein „intelligenterer" Agent, der in seinem eigenen Kontext ertrinkt.
 
 <Merksatz>
-Ein Agent wird bei langen Sessions schlechter, weil das Fenster voll ist — nicht weil er „müde“ ist. Budgetieren wie RAM, nicht wie eine Festplatte.
+Das Context Window ist ein hartes Budget, kein unbegrenzter Speicher. Ein Agent wird bei langen Sessions schlechter, weil das Fenster voll ist — nicht weil er „müde" ist. Budgetiere Kontext wie RAM, nicht wie eine Festplatte.
 </Merksatz>
 
 <Quelle

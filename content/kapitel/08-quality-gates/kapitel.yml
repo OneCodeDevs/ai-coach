@@ -2,7 +2,7 @@ slug: quality-gates
 nummer: 8
 titel: Qualitäts- und Sicherheitsgate für KI-Code
 untertitel: Evals, Guardrails, PR-Gates und Observability — damit Agent-Code messbar und mergebar wird.
-dauerMinuten: 110
+dauerMinuten: 202
 lernziele:
   - Evals von Bauchgefühl unterscheiden und ein minimales Eval-Set für Agent-Code beschreiben können
   - LLM-as-a-Judge mit Rubrics einsetzen und die Kalibrierung gegen Menschen erklären

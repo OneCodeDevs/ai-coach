@@ -28,7 +28,7 @@ export const certificateSchema = z.object({
 
 export const kapitelMetaSchema = z.object({
   slug: z.string().min(1),
-  nummer: z.number().int().positive(),
+  nummer: z.number().int().min(0),
   titel: z.string().min(1),
   untertitel: z.string().min(1),
   dauerMinuten: z.number().int().positive(),

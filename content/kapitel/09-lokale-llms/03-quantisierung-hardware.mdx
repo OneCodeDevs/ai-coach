@@ -1,40 +1,138 @@
 ---
 titel: Quantisierung und GGUF, realistische Hardware
-dauerMinuten: 18
+dauerMinuten: 30
 zusammenfassung: Bits pro Gewicht, KV-Cache und warum eine CPU-NAS kein Chat-Gerät ist.
 reihenfolge: 3
 ---
 
-Ein „70B-Modell“ auf der Festplatte ist keine Aussage über Chat-Qualität. Die Datei ist fast immer **quantisiert**: Gewichte mit weniger Bits, damit sie in VRAM oder RAM passen. **GGUF** (GPT-Generated Unified Format) ist das Containerformat, mit dem llama.cpp, Ollama und LM Studio dieselbe Datei fressen. Ohne diese zwei Sätze klingst du im Hardware-Gespräch wie Marketing.
+## Was ist Quantisierung — und warum braucht man sie?
 
-## Was Q4_K_M bedeutet
+Stell dir vor, du hast ein hochauflösendes Foto mit 100 Megapixel. Es ist wunderschön detailliert — aber es braucht riesig viel Speicherplatz und ist zu groß für dein Smartphone. Also komprimierst du es: weniger Megapixel, kleinere Datei, etwas weniger Detail, aber es passt auf dein Gerät und sieht immer noch gut aus.
 
-Namen wie `Q4_K_M` kodieren grob: etwa 4 Bit pro Gewicht, K-Quant (gruppierte Skalen, CPU-freundlich), M = Medium-Kompromiss. fp16 wäre ~2 Byte pro Parameter — ein 8B-Modell schon ~16 GB nur für Gewichte. Q4 drückt dasselbe in den Bereich von ~4,5–6 GB. Deshalb ist Q4_K_M der Community-Default: spürbarer Qualitätsverlust gegenüber fp16, meist akzeptabel; Q2 ist aggressiv und für Coding oft zu dumm; Q8 ist näher am Original und frisst VRAM.
+Genau das macht **Quantisierung** mit KI-Modellen. Ein KI-Modell besteht aus Milliarden von **Parametern** (Zahlenwerten, die während des Trainings gelernt wurden — sie bestimmen, wie das Modell Text versteht und generiert). In voller Genauigkeit wird jeder Parameter als Zahl mit 16 Bit gespeichert (das Format heißt **fp16** — „floating point 16 bit", also Kommazahl mit 16 Bit Genauigkeit). Das ergibt ~2 Byte pro Parameter.
 
-Faustformel für **Gewichte**:
+Rechnen wir: Ein Modell mit **8 Milliarden Parametern** (8B) braucht in fp16 etwa **16 GB** nur für die Gewichte — das passt in keine normale Laptop-Grafikkarte.
 
-`VRAM_Gewichte ≈ Parameter × (Bits/8)` plus Overlay für Tokenizer und Runtime.
+**Quantisierung** reduziert die Genauigkeit der Zahlen — zum Beispiel von 16 Bit auf 4 Bit. Damit braucht dasselbe 8B-Modell plötzlich nur noch **~4,5 GB**. Es passt auf die Grafikkarte, läuft schneller, aber verliert etwas an Qualität — wie das komprimierte Foto.
 
-8B × 4 Bit ≈ 4 GB. 14B Q4 ≈ 8 GB. 32B Q4 ≈ 18–20 GB. 70B Q4 ≈ 35–40 GB. Das ist die untere Schranke, nicht das Budget.
+## Was GGUF ist
 
-## Der KV-Cache ist der stille zweite Mieter
+**GGUF** steht für „GPT-Generated Unified Format" und ist das **Standard-Dateiformat** für lokale KI-Modelle. Es ist das Format, das llama.cpp, Ollama und LM Studio alle verstehen — wie MP3 für Musik oder PDF für Dokumente.
 
-Jedes Token im Context legt Keys/Values ab. Der Cache skaliert mit **Context-Länge × Lagen × Breite**, oft *nicht* mit derselben Quantisierung wie die Gewichte. Ein Modell, das „in 8 GB passt“, erstickt bei 32k Context oder zwei parallelen Sessions. Deshalb ist die ehrliche Formel:
+Wenn du ein Modell für die lokale Nutzung herunterlädst, ist es fast immer eine `.gguf`-Datei. In dieser Datei stecken die quantisierten (komprimierten) Gewichte des Modells plus Metadaten (zusätzliche Informationen wie Modellname, Tokenizer-Konfiguration etc.).
 
-`VRAM ≈ Gewichte + KV_pro_Request × Concurrency + Fragmentierung`
+## Was Namen wie Q4_K_M bedeuten
 
-Wer nur die GGUF-Dateigröße zitiert, unterschlägt den Context. Genau das passiert, wenn Demos mit 2k Fenster flüssig sind und Aider mit Repo-Context in Swap fällt.
+Wenn du Modelle herunterlädst, siehst du kryptische Bezeichnungen wie `Q4_K_M`, `Q8_0` oder `Q2_K`. Das sind **Quantisierungs-Stufen** — sie sagen dir, wie stark das Modell komprimiert wurde:
 
-## Hardware, die du empfehlen darfst
+### Die Buchstaben und Zahlen entschlüsselt
 
-- **Laptop-Dev:** 12–16 GB VRAM (oder unified memory in der Größenordnung) → 7B–14B Q4, kurzer Context. Ehrlicher Coding-Assistent für Datei-Scope, kein Repo-Agent.
-- **Workstation 24 GB:** 32B Q4 mit moderatem Context oder 14B mit Luft für KV.
-- **24–48 GB:** 70B Q4 wird denkbar, trotzdem kein magisches Cloud-Opus.
-- **CPU-only, NAS, Mini-PC ohne GPU:** llama.cpp *startet*. Interaktives Chat und Agent-Schleifen sterben an Tokens/s. Prompt-Processing auf CPU ist spürbar, Generation für Pair-Programming unbrauchbar. Eine Synology, die nachts Batches schiebt, ist ein anderes Produkt als ein Coding-Buddy. Sag das, bevor jemand „wir legen das Modell auf die NAS“ in das Protokoll schreibt.
+- **Q** = Quantized (quantisiert)
+- **Die Zahl** (2, 4, 5, 6, 8) = Bits pro Gewicht. Je weniger Bits, desto kleiner die Datei — aber desto mehr Qualitätsverlust.
+- **K** = K-Quant (eine bestimmte Quantisierungsmethode, die Gewichte in Gruppen organisiert und besonders CPU-freundlich ist)
+- **S / M / L** = Small / Medium / Large — der Kompromiss innerhalb der Bit-Stufe. M (Medium) ist der Community-Default.
 
-Apple Silicon mit viel Unified Memory ist ein Sonderfall: mehr RAM hilft, die Bandbreite bleibt der Flaschenhals. Immer mit einem Prompt messen, nie mit der Marketing-RAM-Zahl.
+### Praktisch bedeutet das
 
-Im Artefakt dieses Kapitels stehen vier Felder: Modellname, Quantisierung, Gerät/VRAM, gemessene tok/s plus Qualität gegen *denselben* Prompt in der Cloud. Ohne die letzte Spalte ist es eine Inventarliste.
+| Stufe | Bits pro Gewicht | Was das heißt |
+| --- | --- | --- |
+| **fp16** | 16 | Volle Qualität, riesiger Speicherbedarf |
+| **Q8** | ~8 | Nahe am Original, braucht viel VRAM |
+| **Q4_K_M** | ~4,5 | **Der Community-Default** — guter Kompromiss aus Qualität und Größe |
+| **Q2_K** | ~2,5 | Aggressiv komprimiert — für Coding oft zu ungenau |
+
+**Q4_K_M** ist der Standard, den die meisten Nutzer und Communities empfehlen: Spürbarer Qualitätsverlust gegenüber fp16, aber in der Praxis für die meisten Aufgaben akzeptabel.
+
+## Wie viel VRAM brauche ich? — Die Faustformel für Gewichte
+
+**VRAM** (Video RAM) ist der Arbeitsspeicher der Grafikkarte. Er ist der Flaschenhals für lokale KI: Das Modell muss **komplett** in den VRAM passen (oder zumindest größtenteils), damit es schnell genug läuft.
+
+Die Faustformel:
+
+**VRAM für Gewichte ≈ Anzahl Parameter × (Bits / 8)**
+
+Plus einen Aufschlag für den Tokenizer (das Programm, das Text in Tokens umwandelt) und die Runtime (das ausführende Programm).
+
+### Beispiele
+
+| Modell | Quantisierung | Speicher nur für Gewichte |
+| --- | --- | --- |
+| 8B (z. B. Llama 3.1 8B) | Q4 | ~4 GB |
+| 14B (z. B. Qwen 2.5 Coder 14B) | Q4 | ~8 GB |
+| 32B | Q4 | ~18–20 GB |
+| 70B (z. B. Llama 3.1 70B) | Q4 | ~35–40 GB |
+
+Das sind **untere Schranken** — das absolute Minimum, nicht das Budget. Warum? Weil es noch einen zweiten, oft vergessenen Mieter gibt.
+
+## Der KV-Cache: Der stille zweite Mieter im VRAM
+
+Hier wird es für viele überraschend: Die Modell-Gewichte sind nicht alles, was VRAM braucht.
+
+### Was ist der KV-Cache?
+
+Wenn das Modell Text liest (deinen Prompt, den Code, die bisherige Konversation), speichert es für jedes gelesene Token sogenannte **Keys und Values** (Schlüssel und Werte) — Zwischenergebnisse, die es braucht, um den nächsten Token vorherzusagen. Diese Zwischenspeicherung heißt **KV-Cache**.
+
+Stell dir vor, du liest ein Buch und machst dir auf Klebezetteln Notizen. Je mehr Seiten du liest, desto mehr Klebezettel brauchst du. Der KV-Cache ist der Stapel Klebezettel.
+
+### Warum das wichtig ist
+
+Der KV-Cache wächst mit:
+- **Kontext-Länge** — wie viele Tokens das Modell gleichzeitig „sehen" kann (z. B. 8.000, 32.000 oder 128.000 Tokens)
+- **Anzahl der Lagen** — wie „tief" das Modell ist (mehr Lagen = mehr Notizen pro Seite)
+- **Breite** — wie viele Informationen pro Lage gespeichert werden
+
+Und oft wird der KV-Cache **nicht** in derselben komprimierten Form gespeichert wie die Gewichte — er kann also überproportional viel Platz fressen.
+
+Das bedeutet: Ein Modell, das laut Dateigröße „in 8 GB passt", kann bei 32.000 Tokens Kontext oder zwei gleichzeitigen Gesprächen **ersticken**, weil der KV-Cache den restlichen VRAM auffrisst.
+
+Die ehrliche Formel:
+
+**VRAM ≈ Gewichte + (KV pro Request × Gleichzeitige Nutzer) + Fragmentierung**
+
+Wer nur die GGUF-Dateigröße zitiert, unterschlägt den Kontext. Genau das passiert, wenn Demos mit einem kurzen Prompt (2.000 Tokens) flüssig laufen — und ein Programmier-Assistent mit dem ganzen Repository als Kontext in den Swap fällt (der Computer lagert Daten auf die langsame Festplatte aus, weil der schnelle Speicher voll ist).
+
+## Hardware-Empfehlungen — ehrlich
+
+### Laptop-Entwickler: 12–16 GB VRAM (oder Unified Memory in der Größenordnung)
+
+- **Passende Modelle:** 7B–14B in Q4-Quantisierung, mit kurzem Kontext
+- **Was geht:** Ehrlicher Coding-Assistent für einzelne Dateien, Commit-Messages, kleine Funktionen
+- **Was nicht geht:** Repo-weite Agents, lange Kontexte, mehrere gleichzeitige Sessions
+
+**Unified Memory** (einheitlicher Speicher) ist das, was Apple-Silicon-Macs (M1, M2, M3, M4) haben: CPU und GPU teilen sich denselben Speicher. 32 GB Unified Memory bedeutet, dass davon ein Teil als VRAM nutzbar ist — aber die **Bandbreite** (wie schnell Daten gelesen werden können) bleibt der Flaschenhals, nicht die Menge.
+
+### Workstation mit 24 GB VRAM
+
+- **Passende Modelle:** 32B Q4 mit moderatem Kontext oder 14B mit Luft für den KV-Cache
+- **Typische Grafikkarte:** RTX 4090 oder ähnlich
+
+### 24–48 GB VRAM
+
+- **Passende Modelle:** 70B Q4 wird denkbar
+- **Aber:** Trotzdem kein magisches Cloud-Opus. Die Qualität nähert sich großen Cloud-Modellen an, erreicht sie aber nicht.
+
+### CPU-only, NAS, Mini-PC ohne GPU
+
+llama.cpp **startet** auch ohne Grafikkarte. Aber:
+- Interaktives Chatten und Agent-Schleifen **sterben an Tokens pro Sekunde** — du wartest und wartest
+- Prompt-Processing (die Verarbeitung der Eingabe) auf CPU ist spürbar langsam
+- Token-Generierung für Pair-Programming (gemeinsames Programmieren mit der KI) ist unbrauchbar
+
+Eine NAS (Netzwerkspeicher), die nachts Batch-Aufgaben (Stapelverarbeitung — viele Aufgaben am Stück, ohne dass jemand auf die Antwort wartet) abarbeitet, ist ein anderes Produkt als ein interaktiver Coding-Buddy. **Sag das**, bevor jemand „wir legen das Modell auf die NAS" ins Protokoll schreibt.
+
+### Apple Silicon — der Sonderfall
+
+Macs mit viel Unified Memory sind verlockend — mehr RAM hilft definitiv. Aber die Bandbreite (wie schnell der Speicher Daten liefern kann) bleibt der Flaschenhals, nicht die Speichermenge. Immer mit einem **echten Prompt messen**, nie mit der Marketing-RAM-Zahl rechnen.
+
+## Was ins Artefakt gehört
+
+Im Artefakt dieses Kapitels stehen vier Felder:
+1. **Modellname** — welches Modell genau?
+2. **Quantisierung** — Q4_K_M, Q8, etc.
+3. **Gerät/VRAM** — auf welcher Hardware läuft es?
+4. **Gemessene Tokens/Sekunde plus Qualität** — verglichen gegen *denselben* Prompt in der Cloud
+
+Ohne die letzte Spalte ist es eine Inventarliste, kein Vergleich.
 
 <Merksatz>
 Q4_K_M ist der Default-Kompromiss, GGUF die Datei, VRAM = Gewichte + KV-Cache. CPU-NAS kann rechnen — nicht chatten.

@@ -1,47 +1,130 @@
 ---
 titel: Fallbacks und Human-in-the-Loop
-dauerMinuten: 15
+dauerMinuten: 28
 zusammenfassung: Der Agent darf scheitern — aber geplant. Fallbacks und Menschen sind Teil des Designs, nicht der Postmortem.
 reihenfolge: 7
 ---
 
-Production-Systeme, die nur den Happy Path kennen, sind Demos. Ein Agent, der bei Unsicherheit einfach weiterschreibt, ist Angebot 3 in der schlechtesten Form: schnell, intransparent, teuer wenn es knallt. **Fallback** heißt: es gibt einen vordefinierten Abstieg, bevor ihr den Incident ausruft. **Human-in-the-Loop** heißt: an benannten Kanten entscheidet ein Mensch *bevor* die Welt sich ändert — nicht im Slack danach.
+## Die Grundidee: Geplantes Scheitern
 
-## Fallbacks, die ihr vorab festlegt
+Jedes System, das nur den Happy Path kennt (den idealen Ablauf, bei dem alles perfekt funktioniert), ist eine Demo — kein Produkt. Ein KI-Agent, der bei Unsicherheit einfach weiterschreibt, ist die schlechteste Version eines Produkts: schnell, intransparent und teuer, wenn es schiefgeht.
 
-Sortiert nach Blast Radius, nicht nach Eleganz:
+Stell dir ein Flugzeug vor. Es hat nicht nur einen Motor, sondern zwei — nicht weil der erste schlecht ist, sondern weil **geplant** ist, dass einer ausfallen kann. Es gibt Checklisten für jede Störung, Ersatzflughäfen für jedes Streckenabschnitt, und bei kritischen Entscheidungen entscheidet der Pilot, nicht der Autopilot.
 
-1. **Anderes Modell / kürzerer Context.** Der teure Reasoning-Call scheitert oder timeoutet → kleineres Modell, weniger Tools, gleiche Task mit hartem Token-Cap.
-2. **Cache / letzte bekannte gute Antwort** nur wo Idempotenz gilt (Doku-Zusammenfassung, Klassifikation). Nie bei Zahlungen.
-3. **Deterministische Vorlage.** „Ich kann das nicht sicher automatisch schließen“ plus Link zum Ticket ist ein valider Output. Leeres Halluzinat ist keiner.
-4. **Queue an Menschen.** Der Trace bleibt stehen, der User sieht Status, niemand merget.
-5. **Circuit Breaker.** Fehlerquote, Tripwire-Rate oder Kosten/Minute über Schwelle → Agent-Pfade aus, nur noch klassische CI. Das ist dasselbe Muster wie bei Downstream-HTTP, nur mit Token als Währung.
+Genau diese Denkweise braucht ihr für KI-Agenten:
 
-Ein Fallback, der heimlich dasselbe Tool mit denselben Rechten nochmal feuert, ist ein Retry, kein Fallback. Retries brauchen Idempotenz und ein Budget (max Turns, max Dollar).
+- **Fallback** bedeutet: Es gibt einen vordefinierten Abstieg — eine Ersatzlösung, die greift, bevor ihr den Notfall ausruft.
+- **Human-in-the-Loop** (HITL — Mensch in der Schleife) bedeutet: An bestimmten, vorher festgelegten Stellen entscheidet ein Mensch, **bevor** etwas Unwiderrufliches passiert — nicht erst im Slack-Chat danach.
 
-## Human-in-the-Loop ist ein Gate, kein Chat
+## Fallbacks: Der geplante Abstieg
 
-Claude Code startet in Manual Mode read-only und fragt vor Schreib- und Shell-Eingriffen. Auto Mode delegiert an einen Classifier, nicht an Gottvertrauen; Ask/Deny-Rules bleiben. Genau diese Semantik übersetzt ihr in Kunden-Repos:
+Fallbacks werden nach **Blast Radius** (Schadensausmaß) sortiert, nicht nach Eleganz:
 
-- **Approval-Tools** für Deploy, Migration, Prod-Daten, Zahlungen, neue MCP-Server.
-- **Pre-approval Guardrails**, wo ihr schon vor der Pending-Unterbrechung Secrets in Argumenten blockt.
-- **Rollen:** Wer darf Auth-PRs mergen? Das steht in CODEOWNERS, nicht im Prompt.
+### 1. Anderes Modell / kürzerer Kontext
 
-HITL, das nach dem `git push` in einem Review-Kommentar stattfindet, ist zu spät für Excessive Agency. HITL, das den Tool-Call nicht startet, ist das Gate aus Angebot 1 und 3.
+Der teure Reasoning-Aufruf (ein aufwändiger Denkvorgang des Modells) scheitert oder dauert zu lange (Timeout). **Fallback:** Ein kleineres, schnelleres Modell übernimmt dieselbe Aufgabe — mit weniger Werkzeugen und einem harten Token-Limit (maximale Textlänge).
+
+Analogie: Der Spezialist ist krank, die Vertretung macht den Basis-Job — nicht perfekt, aber der Laden bleibt offen.
+
+### 2. Cache / letzte bekannte gute Antwort
+
+Für **idempotente** Aufgaben (Aufgaben, bei denen es egal ist, ob man sie ein- oder zweimal ausführt, weil das Ergebnis dasselbe ist) kann die letzte erfolgreiche Antwort wiederverwendet werden. Zum Beispiel: eine Dokumentations-Zusammenfassung oder eine Klassifikation (Einordnung in Kategorien).
+
+**Nie** bei Zahlungen, Datenbankänderungen oder anderen Aktionen, die nicht wiederholbar sind.
+
+### 3. Deterministische Vorlage
+
+Wenn der Agent nicht sicher weiterarbeiten kann, gibt er eine **feste Antwort** zurück: „Ich kann das nicht sicher automatisch lösen" plus Link zum Ticket. Das ist ein valider Output — eine leere Antwort voller Halluzinationen (erfundener Inhalte) ist keiner.
+
+Stell dir vor, ein Navigationssystem verliert das GPS-Signal. Besser: „Ich habe gerade kein Signal, bitte manuell navigieren" als eine falsche Route.
+
+### 4. Queue an Menschen
+
+Der Trace (die Aufzeichnung des Vorgangs) bleibt stehen, der Benutzer sieht einen Status (z. B. „Wird von einem Menschen geprüft"), und niemand merget (führt Code zusammen) in der Zwischenzeit.
+
+### 5. Circuit Breaker
+
+Ein **Circuit Breaker** (Sicherungsautomat) ist ein Muster aus der Softwareentwicklung, das von elektrischen Sicherungen inspiriert ist: Wenn zu viele Fehler in kurzer Zeit auftreten, wird der Stromkreis unterbrochen.
+
+Für KI-Agenten: Wenn die Fehlerquote, die Tripwire-Rate (wie oft Sicherheits-Alarme auslösen) oder die Kosten pro Minute über eine Schwelle steigen → alle Agent-Pfade werden abgeschaltet, und nur noch klassische CI (automatische Tests ohne KI) läuft. Genau dasselbe Muster wie bei klassischen Web-Services, nur mit **Tokens als Währung** statt HTTP-Anfragen.
+
+### Retry ist kein Fallback
+
+Ein Fallback, der heimlich dasselbe Werkzeug mit denselben Rechten nochmal aufruft, ist ein **Retry** (Wiederholungsversuch), kein Fallback. Retries brauchen:
+- **Idempotenz** — der erneute Aufruf darf keinen zusätzlichen Schaden anrichten
+- **Ein Budget** — maximale Anzahl Versuche und maximale Kosten
+
+Ohne Budget ist ein Retry eine Endlosschleife mit Kreditkarte.
+
+## Human-in-the-Loop: Mensch vor Side Effects
+
+Human-in-the-Loop klingt nach einer netten Idee. In der Praxis ist es ein **Gate** (eine Prüfstation) — kein Chat.
+
+### Wie Claude Code es vormacht
+
+Claude Code (ein KI-gestütztes Entwicklungswerkzeug) startet im **Manual Mode** (manueller Modus): Es liest Code, aber bevor es Dateien ändert oder Shell-Befehle (Terminal-Befehle) ausführt, fragt es um Erlaubnis. Im **Auto Mode** (automatischer Modus) delegiert es die Entscheidung an einen Classifier (ein Bewertungssystem), aber bestimmte Deny-Rules (Verbote) bleiben immer aktiv.
+
+Genau diese Idee übersetzt ihr in Kunden-Projekte:
+
+### Approval-Tools für kritische Aktionen
+
+Bestimmte Aktionen brauchen **immer** eine menschliche Genehmigung, bevor sie ausgeführt werden:
+- **Deploy** (Bereitstellung von Code in der Produktionsumgebung)
+- **Migration** (Änderung der Datenbankstruktur)
+- **Produktionsdaten** berühren
+- **Zahlungen** auslösen
+- **Neue MCP-Server** (externe Werkzeug-Verbindungen) hinzufügen
+
+### Pre-approval Guardrails
+
+Noch bevor die Genehmigungsanfrage überhaupt an den Menschen geht, werden offensichtliche Probleme blockiert — z. B. Passwörter in den Argumenten eines Werkzeug-Aufrufs.
+
+### Rollen
+
+Wer darf Auth-PRs (Änderungen am Login-System) freigeben? Das steht in **CODEOWNERS** (der Konfigurationsdatei, die Code-Verantwortlichkeiten festlegt), nicht im Prompt.
+
+### Der entscheidende Zeitpunkt
+
+HITL, das **nach** einem `git push` (dem Hochladen von Code-Änderungen) in einem Review-Kommentar stattfindet, ist **zu spät** für Excessive Agency. Denn der Code ist schon draußen.
+
+HITL, das den Werkzeug-Aufruf **vor** der Ausführung stoppt — das ist das echte Gate.
 
 ## Unsicherheit sichtbar machen
 
-Der Agent soll *sagen*, wenn Tests fehlen, wenn die Rubric unter Schwelle liegt, wenn der Judge dissentiert, wenn das Schema nicht parsebar ist. Das ist kein Charakter („sei demütig“), das ist ein Zweig im Graph: `if score < threshold → escalate`. Observability aus der vorigen Lektion liefert die Zahlen; dieses Kapitel liefert die Kante im Workflow.
+Der Agent soll **sagen**, wenn:
+- Tests fehlen
+- Die Bewertung unter der Schwelle liegt
+- Der Judge (KI-Richter) uneins ist
+- Das Datenformat nicht parsebar (nicht automatisch lesbar) ist
 
-Drei Patterns, die in Kundenrepos immer wieder fehlen und die du explizit einbaust:
+Das ist kein Charakter-Feature („sei demütig"). Das ist ein **Zweig im Ablauf**: `if score < threshold → escalate` (wenn die Bewertung unter der Schwelle → an einen Menschen eskalieren). Observability (aus der vorigen Lektion) liefert die Zahlen; diese Lektion liefert die Konsequenz.
 
-- **Timeout ist ein Outcome.** Ein Agent, der 8 Minuten tool-looped, braucht denselben Breaker wie ein HTTP-Client: max Turns, max Wallclock, dann Queue. Sonst zahlt der Kunde das Schweigen in Token.
-- **Partial success.** Tests grün, Secret-Scan rot → nicht mergen und „fast fertig“ in den Chat schreiben. Der Fallback ist der Draft-PR ohne Auto-Merge, nicht ein grüner Haken mit Footnote.
-- **On-call ist HITL.** Wenn nachts niemand approven kann, darf der Agent nachts nicht deployen. Das ist eine organisatorische Kante, die ins System gehört — Cron und Merge-Bot respektieren sie, der Prompt allein nicht.
+### Drei Muster, die in Kundenprojekten immer wieder fehlen
 
-Gegenüber dem Kunden: „Kritische Fälle gehen nicht nach Production, weil der Agent charmant war. Sie gehen, weil Tests, Tripwire und ein Mensch an der benannten Stelle Ja gesagt haben. Wenn etwas davon fehlt, fällt das System auf den langsamen, sicheren Pfad.“
+**1. Timeout ist ein Outcome**
 
-Damit ist Angebot 3 rund: Evals messen, Guardrails stoppen, PR-Gates mergen, Traces erklären, Fallbacks und Menschen fangen den Rest. Das nächste Kapitel (lokal) ist Bonus. Kapitel 10 ist das Gespräch, in dem du genau diese Kette in drei Sätzen verkaufst.
+Ein Agent, der 8 Minuten lang Werkzeuge in einer Schleife aufruft, braucht denselben Breaker (Unterbrecher) wie ein normaler Web-Client: maximale Anzahl Runden, maximale Laufzeit, dann ab in die Warteschlange. Sonst zahlt der Kunde das Schweigen in Tokens.
+
+Stell dir vor, du rufst einen Handwerker an und er hält dich 8 Minuten in der Warteschleife — aber die Uhr läuft und du zahlst pro Minute.
+
+**2. Partial Success (teilweiser Erfolg)**
+
+Tests grün, aber Secret-Scan rot → **nicht** mergen und „fast fertig" in den Chat schreiben. Der Fallback ist ein **Draft-PR** (Entwurf) ohne automatisches Zusammenführen, nicht ein grüner Haken mit Fußnote.
+
+**3. On-Call ist HITL**
+
+Wenn nachts niemand eine Genehmigung erteilen kann, darf der Agent nachts **nicht deployen** (Code bereitstellen). Das ist eine organisatorische Regel, die ins System gehört — nicht nur in eine Textdatei, die der Agent theoretisch lesen könnte.
+
+## Was du dem Kunden sagst
+
+„Kritische Fälle gehen nicht in die Produktion, weil der Agent charmant war. Sie gehen, weil Tests, Tripwire und ein Mensch an der benannten Stelle Ja gesagt haben. Wenn etwas davon fehlt, fällt das System auf den langsamen, sicheren Pfad."
+
+Damit ist das Qualitäts-Kapitel rund:
+- **Evals** messen die Qualität
+- **Guardrails** stoppen Verstöße
+- **PR-Gates** kontrollieren den Merge
+- **Traces** machen alles nachvollziehbar
+- **Fallbacks und Menschen** fangen den Rest
 
 <Merksatz>
 Fallback ist geplanter Abstieg mit Budget. Human-in-the-Loop sitzt vor Side Effects. Beides gehört ins Repo — sonst ist es eine Betriebslegende.

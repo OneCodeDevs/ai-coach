@@ -1,53 +1,108 @@
 ---
 titel: Discovery-Fragen für Founder und CTO
-dauerMinuten: 16
+dauerMinuten: 28
 zusammenfassung: Fragen, die den Offer-Slot öffnen — keine Feature-Tour, kein Tech-Bingo.
 reihenfolge: 2
 ---
 
-Discovery ist nicht Smalltalk vor dem Pitch. Es ist die Arbeit, nach der du **ein** Angebot vorschlägst und die anderen bewusst liegen lässt. Wer nach fünf Minuten mit MCP-Namen um sich wirft, hat nicht entdeckt, der hat imponiert. Der skeptische CTO merkt den Unterschied.
+## Was ist Discovery — und warum ist es keine Plauderei?
 
-Sprich in Schmerzen, Blast Radius und System. Tools kommen später, sonst mappt ihr jedes Wehklagen auf das shiny Object der Woche.
+**Discovery** (Erkundung, Bedarfsermittlung) ist der Teil des Verkaufsgesprächs, in dem du herausfindest, was der Kunde **wirklich braucht** — nicht, was er sagt, dass er will. Es ist die Arbeit, nach der du **ein** Angebot vorschlägst und die anderen bewusst liegen lässt.
+
+Stell dir einen Arzt vor: Bevor er ein Medikament verschreibt, stellt er Fragen, untersucht, und stellt eine Diagnose. Er verschreibt nicht alle Medikamente auf einmal. Discovery ist die Diagnose im Verkaufsgespräch.
+
+Wer nach fünf Minuten mit Fachbegriffen um sich wirft (MCP, RAG, Agentic Workflows), hat nicht entdeckt — der hat **imponiert**. Ein skeptischer CTO (Chief Technology Officer — der technische Leiter) merkt den Unterschied.
+
+### Die goldene Regel
+
+Sprich in **Schmerzen, Schadensausmaß und Systemen**. Werkzeuge und Technologien kommen später. Sonst mappt (ordnet) ihr jedes Problem auf das glänzende Objekt der Woche, statt die richtige Lösung zu finden.
 
 ## Fragen, die Angebot 1 oder 2 trennen
 
-Das ist die wichtigste Gabel:
+Das ist die wichtigste Gabel (Entscheidungspunkt) im Gespräch:
 
-1. **„Läuft bei euch schon Last vor Kunden — oder ein Prototyp, den ihr nicht anfassen wollt?“**  
-   Last + wachsendes Team + Agent-Chaos → eher 1. Prototyp, der „irgendwie live“ ist, Auth wackelt, keine Tests → eher 2.
+### 1. „Läuft bei euch schon Last vor Kunden — oder ein Prototyp, den ihr nicht anfassen wollt?"
 
-2. **„Welche Tools sind da — und was ist das System dahinter: Rules, Kontext, wer darf mergen?“**  
-   Lange Tool-Liste, leere Blicke bei Rules → Pain von 1. „Wir haben nur Cursor und einen Founder, der merget“ plus wackliges MVP → 2, danach 1.
+- **Last + wachsendes Team + Agent-Chaos** → eher Angebot 1 (das Delivery-System)
+- **Prototyp, der „irgendwie live" ist, Login wackelt, keine Tests** → eher Angebot 2 (der Umbau)
 
-3. **„Wann ist zuletzt ein Agent-Diff in Production Schaden angelegt — und wie habt ihr das merkt?“**  
-   „Noch nicht, aber…“ ist Angebot 3 präventiv. „Ja, und Review hat’s nicht gesehen“ ist 3 plus vielleicht 1.
+Warum diese Frage? Weil die Antwort den Zustand des Produkts offenbart. Ein Prototyp, der unter Last zusammenbricht, braucht ein anderes Angebot als ein funktionierendes Produkt, dem das Agent-System fehlt.
 
-## Fragen an den Founder (Business)
+### 2. „Welche Tools sind da — und was ist das System dahinter: Rules, Kontext, wer darf mergen?"
 
-- Was darf in acht Wochen auf keinen Fall passieren (Ausfall, Leak, Investoren-Demo)?
-- Wer trägt den Merge-Druck — du, ein CTO, niemand?
-- Muss Code die Firma verlassen (Cloud-LLM), oder ist lokal ein hartes Constraint?
-- Ist das Ziel Tempo (Features) oder Überleben (Stabilität, Security)? Beides sagen alle; eines ist wahr.
+- **Lange Tool-Liste, leere Blicke bei Rules** → Pain von Angebot 1 (Werkzeuge da, System nicht)
+- **„Wir haben nur Cursor und einen Gründer, der mergt" plus wackliges MVP** → Angebot 2, danach 1
 
-## Fragen an den CTO (System)
+### 3. „Wann hat zuletzt ein Agent-Diff in Production Schaden angerichtet — und wie habt ihr das gemerkt?"
 
-- Welcher Agent darf Shell, MCP, Deploy — mit wessen Credentials?
-- Gibt es required checks, die *rot den Merge blocken*, oder nur Höflichkeits-CI?
-- Existiert eine Eval oder nur Dogfooding?
-- Wo liegen Context Files — im Repo, in Köpfen, in Notion-Friedhöfen?
-- Wie groß ist das Repo, wie hart die Domainlogik? Agents sterben an beidem anders.
+Ein **Diff** (Abkürzung für „Difference") ist die Darstellung aller Änderungen, die an Code vorgenommen wurden — was hinzugefügt, geändert oder gelöscht wurde.
+
+- **„Noch nicht, aber…"** → Angebot 3 präventiv (vorbeugend)
+- **„Ja, und das Review hat es nicht gesehen"** → Angebot 3, plus möglicherweise 1
+
+## Fragen an den Founder (Business-Perspektive)
+
+Gründer denken in Geschäftsrisiken und Zeitdruck. Diese Fragen holen ab, was wirklich auf dem Spiel steht:
+
+- **„Was darf in acht Wochen auf keinen Fall passieren?"** (Ausfall, Datenleck, peinliche Investoren-Demo) — Das offenbart die echte Priorität.
+
+- **„Wer trägt den Merge-Druck — du, ein CTO, niemand?"** — Wenn der Gründer selbst mergt, fehlt oft das Gate. Wenn niemand Verantwortung hat, ist das ein Systemproblem.
+
+- **„Muss Code die Firma verlassen (Cloud-LLM), oder ist lokal ein hartes Constraint?"** — Das entscheidet, ob Kapitel 9 (lokale Modelle) Pflicht oder Optional ist.
+
+- **„Ist das Ziel Tempo (mehr Features) oder Überleben (Stabilität, Security)?"** — Beides sagen alle. Eines ist wahr. Die Antwort bestimmt den Scope.
+
+## Fragen an den CTO (System-Perspektive)
+
+CTOs denken in Systemen, Risiken und technischer Schuld. Diese Fragen treffen ihre Sprache:
+
+- **„Welcher Agent darf Shell, MCP, Deploy — mit wessen Credentials?"**
+  - **Shell** = die Kommandozeile, über die man beliebige Befehle ausführen kann
+  - **MCP** = Model Context Protocol, ein Standard für die Anbindung externer Werkzeuge an KI-Agenten
+  - **Deploy** = die Bereitstellung von Code in der Produktionsumgebung
+  - **Credentials** = Zugangsdaten
+  - Wenn der Agent mit den persönlichen Zugangsdaten eines Entwicklers arbeitet, hat er **dessen gesamte Rechte** — das ist Excessive Agency (übermäßige Handlungsmacht).
+
+- **„Gibt es Required Checks, die rot den Merge blocken, oder nur Höflichkeits-CI?"**
+  - **Required Checks** = Pflichtprüfungen, die bestanden werden müssen, bevor Code gemergt werden kann
+  - **Höflichkeits-CI** = Tests, die zwar laufen, aber niemanden am Mergen hindern, wenn sie fehlschlagen
+
+- **„Existiert ein Eval oder nur Dogfooding?"**
+  - **Eval** = systematische, wiederholbare Bewertung (siehe Kapitel 8)
+  - **Dogfooding** = das eigene Produkt selbst benutzen und hoffen, dass Probleme auffallen
+
+- **„Wo liegen Context Files — im Repo, in Köpfen, in Notion-Friedhöfen?"**
+  - **Context Files** = Dateien, die dem Agent Hintergrundwissen geben
+  - **Notion-Friedhöfe** = Dokumentation in Notion (einem Notiztool), die niemand mehr liest oder pflegt
+
+- **„Wie groß ist das Repo, wie hart die Domainlogik?"**
+  - **Domainlogik** = die fachlichen Regeln des Geschäfts, in Code abgebildet (z. B. Steuerberechnung, Versicherungsregeln)
+  - Agents scheitern an großen Repos und komplexer Domainlogik auf unterschiedliche Weise — das zu wissen hilft bei der Planung.
 
 ## Fragen, die Angebot 3 allein rechtfertigen
 
-- Seht ihr Token-Kosten pro Feature oder nur die Monatsrechnung?
-- Wer wird gerufen, wenn der Agent um 2 Uhr eine Migration anfasst?
-- Dürfen wir an einem PR-Pfad ein Gate *stehen lassen*, wenn wir gehen — oder soll nur ein Workshop bleiben?
+- **„Seht ihr Token-Kosten pro Feature oder nur die Monatsrechnung?"** — Wenn nur die Monatsrechnung: keine Kosten-Transparenz, keine Optimierung. Das ist ein Pain von Angebot 3.
 
-## Disziplin
+- **„Wer wird gerufen, wenn der Agent um 2 Uhr nachts eine Migration anfasst?"** — Wenn niemand: Es fehlt Human-in-the-Loop für kritische Aktionen. Das ist Angebot 3.
 
-Maximal eine klärende Nachfrage pro Antwort, dann spiegeln: „Ich höre X, das klingt nach Angebot Y, weil Z. Liege ich falsch?“ Falsch liegen ist erlaubt. Drei Angebote parallel „wir können alles“ ist nicht erlaubt.
+- **„Dürfen wir an einem PR-Pfad ein Gate stehen lassen, wenn wir gehen — oder soll nur ein Workshop bleiben?"** — Diese Frage trennt Berater-Theater (einmal kommen, Folien zeigen, gehen) von echtem Produkt (ein Gate, das im Repo bleibt und wirkt).
 
-Schreibe nach dem Call drei Zeilen intern: ICP, Offer, härtestes Risiko. Wenn du das nicht kannst, war es ein nettes Gespräch, kein Discovery.
+## Disziplin im Gespräch
+
+### Eine Nachfrage, dann spiegeln
+
+Maximal eine klärende Rückfrage pro Antwort des Kunden. Dann **spiegeln**: „Ich höre X. Das klingt nach Angebot Y, weil Z. Liege ich falsch?"
+
+Falsch liegen ist erlaubt — und zeigt Ehrlichkeit. Drei Angebote parallel „wir können alles" ist nicht erlaubt.
+
+### Nach dem Call: Drei Zeilen
+
+Schreibe nach jedem Gespräch intern drei Zeilen:
+1. **ICP** — Wer war das? (Gründer, CTO, Team-Lead)
+2. **Offer** — Welches Angebot passt?
+3. **Härtestes Risiko** — Was kann schiefgehen?
+
+Wenn du das nicht formulieren kannst, war es ein nettes Gespräch — aber keine Discovery.
 
 <Merksatz>
 Discovery entscheidet 1, 2 oder 3 über den Zustand des Produkts und des Systems hinter den Tools — nicht über die Länge der Tool-Liste.

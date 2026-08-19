@@ -1,42 +1,98 @@
 ---
 titel: Quality Gates im Pull Request
-dauerMinuten: 15
+dauerMinuten: 28
 zusammenfassung: Der PR ist das Produkt-Gate. Agent-Code merget nur, wenn Maschinen und ein gezielter Mensch Ja sagen.
 reihenfolge: 4
 ---
 
-Angebot 3 verkauft nicht ein Dashboard. Es verkauft den Moment vor dem Merge: **darf dieser Diff in `main`?** AI-Code entsteht schneller als Reviews. Wenn euer Gate „ein Mensch scrollt 800 Zeilen“ ist, habt ihr kein Gate, ihr habt Hoffnung. Der Pull Request ist die richtige Naht, weil Git, CI und CODEOWNERS schon existieren. Ihr hängt Evals und Policy dort ein, wo das Team ohnehin merget.
+## Was ist ein Pull Request — und warum ist er so wichtig?
+
+Ein **Pull Request** (kurz: **PR**) ist ein Vorschlag, Code-Änderungen in die Hauptversion eines Softwareprojekts zu übernehmen. Stell dir ein gemeinsames Kochbuch vor: Bevor jemand ein neues Rezept ins Buch druckt, muss es erst vorgelegt und geprüft werden. Der PR ist dieser Vorlegungs-Moment.
+
+In der Softwareentwicklung funktioniert das so: Entwickler arbeiten in einer eigenen Kopie des Codes (einem sogenannten **Branch**, also Zweig). Wenn sie fertig sind, erstellen sie einen PR — eine Anfrage, ihre Änderungen in den **Main-Branch** (die Hauptversion, den „Stamm") zu übernehmen. Dieser Vorgang heißt **Merge** (Zusammenführen).
+
+Der PR ist der perfekte Prüfpunkt, weil er **vor** dem Merge stattfindet: Noch ist nichts passiert, noch kann man Nein sagen.
+
+## Warum der PR für KI-generierten Code besonders wichtig ist
+
+KI-Agenten schreiben Code **schneller**, als Menschen ihn prüfen können. Wenn euer einziges Gate (Prüfstation) ist, dass ein Mensch durch 800 Zeilen Code scrollt, habt ihr kein Gate — ihr habt Hoffnung.
+
+Der PR ist die richtige Naht, weil die Infrastruktur dafür schon existiert:
+
+- **Git** (das Versionskontrollsystem, das Code-Änderungen verwaltet) trackt jede Änderung
+- **CI** (Continuous Integration — das System, das automatisch Tests und Prüfungen ausführt) läuft bei jedem PR
+- **CODEOWNERS** (eine Konfigurationsdatei, die festlegt, wer für welche Code-Bereiche verantwortlich ist) bestimmt, wer prüfen muss
+
+Ihr hängt eure Evals (Bewertungen) und Policies (Richtlinien) dort ein, wo das Team ohnehin arbeitet. Keine neue Oberfläche, kein Extra-Tool — das PR-Gate nutzt das, was schon da ist.
 
 ## Was die Maschine entscheiden muss
 
-Required checks, nicht optionale Kommentare:
+Diese Prüfungen müssen automatisch laufen und als **Required Checks** (Pflichtprüfungen) eingerichtet sein — nicht als optionale Kommentare, die man ignorieren kann:
 
-1. **Grüne Tests** auf dem Zielbranch-Stand, inklusive der Tests, die das Ticket verlangt. Fehlen Tests für den geänderten Pfad, ist das ein Fail — nicht ein „bitte noch Tests“-Emoji.
-2. **Typecheck / Lint** auf dem berührten Tree. Agents lieben Drive-by-Formatierungen; das Gate darf den Diff nicht mit Style-Noise unlesbar machen, aber es darf kaputte Types nicht durchlassen.
-3. **Secret-Scan und Dependency-Audit** auf Diff und Lockfile. Agents kopieren `.env.example` gerne zu echt.
-4. **SAST / Semgrep** auf High-Confidence-Rules für den Stack (SQL, XSS, insecure defaults). Nicht 4000 Infos, sondern die Rules, die ihr wirklich blockt.
-5. **Eval-Smoke** wo es weh tut: eine kleine Suite (zehn Tasks), die den Agenten oder zumindest den geänderten Prompt-Pfad in CI anstupst. Vollsuite nachts, Smoke am PR.
+### 1. Grüne Tests
 
-Der Agent, der den Feature-Diff schreibt, darf **nicht** der einzige Autor der Tests sein, auf die ihr euch verlasst. Entweder existieren die Tests vorher (TDD-Gate, fail-to-pass), oder ein zweiter Lauf / Mensch / festes Fixture prüft Unabhängigkeit. Sonst optimiert ihr auf „Agent täuscht Agent“.
+Alle automatischen Tests müssen bestanden sein — und zwar auf dem Stand des Zielbranches (der Hauptversion, in die gemerged wird). Wenn die Aufgabe (das Ticket) Tests verlangt und keine vorhanden sind, ist das ein **Fail** — nicht ein freundliches „Bitte noch Tests schreiben"-Emoji im Review.
+
+### 2. Typecheck und Lint
+
+**Typecheck** prüft, ob die Datentypen im Code stimmen (z. B.: Wird einer Funktion, die eine Zahl erwartet, auch wirklich eine Zahl übergeben?). **Lint** prüft Code-Stil und häufige Fehler (z. B. unbenutzter Import, fehlende Klammern).
+
+KI-Agenten lieben sogenannte **Drive-by-Formatierungen** — sie „räumen" nebenbei Code auf, der gar nicht zur Aufgabe gehört. Das macht den Unterschied (Diff) unlesbar. Das Gate darf den Diff nicht mit Style-Rauschen verstopfen, aber es darf kaputte Typen auf keinen Fall durchlassen.
+
+### 3. Secret-Scan und Dependency-Audit
+
+Ein **Secret-Scan** durchsucht den Code nach versehentlich eingecheckten Passwörtern, API-Schlüsseln und Zugangsdaten. Ein **Dependency-Audit** prüft, ob die verwendeten Programmbibliotheken (Dependencies — externe Code-Pakete, auf die das Projekt angewiesen ist) bekannte Sicherheitslücken haben.
+
+KI-Agenten kopieren gerne `.env.example`-Dateien (Vorlagen für Konfiguration mit Platzhaltern) und machen daraus echte `.env`-Dateien mit echten Daten. Das muss automatisch erkannt und blockiert werden.
+
+### 4. SAST / Semgrep
+
+**SAST** steht für „Static Application Security Testing" — die automatische Suche nach Sicherheitslücken im Code, ohne ihn auszuführen. **Semgrep** ist ein beliebtes Werkzeug dafür.
+
+Nicht 4.000 informelle Hinweise, sondern gezielt die Regeln, die für euren Technology-Stack (die verwendeten Programmiersprachen und Frameworks) wirklich gefährlich sind: SQL-Injection (eine Angriffstechnik auf Datenbanken), XSS (Cross-Site Scripting — eingeschleuster JavaScript-Code auf Webseiten), unsichere Standardeinstellungen.
+
+### 5. Eval-Smoke
+
+Ein **Smoke-Test** ist ein schneller, grundlegender Test — wie der Rauchtest bei einem neuen Gerät: „Raucht es, wenn ich es einschalte?" Beim PR genügt eine kleine Suite (z. B. zehn Tasks), die den geänderten Bereich anstupst. Die vollständige Eval-Suite läuft nachts, der Smoke-Test am PR.
+
+### Wichtig: Unabhängigkeit der Tests
+
+Der Agent, der den Code schreibt, darf **nicht** gleichzeitig der einzige Autor der Tests sein, auf die ihr euch verlasst. Warum? Weil ein Agent Tests schreiben kann, die perfekt zu seinem Code passen — aber das eigentliche Problem nicht abdecken. Das ist wie wenn der Schüler seine eigene Prüfung schreibt.
+
+Entweder existieren die Tests **vorher** (TDD-Gate — Test Driven Development, also Tests vor dem Code), oder ein zweiter, unabhängiger Lauf prüft die Qualität. Sonst optimiert ihr auf „Agent täuscht Agent".
 
 ## Was der Mensch entscheiden muss
 
-Menschen sind teuer. Verschwendet sie nicht auf Import-Sortierung. **Human Quality Gates** hängen an Blast Radius:
+Menschen sind teuer und langsam. Verschwendet sie nicht an Import-Sortierung oder Einrückungsstil. **Human Quality Gates** (menschliche Prüfstationen) hängen am **Blast Radius** — also daran, wie groß der Schaden wäre, wenn etwas schiefgeht:
 
-- Auth, Sessions, Permissions, Payments, PII-Pipelines
-- Schema-Migrationen und destruktive Jobs
-- CI-Config, GitHub Actions, Deploy-Keys, MCP-Server-Erlaubnis
-- neue Tools und neue Netz-Egress-Regeln für Agents
+- **Auth** (Authentifizierung — Login), Sessions (Sitzungsverwaltung), Permissions (Berechtigungen), Zahlungen, personenbezogene Daten
+- **Schema-Migrationen** (Änderungen an der Datenbankstruktur) und destruktive Jobs (Vorgänge, die Daten unwiderruflich löschen)
+- **CI-Konfiguration**, GitHub Actions (automatisierte Workflows), Deploy-Schlüssel, MCP-Server-Berechtigungen (MCP — Model Context Protocol, ein Standard für die Anbindung externer Werkzeuge an KI-Agenten)
+- **Neue Werkzeuge** und neue Netzwerk-Regeln für Agenten
 
-CODEOWNERS plus `required review` auf diesen Pfaden. Der Reviewer prüft nicht Schönheit, sondern: Ist der Failure Mode benannt? Ist das Privilege minimal? Gibt es ein Rollback?
+In der Praxis: **CODEOWNERS** (die Datei, die festlegt, wer für welchen Code-Bereich zuständig ist) plus **Required Review** (Pflicht-Prüfung) auf diesen sensiblen Pfaden. Der menschliche Prüfer schaut nicht auf Schönheit, sondern fragt:
+- Ist der Fehlermodus benannt? (Was passiert wenn es schiefgeht?)
+- Ist das Privilege minimal? (Hat der Code nur die Rechte, die er braucht?)
+- Gibt es ein Rollback? (Kann man die Änderung rückgängig machen?)
 
-Labelt Agent-PRs (`agent`, Modell, Eval-Score). Dann könnt ihr in sechs Wochen sagen, welche Klasse von Diffs Incidents baut — das ist die Transparenz, die der Pain von Angebot 3 verlangt.
+### Agent-PRs kennzeichnen
 
-## Policy as Code, nicht Wiki
+Markiert PRs, die von Agenten erstellt wurden, mit Labels (`agent`, Modellname, Eval-Score). Dann könnt ihr in sechs Wochen auswerten: Welche Art von Änderungen baut Probleme? Das ist die Transparenz, die Kunden brauchen, wenn sie KI-generierten Code in ihre Produktion lassen.
 
-Rules im Repo (was der Agent lesen soll) und Gates in CI (was ihn stoppt) sind zwei Schichten. Die Rule sagt „keine Secrets committen“. Das Gate *findet* das Secret. Beides verkaufen. Ein Wiki-PDF „AI Policy“ überzeugt keinen skeptischen CTO, ein roter required check schon.
+## Policy as Code — nicht als Wiki-Dokument
 
-Analogie, die sitzt: ihr würdet menschlichen Juniors auch nicht ohne CI mergen. Der Agent ist ein sehr schneller Junior mit perfektem Selbstbewusstsein. Das Gate ist dieselbe Höflichkeit, nur strikter.
+Es gibt zwei Schichten, die zusammenspielen:
+
+1. **Rules im Repo** — Textdateien, die dem Agenten sagen, wie er sich verhalten soll. Z. B. „Keine Secrets committen", „Teste jeden neuen API-Endpunkt".
+2. **Gates in CI** — automatische Prüfungen, die ihn **stoppen**, wenn er gegen die Rules verstößt.
+
+Die Rule *sagt* „keine Secrets committen". Das Gate *findet* das Secret und blockt den Merge.
+
+Beides zusammen verkaufen. Ein Wiki-PDF mit dem Titel „AI Policy" überzeugt keinen skeptischen CTO. Ein roter Required Check, der den Merge blockiert, schon.
+
+### Die Analogie, die sitzt
+
+Ihr würdet menschlichen Junior-Entwicklern (Berufseinsteigern) auch nicht erlauben, ohne CI-Prüfung Code in die Hauptversion zu schieben. Der Agent ist ein **sehr schneller Junior mit perfektem Selbstbewusstsein**. Das Gate ist dieselbe Sorgfalt, nur strikter — weil der Agent schneller mehr Code produziert als ein Mensch.
 
 <Merksatz>
 Der PR ist das Quality Gate: Maschinen für Wiederholbares, Menschen für Irreversibles. Tests vom selben Agenten sind keine zweite Meinung.

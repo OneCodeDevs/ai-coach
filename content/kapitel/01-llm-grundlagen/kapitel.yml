@@ -2,7 +2,7 @@ slug: llm-grundlagen
 nummer: 1
 titel: Wie Sprachmodelle wirklich arbeiten
 untertitel: Tokens, Context Window, Sampling, Halluzinationen und Kosten — ohne Magie.
-dauerMinuten: 75
+dauerMinuten: 96
 lernziele:
   - Tokenisierung und Embeddings in eigenen Worten erklären können
   - Das Context Window als endliches Budget behandeln, nicht als unbegrenzten Speicher

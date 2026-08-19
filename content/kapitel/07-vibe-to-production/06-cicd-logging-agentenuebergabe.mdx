@@ -1,48 +1,108 @@
 ---
 titel: CI/CD, Fehlerbehandlung, Logging — und agentenfähige Übergabe
-dauerMinuten: 18
+dauerMinuten: 30
 zusammenfassung: Grün auf jedem PR, Fehler, die ihr seht, Rules, mit denen Agenten nicht denselben Schutt bauen.
 reihenfolge: 6
 ---
 
-Der letzte Block von Angebot 2 ist Betrieb plus Übergabe. Der Founder soll nach den Umbau-Wochen *ohne euch* weiterbauen können, inkl. seiner Agenten. Dafür braucht das Repo dasselbe, was Kapitel 6 einem Engineering-Team gibt, nur oft zum ersten Mal: CI, sichtbare Fehler, und Kontext, der nicht im privaten Chat liegt.
+Diese Lektion bringt drei Themen zusammen, die für den Betrieb eines Produkts unverzichtbar sind: automatische Qualitätsprüfung (CI/CD), sichtbare Fehler (Logging und Fehlerbehandlung) und eine Übergabe, bei der der Gründer *ohne euch* weiterarbeiten kann — inklusive seiner KI-Agenten.
 
-## CI/CD, diesmal als Mindeststandard
+## CI/CD — diesmal als Mindeststandard erklärt
 
-Aus den [GitHub-Actions-Grundlagen](https://docs.github.com/de/actions/get-started/understand-github-actions): Workflow im Repo, Event `pull_request`, Job auf einem sauberen Runner, `npm ci`, Test, Lint, Build. [Schnellstart](https://docs.github.com/de/actions/get-started/quickstart) zeigt die Mechanik. Bei euch kommt dazu:
+### Was CI/CD nochmal ist (kurze Wiederholung)
 
-- Branch Protection auf der Default-Branch: required checks, kein Direktpush, Review.
-- Preview-Deploys dürfen Secrets der *Preview*-Umgebung nutzen, nicht Prod.
-- Agent-PRs laufen durch dieselbe Pipeline. Kein Skip wegen „nur Docs“, wenn Docs ein Script mit ausführen.
+**CI (Continuous Integration)** bedeutet: Jedes Mal, wenn jemand Code-Änderungen vorschlägt, werden automatisch Prüfungen durchgeführt — Tests, Codequalität, Sicherheitsscans. Das passiert ohne manuellen Aufwand, bei jedem PR.
 
-Ohne das ist jede lokale „es startet auf meinem Mac“-Demo Vibe in Production-Verkleidung.
+**CD (Continuous Delivery/Deployment)** bedeutet: Wenn die Prüfungen bestanden sind und ein Mensch zugestimmt hat, wird die neue Version automatisch veröffentlicht.
+
+**Analogie:** CI ist die TÜV-Prüfung, die jedes Auto bestehen muss, bevor es auf die Straße darf. CD ist die Auslieferung an den Kunden, nachdem der TÜV-Stempel da ist.
+
+### Was ein CI-Workflow mindestens tut
+
+Ein **Workflow** ist eine automatisierte Abfolge von Schritten, die in einer YAML-Datei (einem einfachen Textformat für Konfigurationen) im Repository definiert ist. Bei GitHub liegt er im Ordner `.github/workflows`. Ein Mindest-Workflow bei jedem PR:
+
+1. **`npm ci`** — Installiert die Abhängigkeiten exakt nach Lockfile (nicht `npm install`, das Versionen ändern könnte).
+2. **Test** — Führt die automatischen Tests aus.
+3. **Lint** — Prüft Code-Stil und häufige Fehler.
+4. **Build** — Baut das Projekt zusammen, um sicherzustellen, dass es kompiliert.
+
+Dazu kommen:
+
+- **Branch Protection** auf der Default-Branch (`main`): Required Checks (Pflichtprüfungen, die bestanden sein müssen), kein direkter Push, Review-Pflicht.
+- **Preview-Deploys** (Vorschau-Versionen) dürfen Secrets der *Preview*-Umgebung nutzen, nicht die der Produktionsumgebung.
+- **Agent-PRs** laufen durch dieselbe Pipeline wie menschliche PRs. Kein Überspringen, nur weil es „nur Docs" ist — wenn Docs ein Skript mitausführen, ist „nur Docs" eine falsche Beruhigung.
+
+Ohne CI ist jede lokale „es startet auf meinem Mac"-Demo Vibe Coding in Produktionsverkleidung.
 
 ## Fehlerbehandlung und Logging
 
-Vibe-Apps schlucken Fehler (`catch { return null }`), zeigen Generic-500, loggen nichts Brauchbares oder alles inklusive Token. Sollzustand:
+### Was Logging ist
 
-- Fehlerklassen: 4xx mit klarer Ursache für den Client, 5xx ohne interne Stacks nach außen.
-- Timeouts und Retries an den Rändern (Stripe, LLM-Provider), nicht um die Domain-Invariante.
-- Strukturierte Logs: Request-ID, User-ID wenn erlaubt, Operation, Dauer. Keine Payloads mit PII defaultmäßig.
-- Alert auf Fehlerbudget an den Geld- und Auth-Pfaden, nicht auf jeden 404.
+**Logging** (Protokollierung) bedeutet: Die Software schreibt auf, was passiert. Wie ein Logbuch auf einem Schiff: „14:23 Uhr: Anfrage von Nutzer 42, Bestellung #789 geladen, Dauer 120ms." Wenn etwas schiefgeht, kann man im Log nachschauen, was passiert ist — anstatt zu raten.
 
-Das ist die Brücke zu Angebot 3 (Quality Gate in Production). Für Angebot 2 reicht: ihr *seht*, wenn Billing oder Login bricht, bevor Twitter es sieht.
+### Was Fehlerbehandlung ist
+
+**Fehlerbehandlung** (Error Handling) bestimmt, was passiert, wenn etwas schiefläuft. Gibt die App eine hilfreiche Fehlermeldung? Oder stürzt sie ab? Oder — am schlimmsten — tut sie so, als wäre alles in Ordnung, und zeigt falsche Daten?
+
+### Was bei Vibe-Projekten typisch schiefgeht
+
+- **Fehler werden geschluckt:** `catch { return null }` — wenn ein Fehler auftritt, gibt die App einfach „nichts" zurück. Der Nutzer sieht eine leere Seite, niemand weiß warum. Kein Eintrag im Log, keine Fehlermeldung.
+- **Generische 500-Fehler:** Der Nutzer sieht nur „Internal Server Error" — ohne Hinweis, was schiefgelaufen ist. Gleichzeitig werden interne technische Details (Stack Traces — die genaue Fehlerspur durch den Code) nach außen gezeigt, was Angreifern hilft.
+- **Alles wird geloggt — inklusive Secrets:** Die App schreibt den gesamten HTTP-Header ins Log — inklusive Authentifizierungs-Tokens und API-Schlüssel. Wer die Logs lesen kann, hat Zugriff auf alles.
+- **Nichts wird geloggt:** Gar keine Logs. Wenn Stripe meldet, dass eine Zahlung fehlgeschlagen ist, sieht man es erst, wenn der Kunde sich beschwert.
+
+### Der Sollzustand
+
+- **Fehlerklassen trennen:**
+  - **4xx-Fehler** (z. B. 400 Bad Request, 403 Forbidden, 404 Not Found): Der Client hat etwas Falsches geschickt. Die Fehlermeldung erklärt dem Client, was falsch ist — aber verrät keine internen Details.
+  - **5xx-Fehler** (z. B. 500 Internal Server Error): Der Server hat ein Problem. Nach außen: kurze Meldung. Nach innen: detaillierter Log-Eintrag.
+
+- **Timeouts und Retries an den Rändern:** Wenn die App einen externen Dienst aufruft (Stripe für Zahlungen, einen KI-Provider für Textgenerierung), muss sie damit umgehen, dass dieser Dienst manchmal nicht antwortet. **Timeout** (Zeitlimit): Wie lange wartet die App maximal? **Retry** (Wiederholung): Wie oft versucht sie es erneut? Diese Logik gehört an die *Ränder* (dort, wo die App mit der Außenwelt kommuniziert), nicht um die Geschäftslogik herum.
+
+- **Strukturierte Logs:** Statt wirrer Textzeilen: klare Felder. Jeder Log-Eintrag enthält:
+  - **Request-ID:** Eine eindeutige Kennung für jede Anfrage, damit man zusammengehörige Einträge finden kann.
+  - **User-ID** (wenn datenschutzrechtlich erlaubt): Welcher Nutzer war betroffen?
+  - **Operation:** Was wurde versucht? (z. B. „Bestellung erstellen")
+  - **Dauer:** Wie lange hat es gedauert?
+  - **Keine Payloads mit PII:** PII (Personally Identifiable Information — personenbezogene Daten) wie Name, E-Mail, Adresse gehören standardmäßig *nicht* ins Log.
+
+- **Alerts an den richtigen Stellen:** Nicht bei jedem 404 (Seite nicht gefunden — das ist normal). Sondern bei Fehlern an den Geld- und Auth-Pfaden: Wenn Billing oder Login bricht, muss das Team es *sofort* erfahren — bevor die Nutzer es auf Twitter/X posten.
 
 ## Agentenfähige Übergabe
 
-Kontext, den Agents brauchen, liegt im Repo, nicht in eurem Kopf. Anschluss an [Kontext-Engineering](/kapitel/kontext-engineering):
+Das Ziel: Der Gründer soll nach den Umbau-Wochen *ohne euch* weiterarbeiten können — inklusive seiner KI-Agenten. Dafür muss der Kontext (das Wissen über Regeln, Grenzen und Verbote) im Repository liegen, nicht in euren Köpfen oder in privaten Chat-Verläufen.
 
-- **`AGENTS.md` / Custom Instructions:** Architekturgrenzen, „nicht anfassen ohne Test“, Verbote (Secrets, Coverage löschen, `any` in Domain).
-- **Rules** kurz, budgetbewusst (Context Window aus Kapitel 1).
-- **Skills** für wiederholte Aufgaben: „neue API-Route mit Auth-Check und Test“, „Dependency nur mit Lockfile und Begründung“.
-- **MCP-Allowlist** ([Kapitel 5](/kapitel/mcp)): Filesystem aufs Repo, GitHub-Issues, keine Prod-DB.
-- **Human Quality Gates** ([Kapitel 6](/kapitel/agentic-workflows)): Merge und Prod bleiben menschlich.
+### Was ins Repository gehört
 
-Die Übergabe-Session ist ein gemeinsamer Lauf: ein kleines Issue, Agent, CI, Review durch den Founder. Wenn er das Gate nicht bedienen kann, habt ihr Software übergeben, kein System.
+**`AGENTS.md` / Custom Instructions:** Eine Datei, die KI-Agenten lesen und befolgen. Sie enthält:
+- Architekturgrenzen: „`src/domain/` nicht ohne begleitenden Test ändern."
+- Verbote: „Keine Secrets committen. Keine Tests löschen. Kein `any` in Domain-Dateien" (`any` ist ein Typ in TypeScript, der jede Typsicherheit aufhebt — in der Geschäftslogik ein Risiko).
+- Konventionen: „PR-Text referenziert immer das Issue."
 
-## Der Satz zum Abschluss des Angebots
+**Rules:** Kurz und budgetbewusst. Das Context Window (der „Arbeitsspeicher" des KI-Modells) ist begrenzt — lange Regel-Dateien fressen Platz, der für den eigentlichen Code gebraucht wird.
 
-Vibe bleibt erlaubt auf unkritischen Flächen, *nachdem* die tragenden Teile Grenzen, Tests und CI haben. Wer weiter nur chattet, erzeugt denselben Schutt. Euer Artefakt aus Woche 1, die Checkliste, wird die Definition of Done für „dürfen wir live“. Alles, was auf der Blocker-Liste noch offen ist, geht nicht live. Das ist das Gespräch, für das der Founder euch bezahlt, nicht ein schönerer Gradient auf dem Landing-Button.
+**Skills:** Wiederverwendbare Anleitungen für häufige Aufgaben. Zum Beispiel: „Neue API-Route anlegen: Auth-Check einbauen, Test schreiben, Fehlerbehandlung nach Standard X." Statt diese Anweisungen bei jedem Chat neu zu tippen, hinterlegt man sie als Skill, den der Agent bei Bedarf lädt.
+
+**MCP-Allowlist:** Welche Werkzeuge darf der Agent benutzen? Dateisystem nur innerhalb des Repositories, GitHub-Issues ja, Produktionsdatenbank nein.
+
+**Human Quality Gates:** Merge und Produktions-Deployments bleiben menschlich — wie in Kapitel 6 beschrieben.
+
+### Die Übergabe-Session
+
+Die Übergabe ist nicht „hier ist das Repository, viel Erfolg". Es ist ein gemeinsamer Durchlauf:
+
+1. Ein kleines Issue aus dem echten Backlog auswählen.
+2. Den Agent darauf ansetzen.
+3. Die CI-Pipeline laufen lassen.
+4. Der Gründer reviewed den PR und merged ihn.
+
+Wenn der Gründer das Gate nicht bedienen kann — wenn er nicht weiß, wie er einen PR reviewed oder warum ein Test rot ist — habt ihr Software übergeben, aber kein System.
+
+## Der Abschluss-Satz
+
+Vibe Coding bleibt erlaubt auf unkritischen Flächen — *nachdem* die tragenden Teile Grenzen, Tests und CI haben. Wer weiter nur chattet, ohne zu prüfen, erzeugt denselben Schutt wie vorher.
+
+Das Artefakt aus dem Audit (die Checkliste, die Risikoliste) wird zur **Definition of Done** für „Dürfen wir live gehen?". Alles, was auf der Blocker-Liste noch offen ist, geht nicht live. Das ist das Gespräch, für das der Gründer euch bezahlt — nicht ein schönerer Farbverlauf auf dem Landing-Page-Button.
 
 <Merksatz>
 Production ist CI auf jedem PR, Fehler, die ihr beobachten könnt, und Regeln, die Agenten lesen. Die Übergabe ist ein System im Repo, kein ZIP und kein Chat-Export.

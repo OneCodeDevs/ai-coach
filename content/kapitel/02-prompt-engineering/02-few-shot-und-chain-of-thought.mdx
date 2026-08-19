@@ -1,46 +1,119 @@
 ---
 titel: Few-Shot und Chain-of-Thought
-dauerMinuten: 15
-zusammenfassung: Beispiele zeigen das Muster, Chain-of-Thought den Weg — beides nur dort, wo Unsicherheit sitzt.
+dauerMinuten: 20
+zusammenfassung: Beispiele zeigen dem Modell das Muster, Denkschritte verhindern vorschnelle Schlüsse — beides ist ein Werkzeug, kein Default.
 reihenfolge: 2
 ---
 
-Zwei Techniken werden ständig durcheinandergeworfen. **Few-Shot** sagt: so sieht gut aus, so sieht schlecht aus. **Chain-of-Thought (CoT)** sagt: denk die Zwischenschritte laut, bevor du die Antwort nennst. Beides kostet Token. Beides ist ein Werkzeug, kein Default.
+## Zwei Techniken, zwei verschiedene Probleme
 
-## Few-Shot: das Muster schlägt das Adjektiv
+In der vorigen Lektion hast du gelernt, dass ein Prompt aus Rolle, Instruktion, Kontext und Format besteht. Jetzt geht es um zwei Techniken, die den Prompt *wirksamer* machen — aber Token kosten und deshalb gezielt eingesetzt werden sollten.
 
-„Schreibe idiomatisches TypeScript“ ist ein Wunsch. Zwei kurze Input/Output-Paare aus dem eigenen Repo sind eine Spezifikation: Import-Stil, Fehlerobjekt, Testnamen, wie ihr `Result` modelliert.
+- **Few-Shot Prompting:** Du zeigst dem Modell Beispiele, wie die Ausgabe aussehen soll.
+- **Chain-of-Thought (CoT):** Du bittest das Modell, seine Denkschritte offenzulegen, bevor es zum Ergebnis kommt.
 
-Drei Regeln, die in Kundenrepos halten:
+Beide Techniken werden oft durcheinandergeworfen. Sie lösen aber verschiedene Probleme.
 
-1. **Echte Beispiele, keine erfundenen.** Das Modell kopiert den Ton und die Fehler der Samples. Halluzinierte Samples verdoppeln Halluzinationen.
-2. **Kanten zeigen, nicht nur den Happy Path.** Ein positives und ein negatives Beispiel verhindern, dass das Modell nur den Mittelwert der Prosa trifft.
-3. **Wenige, dichte Shots.** Drei klare Fälle schlagen zwölf redundante. Jedes Beispiel liegt dauerhaft im Context.
+## Few-Shot: „So sieht gut aus"
 
-Few-Shot ist die richtige Waffe bei Format, Klassifikation, Review-Kommentaren, Commit-Messages, Mapping von Ticket zu Dateien. Es ist die falsche Waffe, wenn das Repo das Pattern schon laut in Code ausdrückt. Dann lieber `@` auf die kanonische Datei statt sie ins Prompt zu kippen.
+**Few-Shot Prompting** bedeutet: Du gibst dem Modell ein oder mehrere Beispiele (Input → gewünschter Output), bevor du die eigentliche Aufgabe stellst. Das Modell erkennt das Muster und wendet es auf die neue Eingabe an.
 
-Google und OpenAI behandeln Beispiele als Kernstrategie, nicht als Nice-to-have. Im Verkaufsgespräch: „Wir kalibrieren den Agenten an euren Diffs, nicht an Marketing-Adjektiven.“
+### Warum ist das besser als eine Beschreibung?
 
-## Chain-of-Thought: Zwischenschritte, wo Schlussfolgerung nötig ist
+Vergleiche:
 
-CoT hilft, wenn die Aufgabe **mehrere abhängige Urteile** braucht: Root-Cause vor Fix, Berechtigung vor Query, Invariante vor Refactor. Der klassische Trigger ist „arbeite die Prüfung schrittweise ab, nenne Annahmen, dann erst die Änderung“.
+**Ohne Beispiel (Zero-Shot):**
+> „Schreibe idiomatisches TypeScript."
 
-Was CoT nicht ist:
+Das Modell hat keine Ahnung, was *dein* Team unter „idiomatisch" versteht. Es liefert einen generischen Stil.
 
-- kein Ersatz für Tests
-- kein Ersatz für das Lesen der Datei
-- kein Freibrief, 800 Token Begründung vor jede Rename-Zeile zu setzen
+**Mit Beispiel (Few-Shot):**
+> „Hier ein Beispiel aus unserem Repo:
+> Input: User-Objekt aus der Datenbank holen
+> Output: `const user = await db.query.users.findFirst({ where: eq(users.id, userId) })`
+>
+> Jetzt schreibe: Post-Objekt aus der Datenbank holen."
 
-Bei trivialem Code (Rename, Boilerplate, Schema-Feld hinzufügen) erzeugt CoT vor allem Lärm und zieht Unsicherheit in eine Aufgabe, die keine hat. Bei Agenten mit **Extended Thinking** oder Reasoning-Modellen ist ein Teil dieser Arbeit schon intern. Dann brauchst du im Prompt eher: „zeige die Entscheidung in drei Sätzen, nicht den gesamten inneren Monolog.“
+Das Modell sieht den Import-Stil, die ORM-Syntax, die Variable-Benennung — alles in einem konkreten Beispiel. Ein Beispiel sagt mehr als zehn Adjektive.
 
-## Die Kombination, die sitzt
+### Regeln für gutes Few-Shot
 
-Für Reviews und Incident-Analysen: Few-Shot für das **Ausgabeformat** (Finding, Schwere, Datei, Nachweis), CoT für die **Bewertung**. Für Implementierung: oft nur Few-Shot plus ein hartes Gate (`npm test`). Das Modell soll nicht philosophieren, es soll den Check grün kriegen.
+1. **Echte Beispiele aus deinem Projekt verwenden.** Das Modell kopiert den Stil der Samples — inklusive Fehler. Erfundene Beispiele können Halluzinationen verstärken.
 
-Wenn du CoT und Few-Shot mischst, trenne sie visuell. Sonst frisst das Beispiel die Denkschritte oder umgekehrt. XML-Tags (nächste Lektion) sind genau dafür da.
+2. **Positive *und* negative Beispiele zeigen.** Ein Beispiel für „so soll es aussehen" und eines für „so *nicht*" gibt dem Modell klare Grenzen. Nur positive Beispiele erzeugen oft nur den Durchschnitt.
+
+3. **Wenige, dichte Beispiele.** Drei klare, unterschiedliche Fälle sind besser als zwölf redundante. Jedes Beispiel liegt dauerhaft im Context Window und kostet Token in jedem Turn.
+
+### Wann ist Few-Shot die richtige Technik?
+
+- **Format-Kalibrierung:** Commit-Messages, Review-Kommentare, Log-Einträge
+- **Klassifikation:** „Ist dieses Ticket ein Bug, ein Feature oder eine Frage?"
+- **Mapping:** „Gegeben ein Ticket, welche Dateien sind betroffen?"
+- **Style-Transfer:** Code in den Stil des bestehenden Repos bringen
+
+### Wann ist Few-Shot *nicht* nötig?
+
+Wenn das Repo das Pattern bereits laut in Code ausdrückt. Dann ist es besser, auf die kanonische Datei zu verweisen (z. B. „Folge dem Pattern in `src/services/user.service.ts`"), statt ein Beispiel im Prompt zu wiederholen.
+
+## Chain-of-Thought: „Denk erst nach, dann antworte"
+
+**Chain-of-Thought (CoT)** ist eine Technik, bei der du das Modell bittest, seine Zwischenschritte explizit aufzuschreiben, bevor es zur finalen Antwort kommt.
+
+### Warum hilft das?
+
+Ohne CoT springt das Modell direkt zum wahrscheinlichsten Ergebnis — ohne „nachzudenken". Das funktioniert bei einfachen Aufgaben. Bei komplexen Aufgaben, die mehrere abhängige Urteile erfordern, macht es aber Fehler, weil es Zwischenschritte überspringt.
+
+**Beispiel ohne CoT:**
+> Frage: „Ein Server gibt 500 zurück. In den Logs steht ‚connection refused auf Port 5432'. Was ist das Problem?"
+> Modell (springt zum Ergebnis): „Die Datenbank ist nicht erreichbar."
+
+**Beispiel mit CoT:**
+> Frage: „… Arbeite schrittweise: Was sagt der Fehler? Was läuft auf Port 5432? Was könnte die Ursache sein?"
+> Modell: „1. ‚Connection refused' bedeutet, dass keine Verbindung hergestellt werden konnte. 2. Port 5432 ist der Standard-Port für PostgreSQL. 3. Die Datenbank antwortet nicht — entweder ist der Service gestoppt, der Port blockiert, oder der Hostname falsch. 4. Nächster Schritt: `systemctl status postgresql` prüfen."
+
+Der Unterschied: Im zweiten Fall legt das Modell Zwischenschritte offen, und jeder Schritt kann auf Fehler geprüft werden. Das Endergebnis ist oft präziser.
+
+### Der klassische Trigger
+
+Du brauchst kein Zauberwort. Formulierungen wie diese reichen:
+- „Arbeite die Prüfung schrittweise ab."
+- „Nenne deine Annahmen, bevor du die Änderung zeigst."
+- „Zeige erst die Analyse, dann die Lösung."
+- „Denke laut nach."
+
+### Wann CoT einsetzen?
+
+- **Root-Cause-Analyse:** Erst den Fehler verstehen, dann den Fix
+- **Berechtigungsprüfungen:** Erst klären wer was darf, dann die Query schreiben
+- **Architektur-Entscheidungen:** Erst die Tradeoffs abwägen, dann die Empfehlung
+- **Multi-Step-Logik:** Alles, wo mehrere abhängige Urteile nötig sind
+
+### Wann CoT *nicht* einsetzen?
+
+Bei trivialen Aufgaben: Ein Rename, ein Boilerplate-Feld hinzufügen, ein einfaches Schema erweitern. Hier erzeugt CoT nur Lärm — 800 Token Begründung vor einer einzeiligen Änderung sind Verschwendung.
+
+Bei Modellen mit **Extended Thinking** (z. B. Claude mit Thinking-Modus, OpenAI o3): Diese Modelle führen intern bereits Denkschritte aus. Dann brauchst du im Prompt eher: „Zeige die Entscheidung in drei Sätzen, nicht den gesamten inneren Monolog."
+
+## Few-Shot und CoT kombinieren
+
+Die mächtigste Kombination: Few-Shot für das **Format** der Ausgabe, CoT für die **Bewertung**.
+
+Beispiel für Code-Reviews:
+- Few-Shot zeigt: „Ein Finding sieht so aus: `{file, line, severity, finding}`"
+- CoT sagt: „Prüfe jeden Punkt gegen die Konventionen und begründe kurz, bevor du das Finding formulierst."
+
+Wenn du beide kombinierst, trenne sie visuell (z. B. mit Tags oder Überschriften). Sonst frisst das Beispiel die Denkschritte oder umgekehrt — das Modell weiß nicht, wo das eine aufhört und das andere anfängt.
+
+## Kosten-Bewusstsein
+
+Beide Techniken kosten Token:
+- Few-Shot: Die Beispiele liegen dauerhaft im Kontext (Input-Token in jedem Turn)
+- CoT: Die Denkschritte verlängern die Antwort (Output-Token, die teurer sind)
+
+Deshalb die Faustregel: Einsetzen, wo Unsicherheit sitzt. Weglassen, wo das Repo oder die Aufgabe selbst schon klar genug ist.
 
 <Merksatz>
-Few-Shot kalibriert Form und Urteil an Beispielen. CoT erzwingt Zwischenschritte, wo das Modell sonst zum Ergebnis springt. Beides ist teurer Context. Einsetzen, wo Unsicherheit sitzt, nicht wo das Repo schon spricht.
+Few-Shot kalibriert Form und Urteil an konkreten Beispielen. Chain-of-Thought erzwingt Zwischenschritte, wo das Modell sonst zum Ergebnis springt. Beides kostet Token — einsetzen, wo Unsicherheit ist, nicht überall.
 </Merksatz>
 
 <Quelle

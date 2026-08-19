@@ -1,52 +1,100 @@
 ---
 titel: System-Prompts und Custom Instructions
-dauerMinuten: 14
+dauerMinuten: 18
 zusammenfassung: Dauerhafte Policy gehört ins System, der Auftrag in die User-Message — sonst gewinnt der letzte Satz.
 reihenfolge: 4
 ---
 
-Produkte nennen es unterschiedlich: System Prompt, Custom Instructions, User Rules, Repo-Instructions. Der Mechanismus ist derselbe. Es gibt einen Kanal, der **bei jedem Turn** gilt, und einen Kanal für **diese Aufgabe**. Wer beides vermischt, bekommt entweder eine Policy, die nach zwei Chats vergessen ist, oder einen System-Text, der das eigentliche Ticket erdrückt.
+## Zwei Kanäle, ein Grund
 
-## Was in den System-Kanal gehört
+Wenn du mit einem LLM über eine API oder ein Tool wie Cursor, ChatGPT oder Claude arbeitest, gibt es (mindestens) zwei verschiedene Stellen, an denen du Text eingeben kannst:
 
-Nur was in *jeder* Interaktion wahr bleiben soll:
+1. **Der System-Kanal** (System Prompt, Custom Instructions, Rules): Text, der bei *jedem* Turn mitgeschickt wird — als dauerhafte Grundlage.
+2. **Der User-Kanal** (deine Nachricht, der Chat): Text, der nur für *diese eine* Anfrage gilt.
 
-- Sprache und Ton (kurz, Deutsch, keine Motivationsfloskeln)
-- harte Verbote (keine Secrets committen, `dist/` nicht anfassen)
-- Qualitätsgate (Tests laufen, Diff klein halten)
-- Produktgrenzen (dieser Agent ändert kein Schema ohne Migration)
+Verschiedene Produkte nennen es unterschiedlich — System Prompt, Custom Instructions, User Rules, Repo-Instructions, `.cursorrules`, `CLAUDE.md` — aber der Mechanismus ist derselbe: Es gibt einen permanenten Kanal und einen temporären.
 
-Das ist Policy. Sie darf konkret sein. „Sei hilfreich“ ist keine Policy. „Wenn der Build rot ist, ist die Aufgabe nicht fertig“ ist eine.
+### Warum ist die Trennung wichtig?
 
-Anthropic und OpenAI behandeln die System-Message als den Ort für Rolle und dauerhafte Regeln. Dieselben Inhalte tauchen in ChatGPT, Claude.ai, Copilot und Cursor als **Custom Instructions** oder Rules wieder auf. Für den Kunden: ein Dokument, drei Dateinamen, gleicher Job.
+Wer beides vermischt, bekommt eines von zwei Problemen:
+- **Policy im Chat:** Eine Regel, die nach zwei Nachrichten aus dem Kontext rutscht und „vergessen" wird.
+- **Ticket im System:** Ein einmaliger Auftrag, der morgen noch gilt und den nächsten Task sabotiert.
 
-## Was in den Task gehört
+## Was gehört in den System-Kanal?
 
-Alles, was nur jetzt gilt: Ticket, Stacktrace, Ziel-Branch, „rühr `src/legacy` nicht an **in diesem** PR“. Wenn du das ins System schiebst, gilt es morgen noch und sabotiert den nächsten Auftrag.
+Nur Dinge, die in *jeder* Interaktion wahr bleiben sollen. Das sind dauerhafte Regeln — keine Aufträge.
 
-Eine brauchbare Trennung für Coding-Agenten:
+### Gute System-Prompt-Inhalte:
+
+- **Sprache und Ton:** „Antworte auf Deutsch. Keine Motivationsfloskeln."
+- **Harte Verbote:** „Committe nie Secrets. Fass `dist/` nicht an."
+- **Qualitäts-Gates:** „Wenn der Build rot ist, ist die Aufgabe nicht fertig."
+- **Produkt-Grenzen:** „Dieser Agent ändert kein Datenbankschema ohne Migration."
+- **Konventionen:** „Verwende `HttpError` aus `src/errors` für alle Fehlerfälle."
+
+### Was *nicht* in den System-Kanal gehört:
+
+- Das aktuelle Ticket
+- Ein spezifischer Stacktrace
+- „Rühr `src/legacy` nicht an" (wenn das nur für einen PR gilt)
+- Temporäre Einschränkungen, die nächste Woche nicht mehr gelten
+
+### Der Unterschied in einer Tabelle:
 
 | Kanal | Inhalt | Lebensdauer |
-| --- | --- | --- |
-| System / Instructions / Rules | Konventionen, Verbote, Gates | Repo-Leben |
-| User / Chat | Auftrag, Dateien, Akzeptanz *dieser* Änderung | ein Lauf |
+|-------|--------|-------------|
+| System / Instructions / Rules | Konventionen, Verbote, Gates | So lang wie das Repo existiert |
+| User / Chat | Auftrag, Dateien, Akzeptanz *dieser* Änderung | Ein Lauf / eine Session |
 
-Microsoft Copilot-Trainings und die Custom-Instructions-Doku drehen sich genau um diese Trennung: organisationsweit und repo-weit das Stabile, im Chat das Ticket.
+## „Sei hilfreich" ist keine Policy
+
+Ein häufiger Fehler: System-Prompts voller vager Anweisungen.
+
+**Schlecht:** „Sei hilfreich, freundlich und professionell. Denke sorgfältig nach."
+Das Modell ist bereits darauf trainiert, hilfreich zu sein. Diese Zeilen verbrauchen Token, ohne etwas zu ändern.
+
+**Gut:** „Wenn der Build rot ist, ist die Aufgabe nicht fertig. Keine neuen Dependencies ohne Begründung. Bei Unklarheit: nachfragen statt erfinden."
+Das sind prüfbare Regeln, die konkretes Verhalten erzeugen.
+
+Policy darf konkret sein. Je konkreter, desto besser.
 
 ## Custom Instructions sind kein Roman
 
-Jede Zeile im System-Kanal liegt in **jedem** Request. Kapitel 1: Context ist Budget. Ein 2.000-Zeilen-Manifesto macht zwei Dinge gleichzeitig: es kostet Geld und es senkt die Trefferquote, weil die aktuelle Instruktion im Rauschen untergeht.
+Erinnerung aus Kapitel 01: Das Context Window ist ein Budget. Der System-Prompt liegt in *jedem einzelnen Request*. Ein System-Prompt von 2.000 Token bedeutet bei 20 Turns: 40.000 Token nur für dieselbe Anweisung — immer wieder.
 
-Praxis:
+Deshalb:
+- **Kurz und stichpunktartig** statt ausschweifend
+- **Prüfbare Aussagen** statt Prosa
+- Lange Verfahrensbeschreibungen nicht ins System, sondern in ein Dokument, das der Agent bei Bedarf liest (dazu mehr in Kapitel 04: Skills)
+- Aktiv nach Widersprüchen suchen: Wenn der System-Prompt sagt „keine neuen Dateien" und das Ticket sagt „lege eine Util-Library an", gewinnt oft der letzte oder spezifischste Satz — nicht der vernünftigste.
 
-- System kurz, stichpunktartig, prüfbar
-- lange Verfahren nicht ins System, sondern in ein Dokument, das der Agent bei Bedarf liest (Kapitel 4: Skills)
-- Widersprüche zwischen System, Repo-Instructions und User-Prompt aktiv suchen. Bei Konflikt gewinnt oft der letzte oder der spezifischste Satz, nie „der vernünftigste“.
+### Warnsignal
 
-Im Kundengespräch nicht „wir schreiben einen genialen System-Prompt“ verkaufen. Verkaufen: „wir trennen Hausordnung und Ticket, und wir messen, ob die Hausordnung noch gelesen wird.“
+Wenn dein System-Prompt länger ist als der Diff, den du erwartest, stimmt das Verhältnis nicht.
+
+## Wo taucht das in der Praxis auf?
+
+### In IDEs (Cursor, VS Code mit Copilot, Claude Code):
+- **Cursor:** `.cursorrules` im Repo-Root oder Dateien unter `.cursor/rules/`
+- **Claude Code:** `CLAUDE.md` im Repo-Root
+- **GitHub Copilot:** Custom Instructions in den Settings
+
+### In Chat-Produkten:
+- **ChatGPT:** Custom Instructions in den Einstellungen
+- **Claude.ai:** Project Instructions
+
+### In APIs:
+- Die `system`-Message im API-Call
+
+Der Inhalt ist überall derselbe: dauerhafte Regeln, die jede Interaktion rahmen.
+
+## Die Faustregel für Kunden
+
+Nicht: „Wir schreiben einen genialen System-Prompt, dann funktioniert alles."
+Sondern: „Wir trennen Hausordnung und Ticket. Die Hausordnung ist kurz, hart und prüfbar. Das Ticket ist konkret und einmalig. Und wir messen, ob die Hausordnung noch gelesen wird."
 
 <Merksatz>
-System-Prompt und Custom Instructions sind die Hausordnung. Der Task ist das Ticket. Hausordnung kurz und hart, Ticket konkret. Was nur einmal gilt, hat im System nichts verloren.
+System-Prompt und Custom Instructions sind die Hausordnung — kurz, konkret, dauerhaft. Der Task ist das Ticket — einmalig und spezifisch. Was nur einmal gilt, hat im System nichts verloren. Was immer gilt, hat im Chat nichts verloren.
 </Merksatz>
 
 <Quelle

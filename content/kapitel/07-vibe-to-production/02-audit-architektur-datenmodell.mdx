@@ -1,48 +1,91 @@
 ---
 titel: "Audit-Methodik: Architektur und Datenmodell"
-dauerMinuten: 16
+dauerMinuten: 28
 zusammenfassung: Eine Woche, kein Big Rewrite. Befund ist eine priorisierte Risikoliste mit Aufwand.
 reihenfolge: 2
 ---
 
-Angebot 2 verspricht festen Scope, wenige Wochen: erst Audit, dann Umbau der tragenden Teile. Woche 1 ist Diagnose. Wer in Woche 1 schon Frameworks tauscht, hat das Angebot verlassen. Der Founder will hören, *was* Production blockiert und *was* es kostet. Dafür brauchst du eine Methode, die in fünf Tagen auf einem fremden Repo trägt.
+Wenn ein Prototyp „irgendwie läuft" und live gehen soll, braucht es als erstes eine ehrliche Bestandsaufnahme. Diese Bestandsaufnahme nennt man **Audit** — eine systematische Prüfung, bei der man den aktuellen Zustand erfasst, Risiken bewertet und Handlungsempfehlungen gibt.
 
-## Tag 1–2: die Karte, nicht die Ästhetik
+Das Audit ist *keine* Generalüberholung. Es ist Diagnose — wie ein Arztbesuch: Erst untersuchen, dann entscheiden, was behandelt werden muss. Wer in Woche 1 schon Frameworks tauscht (also die grundlegende Software-Basis wechselt), hat den Auftrag verlassen. Der Gründer will hören: *Was* blockiert den Weg zur Produktion, und *was kostet* die Behebung?
 
-Ziel: ein Bild von Modulgrenzen und Datenflüssen, das ein Senior ohne den Chatverlauf versteht.
+## Was „Architektur" bedeutet
 
-- **Einstiegspunkte:** Apps, Worker, Cron, Webhooks, Agent-Tools. Alles, was von außen kommt.
-- **Schreibpfade:** welche Prozesse schreiben welche Tabellen oder Files. Vibe-MVPs haben oft eine SQLite-Datei, drei ORM-Stile und Direct-SQL in API-Routen.
-- **Modulgrenzen:** Ordnernamen lügen. Suche zyklische Imports, God-Files (`lib/utils.ts` mit Auth *und* Preislogik), Copy-Paste-Services.
-- **Single Points:** eine `admin`-Flag-Spalte, ein globaler Client, ein Secret für alles.
-- **Laufzeit:** wo läuft es wirklich (Vercel, ein VPS, der Laptop des Founders)? Backup, Migration, Wiederanlauf.
+**Architektur** ist der Grundriss einer Software. Genau wie bei einem Haus beschreibt sie: Wo sind welche Räume? Wie hängen sie zusammen? Wo sind die tragenden Wände?
 
-Du dokumentierst Ist. Soll-Architektur nur als Skizze, wo das Risiko es erzwingt. Kein Zielbild „sauberer Hexagon“, wenn das Problem eine fehlende Transaction um Bestellung und Bestand ist.
+In Software heißt das: Welche Teile des Codes sind wofür zuständig? Wie tauschen sie Daten aus? Welche Teile sind voneinander abhängig?
 
-## Datenmodell
+Ein gut strukturiertes Projekt hat klare Grenzen: Die Zahlungslogik ist getrennt von der Benutzeroberfläche, die Datenbankabfragen sind getrennt von der Geschäftslogik. Ein Vibe-Coding-Projekt hat diese Grenzen oft *nicht* — weil jede Chat-Sitzung eine eigene Lösung gebaut hat, ohne das Gesamtbild zu kennen.
 
-Lies Schema, Migrationen (oder deren Fehlen), Seeds, „mal eben JSON in der Tabelle“. Fragen:
+## Was ein „Datenmodell" ist
 
-- Gibt es eine Quelle der Wahrheit für Nutzer, Abo, Bestellung?
-- Wer darf löschen, was ist Soft-Delete, was ist Audit?
-- IDs: sequential und öffentlich? UUID gemischt mit Auto-Increment?
-- Migrationen reproduzierbar, oder Prod ist „die lokale Datei, die einmal geklappt hat“?
+Das **Datenmodell** beschreibt, wie die Daten in der Anwendung organisiert sind. In den meisten Anwendungen stecken die Daten in einer Datenbank — einer strukturierten Sammlung von Informationen.
 
-Charakter-Tests (nächste Einheiten) brauchen dieses Modell: du testest Invarianten („eine bezahlte Order hat genau eine Invoice“), nicht UI-Farben.
+**Analogie:** Stell dir ein Aktenschranksystem vor. Das Datenmodell sagt: Es gibt einen Schrank für Kunden, einen für Bestellungen, einen für Rechnungen. In jedem Schrank gibt es Ordner mit festgelegten Feldern: Kundennummer, Name, E-Mail. Und es gibt Regeln: Jede Bestellung gehört zu genau einem Kunden. Jede bezahlte Bestellung hat genau eine Rechnung.
 
-## Tag 3–4: Risiko mal Wahrscheinlichkeit mal Aufwand
+Wenn dieses System klar ist, kann man testen: „Kann es eine Bestellung ohne Kunden geben?" (Sollte nicht möglich sein.) „Kann es zwei Rechnungen für dieselbe Bestellung geben?" (Kommt drauf an — aber es muss eine bewusste Entscheidung sein.)
 
-Jede Fundstelle: Auswirkung (Daten weg, Geld falsch, Account-Takeover, nicht deploybar), wie leicht ausnutzbar oder wie häufig der Pfad, wie teuer der Fix (Stunden, nicht Story-Points-Theater). Drei Körbe:
+## Tag 1–2: Die Karte zeichnen
 
-1. **Blocker vor öffentlichem Traffic** (Auth, Secrets, Datenverlust).
-2. **Tragende Teile in den Umbau-Wochen** (Modulgrenzen, Tests an den Invarianten, CI).
-3. **Später / bewusst akzeptiert** (Toollast, kosmetische Duplikate).
+Ziel der ersten zwei Tage: ein Bild der Architektur und der Datenflüsse, das ein erfahrener Entwickler *ohne den Chat-Verlauf* verstehen kann.
 
-Der Freitags-Deliverable ist diese Liste plus „was wir in Woche 2–n anfassen“. Nicht ein 40-Seiten-Gutachten. Der Founder muss priorisieren können, inkl. „das lassen wir, weil wir nächste Woche pivoten“.
+### Einstiegspunkte finden
 
-## Was du nicht tust
+Alles, was „von außen" in die Software kommt: Die Web-App selbst, Hintergrund-Prozesse (Worker), zeitgesteuerte Aufgaben (Cron-Jobs — Aufgaben, die automatisch zu bestimmten Zeiten laufen, z. B. „jeden Montag um Mitternacht alte Daten aufräumen"), Webhooks (automatische Benachrichtigungen zwischen Systemen — wenn z. B. ein Kunde bei Stripe bezahlt, schickt Stripe eine Nachricht an eure App), Agent-Tools.
 
-Kein Framework-Wechsel in der Audit-Woche. Kein „wir machen Microservices“. Kein Agent, der das Repo in einem Rutsch „aufräumt“: das ist Vibe auf dem Audit. Agents dürfen *lesen*, Diagramme vorschlagen, Dependency-Graphen bauen. Die Priorisierung ist menschlich. Das ist dasselbe Gate-Prinzip wie in [Agentic Workflows](/kapitel/agentic-workflows).
+### Schreibpfade verfolgen
+
+Welche Prozesse verändern welche Daten? Vibe-MVPs haben oft eine SQLite-Datei (eine einfache dateibasierte Datenbank), drei verschiedene Arten, mit der Datenbank zu sprechen (ORM-Stile — Object-Relational Mapping, also Werkzeuge, die zwischen Code und Datenbank übersetzen), und direkte SQL-Befehle mitten in API-Routen (den Stellen im Code, die auf eingehende Anfragen antworten).
+
+### Modulgrenzen prüfen
+
+Ordnernamen im Projekt lügen oft. Ein Ordner namens `lib/utils.ts` (eine Hilfsdatei) enthält in Vibe-Projekten gerne Authentifizierungslogik *und* Preisberechnung *und* Datenbankzugriffe — alles in einer Datei. Suche nach:
+- **Zyklische Imports** (Datei A importiert aus Datei B, Datei B importiert aus Datei A — ein Zeichen fehlender Struktur)
+- **God-Files** (eine riesige Datei, die alles kann)
+- **Copy-Paste-Services** (derselbe Code an mehreren Stellen, mit leichten Unterschieden)
+
+### Single Points of Failure identifizieren
+
+Stellen, an denen ein einzelner Fehler alles kaputt macht: eine einzige `admin`-Spalte in der Datenbank als gesamtes Berechtigungssystem, ein globaler Client (eine einzige Verbindung zu einem externen Dienst), ein einziges Secret (Zugangsdaten) für alles.
+
+### Laufzeitumgebung klären
+
+Wo läuft die Software wirklich? Auf Vercel (einer Cloud-Plattform), auf einem eigenen Server, oder auf dem Laptop des Gründers? Gibt es Backups? Gibt es einen Plan, wenn der Server ausfällt?
+
+Du dokumentierst den **Ist-Zustand**. Eine Soll-Architektur (wie es idealerweise aussehen sollte) skizzierst du nur, wo das Risiko es erzwingt. Kein Zielbild „perfekte Architektur", wenn das akute Problem eine fehlende Transaktionssicherung bei Bestellungen ist.
+
+## Das Datenmodell prüfen
+
+Lies das Schema (die Struktur der Datenbank), vorhandene Migrationen (Skripte, die die Datenbankstruktur verändern — oder deren Fehlen), Testdaten und „mal eben JSON in der Tabelle"-Lösungen. Fragen:
+
+- Gibt es **eine** klare Quelle der Wahrheit für Nutzer, Abonnements, Bestellungen? Oder stehen die Informationen an mehreren Stellen, teilweise widersprüchlich?
+- Wer darf Daten löschen? Gibt es **Soft-Delete** (Daten werden als „gelöscht" markiert, aber nicht wirklich entfernt — nützlich, wenn man sie wiederherstellen muss) oder **Hard-Delete** (Daten sind unwiederbringlich weg)?
+- Wie sehen die IDs aus? Sequentielle Nummern (1, 2, 3, …) in öffentlichen URLs sind ein Sicherheitsrisiko — man kann erraten, welche Daten es gibt. UUIDs (lange zufällige Zeichenketten) sind sicherer.
+- Sind Migrationen reproduzierbar (kann man die Datenbankstruktur jederzeit wiederherstellen), oder ist Produktion „die lokale Datei, die einmal funktioniert hat"?
+
+## Tag 3–4: Risiken bewerten
+
+Jede Fundstelle bekommt drei Bewertungen:
+
+1. **Auswirkung:** Was passiert im schlimmsten Fall? (Datenverlust, falsches Geld, Account-Übernahme, System startet nicht)
+2. **Wahrscheinlichkeit:** Wie leicht kann der Fehler auftreten oder ausgenutzt werden? Wie oft wird dieser Code-Pfad benutzt?
+3. **Aufwand:** Wie teuer ist die Behebung? In Stunden, nicht in abstrakten „Story Points".
+
+Daraus ergeben sich drei Körbe:
+
+1. **Blocker vor öffentlichem Traffic** — muss behoben sein, bevor echte Nutzer die Software verwenden. Typisch: Authentifizierung, offene Secrets, Datenverlustrisiko.
+2. **Tragende Teile für die Umbau-Wochen** — wird in den kommenden Wochen angepackt. Typisch: Modulgrenzen ziehen, Tests an den wichtigsten Stellen, CI einrichten.
+3. **Später oder bewusst akzeptiert** — entweder niedrig priorisiert oder das Team entscheidet bewusst, das Risiko zu tragen. Typisch: kosmetische Code-Duplikate, nicht-ideale Tool-Wahl.
+
+Das Ergebnis am Freitag ist diese Liste plus „was wir in den kommenden Wochen anfassen". Nicht ein 40-Seiten-Gutachten. Der Gründer muss priorisieren können — inklusive der Option „das lassen wir, weil wir nächste Woche die Richtung ändern".
+
+## Was du in der Audit-Woche *nicht* tust
+
+- Kein Framework-Wechsel (z. B. „wir migrieren von Express zu Hono").
+- Kein „wir machen jetzt Microservices" (die Aufspaltung in viele kleine Dienste).
+- Kein Agent, der das Repo in einem Rutsch „aufräumt" — das wäre Vibe Coding auf dem Audit.
+
+Agenten dürfen in der Audit-Woche *lesen*: Diagramme vorschlagen, Abhängigkeitsgraphen bauen, Dateien analysieren. Die Priorisierung der Risiken bleibt menschlich. Das ist dasselbe Gate-Prinzip wie in [Agentic Workflows](/kapitel/agentic-workflows).
 
 <Merksatz>
 Das Audit liefert eine Karte und eine sortierte Risikoliste mit Aufwand. Umbau kommt danach, und nur an den Stellen, die Production tatsächlich tragen.

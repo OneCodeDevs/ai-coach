@@ -1,0 +1,95 @@
+---
+titel: Wie ein LLM funktioniert
+dauerMinuten: 25
+zusammenfassung: Der Transformer — die Architektur hinter GPT, Claude und Co. — vereinfacht erklärt, ohne Mathematik.
+reihenfolge: 3
+---
+
+## Die Kernidee: Das nächste Wort vorhersagen
+
+Ein LLM tut im Grunde nur eines: Es liest den bisherigen Text und sagt vorher, welches Wort (oder Wort-Stück) als Nächstes am wahrscheinlichsten kommt.
+
+Beispiel: Gegeben der Satz „Die Katze sitzt auf dem …" — das Modell berechnet Wahrscheinlichkeiten für jedes mögliche nächste Wort. „Dach" bekommt vielleicht 15 %, „Sofa" 12 %, „Tisch" 8 %, und so weiter. Es wählt eines aus (wie genau, erfährst du im Kapitel über Sampling) und hängt es an. Dann wiederholt sich der Vorgang mit dem nun längeren Text.
+
+Das klingt nach einem Trick — und ist auch einer. Aber wenn das Modell während des Trainings Milliarden von Texten gelesen hat, „weiß" es (statistisch gesehen), dass nach „Der Patient klagte über Schmerzen im …" eher „Rücken" kommt als „Weltraum". Dieses statistische Wissen reicht erstaunlich weit.
+
+## Was ist ein Transformer?
+
+Der **Transformer** ist die Architektur — also der Bauplan — die heutige LLMs verwenden. Er wurde 2017 von Forschern bei Google in einem Papier mit dem Titel „Attention Is All You Need" vorgestellt.
+
+Vorher gab es andere Architekturen für Sprachverarbeitung, aber sie hatten ein Problem: Sie lasen Text Wort für Wort, von links nach rechts. Das war langsam und bedeutete, dass der Anfang eines langen Textes „vergessen" wurde, bis das Modell am Ende ankam.
+
+Der Transformer löst das mit einem Mechanismus namens **Attention** (Aufmerksamkeit).
+
+## Attention: „Worauf soll ich achten?"
+
+Stell dir vor, du liest den Satz: „Die Entwicklerin, die letzte Woche angefangen hat und noch nie mit dem Framework gearbeitet hat, braucht eine Einführung."
+
+Wenn du gefragt wirst „Wer braucht eine Einführung?", musst du gedanklich zurückspringen zu „Die Entwicklerin" — obwohl dazwischen viele Wörter stehen. Genau das macht Attention im Transformer:
+
+Bei jedem neuen Wort, das das Modell vorhersagt, berechnet es, welche *früheren* Wörter im Text für diese Vorhersage besonders relevant sind. Es kann dabei über beliebig weite Distanzen „zurückschauen" — nicht nur auf die letzten paar Wörter.
+
+Technisch passiert das über eine mathematische Operation (eine gewichtete Summe), aber das Prinzip ist: **Jedes Wort „fragt" alle anderen Wörter im Text, wie relevant sie gerade sind.**
+
+## Training: Wie ein LLM lernt
+
+Das Training eines LLMs läuft grob in zwei Phasen:
+
+### Phase 1: Pre-Training (Vortraining)
+
+Das Modell liest Milliarden von Texten — Webseiten, Bücher, Code, Wikipedia, Foren, Nachrichtenartikel. Bei jedem Text wird ein Wort verdeckt, und das Modell muss es vorhersagen. Liegt es falsch, werden seine Gewichte (die Zahlen im neuronalen Netz) minimal angepasst. Das passiert Billionen Mal.
+
+Nach dem Pre-Training kann das Modell flüssige Texte erzeugen, Sprachen übersetzen und Fragen beantworten — aber es ist noch nicht sonderlich hilfreich oder sicher. Es plappert einfach das Internet nach.
+
+### Phase 2: Fine-Tuning und Alignment
+
+Jetzt wird das Modell gezielt darauf trainiert, *hilfreich* zu sein:
+- **Instruction Tuning:** Menschen schreiben Beispiel-Dialoge (Frage → gute Antwort), und das Modell lernt, dieses Format zu imitieren.
+- **RLHF (Reinforcement Learning from Human Feedback):** Menschen bewerten verschiedene Antworten des Modells („diese ist besser als jene"), und das Modell lernt, bessere Antworten zu bevorzugen.
+
+Nach dieser Phase verhält sich das Modell wie ein hilfreicher Assistent — statt einfach den wahrscheinlichsten Internet-Text fortzusetzen.
+
+## Inference: Wenn das Modell antwortet
+
+**Inference** (Inferenz) ist der Fachbegriff für den Moment, in dem du das fertig trainierte Modell *benutzt* — also wenn du einen Prompt schickst und eine Antwort bekommst.
+
+Während des Trainings lernt das Modell (Wochen, Monate, Millionen Euro). Während der Inference wendet es das Gelernte an (Millisekunden bis Sekunden, Cent bis Euro).
+
+Wichtig: Während der Inference lernt das Modell **nicht dazu**. Wenn du ihm etwas sagst, „merkt" es sich das nur innerhalb dieses einen Gesprächs (im sogenannten Kontext-Fenster). Beim nächsten Gespräch ist alles vergessen. Das Modell selbst ändert sich nicht.
+
+## Zusammenfassung des Prozesses
+
+1. **Trainings-Daten sammeln** — Milliarden Texte aus dem Internet und anderen Quellen
+2. **Pre-Training** — das Modell lernt, das nächste Wort vorherzusagen (Monate, tausende GPUs)
+3. **Fine-Tuning / Alignment** — das Modell lernt, hilfreich und sicher zu antworten
+4. **Inference** — du sendest einen Prompt, das Modell erzeugt Token für Token eine Antwort
+
+## Warum das für dich wichtig ist
+
+Wenn du verstehst, dass ein LLM „nur" das nächste Token vorhersagt, werden viele seiner Verhaltensweisen erklärbar:
+- Es klingt selbstbewusst, auch wenn es falsch liegt (weil „selbstbewusster" Text statistisch häufiger ist als „unsicherer")
+- Es hat einen Wissensstand, der beim Training eingefroren wurde (Trainingsschnitt)
+- Es kann keine Berechnungen wirklich „durchführen" — es sagt vorher, was als Antwort *plausibel aussieht*
+- Längere Gespräche werden schlechter, weil das Kontext-Fenster endlich ist
+
+All das sind keine Bugs — es sind direkte Konsequenzen der Architektur.
+
+<Merksatz>
+Ein LLM sagt das nächste Token vorher — immer wieder. Attention erlaubt ihm, dabei den gesamten bisherigen Text zu berücksichtigen. Trainiert wird auf Milliarden Texten; bei der Nutzung (Inference) lernt es nicht mehr dazu.
+</Merksatz>
+
+<Quelle
+  url="https://www.iese.fraunhofer.de/blog/wie-funktionieren-llms/"
+  lang="de"
+  typ="Fraunhofer IESE — Wie funktionieren LLMs?"
+  dauer="25 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://jalammar.github.io/illustrated-transformer/"
+  lang="en"
+  typ="The Illustrated Transformer (Jay Alammar)"
+  dauer="30 Min"
+  account={false}
+/>

@@ -1,45 +1,122 @@
 ---
 titel: Einwandbehandlung
-dauerMinuten: 18
-zusammenfassung: Copilot, Preis, Risiko, „unsere Devs können das“ — antworten ohne zu verteidigen.
+dauerMinuten: 30
+zusammenfassung: Copilot, Preis, Risiko, „unsere Devs können das" — antworten ohne zu verteidigen.
 reihenfolge: 3
 ---
 
-Einwände sind selten Angriffe. Sie sind Hypothesen: „Wir haben das Problem schon gelöst“ oder „ihr seid zu teuer für den Schmerz, den ich zugebe“. Wer defensiv wird, bestätigt, dass OneCode ein Nice-to-have ist. Wer den Einwand **in ein Angebot übersetzt**, führt.
+## Was ist Einwandbehandlung?
 
-Vier Klassiker. Lerne die Struktur: anerkennen, präzisieren, in Pain mappen, ein Angebot oder ein Nein.
+**Einwandbehandlung** (im Englischen: „Objection Handling") ist die Fähigkeit, auf Widerstände und Bedenken des Kunden professionell zu reagieren — ohne defensiv zu werden und ohne den Kunden zu überreden.
 
-## „Wir haben doch schon Copilot“ (oder Cursor, oder ChatGPT Team)
+Stell dir vor, du empfiehlst einem Freund ein Restaurant. Er sagt: „Ist mir zu teuer." Das ist kein Angriff — das ist eine Information. Vielleicht kennt er die Portionsgrößen nicht. Vielleicht vergleicht er mit McDonald's statt mit einem anderen Restaurant in derselben Klasse. Deine Aufgabe ist nicht, ihn zu überreden, sondern herauszufinden, **was hinter dem Einwand steckt** — und dann ehrlich zu antworten.
 
-Anerkennen: Gute Tools, echte Tempo-Gewinne auf Dateiebene.
+Im Verkaufsgespräch gilt dasselbe: Einwände sind selten Angriffe. Sie sind **Hypothesen**: „Wir haben das Problem schon gelöst" oder „Ihr seid zu teuer für den Schmerz, den ich zugebe". Wer defensiv wird, bestätigt, dass das Angebot ein Nice-to-have ist. Wer den Einwand **in ein Angebot übersetzt**, führt das Gespräch.
 
-Präzisieren: Copilot ist Autocomplete und Chat. Er ist kein System aus Rules, Kontextmodell, Agent-Tasks, Guardrails und Human Gates im Repo. Er sagt nicht, welcher Agent das Epic fährt. Er merget nicht mit Eval. Er stoppt nicht Excessive Agency.
+### Die Struktur für jeden Einwand
 
-Map: Das ist exakt Pain von Angebot 1 — Tools da, System nicht. Wenn sie *nur* Copilot haben und ein wackliges MVP, ist es Angebot 2, nicht „mehr Lizenzen“.
+Vier Schritte — immer:
 
-Satz: „Verdoppelt ihr Copilot, verdoppelt ihr Tastenanschläge. Unser Job ist der Merge, der montags noch gilt.“
+1. **Anerkennen** — Den Einwand ernst nehmen, nicht kleinreden
+2. **Präzisieren** — Was genau meint der Kunde? Wo liegt der Unterschied?
+3. **In Pain mappen** — Den Einwand mit einem konkreten Problem verbinden, das eines der drei Angebote löst
+4. **Ein Angebot — oder ein Nein** — Entweder passt ein Angebot, oder der Kunde braucht euch gerade nicht. Beides ist ein valides Ergebnis.
 
-## „Zu teuer“
+## Einwand 1: „Wir haben doch schon Copilot" (oder Cursor, oder ChatGPT Team)
 
-Nicht über Rabatt reden, bevor der Slot klar ist. Angebot 2 hat festen, kurzen Scope — das ist der Preisanker gegen Open-End-Retainer. Angebot 1 ist ein System, das Output und Zuverlässigkeit kauft; vergleiche mit einem Senior, der drei Monate Rules in Jira-Tickets schreibt, die niemand liest. Angebot 3 gegen *eine* Production-Störung durch ungeprüften Agent-Code (plus Image).
+### Anerkennen
 
-Frage zurück: „Teuer gegen was — gegen eine Lizenz, gegen einen Incident, gegen ein Quartal Feature-Pause?“ Wenn der Schmerz klein ist, ist das ehrliche Ende: nicht jedes Team braucht euch jetzt.
+Gute Werkzeuge, echte Tempo-Gewinne auf Dateiebene. Das ist kein Bluff — **Copilot** (Microsofts KI-Programmier-Assistent, der Code-Vorschläge macht) und ähnliche Tools helfen tatsächlich, schneller Code zu schreiben.
 
-## „Zu riskant“ (Daten, AI Act, Agents mit Shell)
+### Präzisieren
 
-Hier nicht „kein Risiko“ sagen. Risiko umlegen: ohne euch mergen Agents *heute* schon, nur ohne Trace und Tripwire. Angebot 3 *ist* die Risikoreduktion. Lokal (Kapitel 9), wenn Residenz das Thema ist. AI Act: Kompetenz und Transparenz, kein Theater „wir zertifizieren euer Modell“. Human Gates sind das Kontrollnarrativ, das CTOs brauchen.
+Copilot ist **Autocomplete** (automatische Vervollständigung) und Chat. Es ist:
+- **Kein System** aus Rules, Kontextmodell, Agent Tasks, Guardrails und Human Gates im Repository
+- **Kein Orchestrator** — es sagt nicht, welcher Agent welches Epic (große Aufgabeneinheit) übernimmt
+- **Kein Merge-Gate** — es mergt nicht erst nach bestandenem Eval
+- **Kein Sicherheitsnetz** — es stoppt nicht Excessive Agency (übermäßige Handlungsmacht des Agents)
 
-Satz: „Das riskante Setup ist der Agent mit Prod-Token ohne Gate. Wir bauen das Gate.“
+### Map
 
-## „Unsere Devs können das selbst“
+Das ist exakt der Pain von **Angebot 1** — Werkzeuge da, System nicht. Wenn der Kunde *nur* Copilot hat und ein wackliges MVP (Minimum Viable Product), ist es sogar **Angebot 2**, nicht „mehr Lizenzen".
 
-Ja. Gute Devs können Rules schreiben. Die Frage ist, ob sie es in den nächsten sechs Wochen tun, während sie Features schulden — und ob Evals, Guardrails und Observability nebenbei entstehen. OneCode ist Hands-on im *ihrem* Repo, keine Schulung, nach der das Wiki verstaubt. Wenn sie es selbst tun: gratulieren, Angebot 3 als Review/Härtung anbieten, oder gehen.
+### Dein Satz
 
-Zusatz, ohne Arroganz: Selbst bauen heißt auch, den Eval-Flywheel und die OWASP-Ecke zu pflegen. Das ist ein Produkt, kein Wochenend-Hook.
+„Verdoppelt ihr Copilot, verdoppelt ihr Tastenanschläge. Unser Job ist der Merge, der montags noch gilt."
 
-## Haltung
+## Einwand 2: „Zu teuer"
 
-Kein Feature-Pingpong. Kein „wir sind günstiger als McKinsey“. Ein sauberes „dann seid ihr nicht dran“ ist stärker als ein verwässertes Bundle. Der Tutor in diesem Kapitel spielt den CTO: er will hören, dass du Copilot nicht verteufelst und trotzdem nicht klein beigibst.
+### Nicht sofort über Rabatt reden
+
+Bevor du über den Preis sprichst, muss der **Slot** (das passende Angebot) klar sein. Sonst verhandelt ihr über den Preis von etwas, das der Kunde vielleicht gar nicht braucht.
+
+### Angebot 2 hat den besten Preisanker
+
+Angebot 2 hat festen, kurzen Scope — ein paar Wochen, klares Ende. Das ist der Preisanker gegen Open-End-Retainer (unbefristete Beratungsverträge, die monatlich weiterlaufen).
+
+### Angebot 1 gegen die Alternative rechnen
+
+Angebot 1 ist ein System, das Geschwindigkeit und Zuverlässigkeit kauft. Vergleiche mit der Alternative: Ein Senior-Entwickler, der drei Monate lang Regeln in Jira-Tickets (Aufgaben in einem Projektmanagement-Tool) schreibt, die niemand liest.
+
+### Angebot 3 gegen einen Incident rechnen
+
+Angebot 3 gegen **eine einzige** Production-Störung durch ungeprüften Agent-Code — plus den Imageschaden beim Kunden.
+
+### Die Rückfrage
+
+„Teuer gegen was — gegen eine Lizenz, gegen einen Incident, gegen ein Quartal Feature-Pause?"
+
+Wenn der Schmerz klein ist, ist das ehrliche Ende: **Nicht jedes Team braucht euch jetzt.** Das zu sagen ist stärker als ein Rabatt.
+
+## Einwand 3: „Zu riskant" (Daten, AI Act, Agents mit Shell)
+
+### Hier nicht „kein Risiko" sagen
+
+Das wäre unehrlich — und der CTO merkt es. Stattdessen: **Risiko umlegen.**
+
+Ohne euch mergen Agents *heute schon* — nur ohne Trace (Nachverfolgung) und ohne Tripwire (Sicherheits-Alarm). Angebot 3 *ist* die Risikoreduktion.
+
+### Für Datenbedenken
+
+Lokal (Kapitel 9): Wenn Datenresidenz (wo Daten gespeichert werden dürfen) das Thema ist, gibt es die lokale Spur — Modelle, die auf eigener Hardware laufen.
+
+### Für AI-Act-Bedenken
+
+Der **EU AI Act** (die europäische KI-Verordnung — mehr dazu in Lektion 4) verlangt Kompetenz und Transparenz. Eure Angebote adressieren genau das: Enablement (Befähigung), dokumentierte Prozesse, nachvollziehbare Gates. Das ist **kein Zertifizierungs-Theater** — sondern gelebte Sorgfaltspflicht.
+
+### Human Gates als Kontrollnarrativ
+
+CTOs brauchen ein **Kontrollnarrativ** — die Gewissheit, dass Menschen die Kontrolle behalten. Human Quality Gates (menschliche Prüfstationen vor irreversiblen Änderungen) liefern genau das.
+
+### Dein Satz
+
+„Das riskante Setup ist der Agent mit Prod-Token ohne Gate. Wir bauen das Gate."
+
+## Einwand 4: „Unsere Devs können das selbst"
+
+### Ja — die Frage ist wann
+
+Gute Entwickler *können* Rules schreiben, Evals aufsetzen, Guardrails implementieren. Die Frage ist:
+- **Tun sie es in den nächsten sechs Wochen?** Während sie gleichzeitig Features schulden?
+- **Entstehen Evals, Guardrails und Observability nebenbei?** Oder schiebt man das immer weiter nach hinten?
+
+Das Angebot ist nicht „wir sind schlauer als eure Devs". Das Angebot ist: **Hands-on in eurem Repo**, nicht eine Schulung, nach der das Wiki verstaubt.
+
+### Wenn sie es wirklich selbst tun
+
+Gratulieren. **Angebot 3 als Review/Härtung** anbieten — ein externer Blick auf das, was sie gebaut haben. Oder ehrlich gehen.
+
+### Der Zusatz (ohne Arroganz)
+
+Selbst bauen heißt auch, den Eval-Flywheel (den Kreislauf aus Fehler → Testfall → Verbesserung → Messung) und die OWASP-Sicherheitsaspekte dauerhaft zu pflegen. Das ist ein **Produkt**, kein Wochenend-Hack.
+
+## Haltung im Gespräch
+
+- **Kein Feature-Pingpong** — Nicht jedes Feature des Konkurrenten auflisten und dagegen argumentieren
+- **Kein „wir sind günstiger als McKinsey"** — Das ist eine andere Liga und ein anderer Vergleich
+- **Ein sauberes „dann seid ihr nicht dran"** ist stärker als ein verwässertes Bundle
+
+Der Tutor in diesem Kapitel spielt den CTO: Er will hören, dass du Copilot nicht verteufelst und trotzdem nicht klein beigibst. Er will Unterscheidung, nicht Unterwerfung.
 
 <Merksatz>
 Einwand → welches Angebot (oder keines). Copilot ist ein Werkzeug. Teuer, riskant, selbst machen sind Scope-Fragen, keine Charaktertests.

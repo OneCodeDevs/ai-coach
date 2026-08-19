@@ -1,50 +1,102 @@
 ---
 titel: Patterns aus Building effective agents
-dauerMinuten: 18
+dauerMinuten: 30
 zusammenfassung: Chaining, Routing, Parallel, Orchestrator-Worker, Evaluator-Optimizer — und wann ein echter Agent dran ist.
 reihenfolge: 1
 ---
 
-Anthropic trennt **Workflows** (feste Pfade in Code) von **Agents** (das Modell steuert Tools und nächste Schritte selbst). Beides ist „agentic“. Der Fehler im Angebot ist, dem Kunden einen autonomen Agenten zu verkaufen, wo ein Workflow mit zwei Calls reicht. Der Leitsatz aus *Building effective agents*: das einfachste System, das die Aufgabe löst. Komplexität nur, wenn sie messbar besser ist.
+Bevor wir in die einzelnen Bausteine einsteigen, klären wir zwei Wörter, die in diesem Kapitel ständig vorkommen.
 
-## Baustein: das augmentierte LLM
+**Agentic Workflows** — das klingt nach Science-Fiction, ist aber ein nüchternes Konzept: ein Software-Ablauf, in dem ein KI-Modell Aufgaben erledigt, Werkzeuge benutzt und Entscheidungen über den nächsten Schritt trifft. Stell dir einen sehr fleißigen Praktikanten vor, der eine Checkliste abarbeitet, bei jedem Schritt Hilfsmittel (Internetsuche, Dateien lesen, Tests starten) benutzt und dir am Ende das Ergebnis vorlegt.
 
-Retrieval, Tools, Memory. MCP ist in dem Text explizit als eine Art, diese Augmentation anzuschließen. Ab hier hat jeder Call Werkzeuge. Die fünf Patterns sind Orchestrierung darüber.
+**Patterns** (deutsch: Muster) sind bewährte Baupläne. Wenn ein Tischler immer wieder dieselbe Art Verbindung nutzt, ist das ein Pattern. In der Software-Entwicklung sammelt man solche Muster, damit man das Rad nicht jedes Mal neu erfinden muss. Anthropic — die Firma hinter dem KI-Modell Claude — hat fünf solche Muster beschrieben, die wir uns jetzt anschauen.
 
-## Prompt Chaining
+## Der wichtigste Grundsatz: so einfach wie möglich
 
-Die Aufgabe zerfällt in eine feste Sequenz. Call 2 sieht nur den Output von Call 1, plus programmatische Gates dazwischen (Schema valid, Tests grün, Outline erfüllt Checkliste).
+Anthropic trennt zwei Begriffe:
 
-Im Engineering: Issue → Repro-Notiz → Patch-Plan → Patch. Jeder Schritt ist leichter als „mach das Ticket“. Du tauschst Latenz gegen Treffsicherheit. Ungeeignet, wenn du die Schritte nicht vorher kennst.
+- **Workflow:** Der Ablauf ist fest im Code vorgezeichnet, wie ein Rezept. Schritt 1, dann Schritt 2, dann Schritt 3. Das Modell führt die einzelnen Schritte aus, aber *du* bestimmst die Reihenfolge.
+- **Agent:** Das Modell entscheidet *selbst*, welchen Schritt es als Nächstes macht, welche Werkzeuge es benutzt und wann es aufhört.
 
-## Routing
+Beides zusammen nennt man „agentic" (also „agentenhaft"). Der Leitsatz aus Anthropics Aufsatz *Building effective agents* lautet: **Nimm das einfachste System, das die Aufgabe löst.** Komplexität lohnt sich nur, wenn sie messbar bessere Ergebnisse bringt. Ein Workflow mit zwei Aufrufen ist fast immer billiger, schneller und zuverlässiger als ein autonomer Agent, der frei herumlaufen darf.
 
-Ein Klassifikator (oft ein kleines Modell) schickt die Aufgabe in spezialisierte Pfade: Bug vs. Docs vs. Dependency-Bump; Haiku-Klasse für Boilerplate, Sonnet für Businesslogik.
+## Baustein: das erweiterte LLM
 
-Ohne Routing optimierst du einen Prompt auf alles und verlierst auf allem. Mit Routing brauchst du ehrliche Kategorien. „Sonstiges“ darf nicht 70 Prozent der Tickets sein.
+Bevor die fünf Patterns kommen, gibt es eine Grundlage. Ein „nacktes" LLM (Large Language Model — ein großes Sprachmodell wie GPT oder Claude) kann nur Text lesen und Text erzeugen. Das reicht für viele Fragen, aber nicht für echte Arbeit. Deshalb erweitert man es um drei Fähigkeiten:
 
-## Parallelisierung
+1. **Retrieval** (Abruf): Das Modell kann Informationen nachschlagen — zum Beispiel in einer Datenbank, in Dokumenten oder im Internet. Stell dir vor, du gibst dem Praktikanten Zugang zum Firmenarchiv.
+2. **Tools** (Werkzeuge): Das Modell kann Aktionen auslösen — eine Datei ändern, einen Test starten, eine API aufrufen. Der Praktikant darf nicht nur lesen, sondern auch Dinge tun.
+3. **Memory** (Gedächtnis): Das Modell kann sich an vorherige Gespräche oder Ergebnisse erinnern, über die aktuelle Sitzung hinaus.
 
-Zwei Varianten:
+MCP (Model Context Protocol), das in einem früheren Kapitel besprochen wird, ist eine Möglichkeit, diese Erweiterungen anzuschließen — wie ein Adapter, der dem Modell sagt, welche Werkzeuge verfügbar sind und wie sie funktionieren.
 
-- **Sectioning:** unabhängige Teilaufgaben gleichzeitig (Tests schreiben, während ein zweiter Call die Changelog-Zeile zieht).
-- **Voting:** dieselbe Prüfung mehrfach, z. B. Security-Review mit drei Prompts, Merge nur wenn zwei alarmieren — oder wenn einer alarmiert, je nach False-Positive-Kosten.
+Ab hier hat jeder Aufruf des Modells Zugang zu Werkzeugen. Die fünf Patterns beschreiben, wie man *mehrere* solcher Aufrufe sinnvoll organisiert.
 
-Gut, wenn Teilaufgaben wirklich unabhängig sind. Schlecht, wenn Call B das Ergebnis von Call A braucht und du trotzdem parallel startest.
+## Pattern 1: Prompt Chaining (Verkettung)
 
-## Orchestrator-Worker
+**Was es ist:** Die Aufgabe wird in eine feste Reihe von Schritten zerlegt. Schritt 2 bekommt nur das Ergebnis von Schritt 1. Zwischen den Schritten können automatische Prüfungen stehen — zum Beispiel: „Ist das Ergebnis gültiges JSON?" oder „Sind alle Tests grün?"
 
-Ein zentrales Modell zerlegt *dynamisch*, verteilt an Worker, synthetisiert. Topologisch ähnlich zu Parallel, aber die Teilaufgaben stehen nicht vorher fest. Genau das Muster bei „ändern sich n Dateien, abhängig vom Ticket“.
+**Analogie aus dem Alltag:** Du bäckst einen Kuchen. Erst Teig kneten, dann backen, dann glasieren. Du springst nicht von Glasur zurück zum Kneten. Jeder Schritt hat ein klares Ergebnis, das in den nächsten fließt.
 
-Das ist der Moment, an dem Kunden „Multi-Agent“ hören. Es ist oft ein Orchestrator plus stupide Worker, nicht ein Debating-Club.
+**In der Praxis:** Ein Bug-Ticket soll bearbeitet werden. Schritt 1: das Problem nachstellen und beschreiben. Schritt 2: einen Reparaturplan schreiben. Schritt 3: die Reparatur durchführen. Jeder einzelne Schritt ist einfacher als „mach das ganze Ticket". Du tauschst Geschwindigkeit gegen Treffsicherheit — der Ablauf dauert länger, aber jeder Schritt ist zuverlässiger.
 
-## Evaluator-Optimizer
+**Wann ungeeignet:** Wenn du die Schritte nicht vorher kennst. Dann brauchst du ein anderes Pattern.
 
-Ein Generator, ein Bewerter, Schleife. Lohnt, wenn du Kriterien aufschreiben kannst (Lint, Spec, „keine neuen Endpoints ohne Auth“) *und* Feedback den Output nachweislich verbessert. Literarische Übersetzung ist Anthropics Beispiel. Im Repo: Patch erzeugen, gegen Test und eine Review-Checkliste bewerten, nachziehen. Ohne Kriterien wird daraus ein teurer Ping-Pong.
+## Pattern 2: Routing (Weiterleitung)
 
-## Wann der autonome Agent dran ist
+**Was es ist:** Ein vorgeschalteter Schritt (oft ein kleineres, schnelleres Modell) schaut sich die Aufgabe an und entscheidet: „Das ist ein Bug" → geht an den Bug-Pfad. „Das ist eine Doku-Änderung" → geht an den Doku-Pfad. „Das braucht nur eine kleine Textänderung" → geht an ein günstigeres Modell.
 
-Offenes Problem, Schrittzahl unbekannt, Ground Truth aus der Umgebung (Testlauf, Compiler, Tool-Ergebnis), Stoppbedingungen (max. Iterationen, Timeout). Höhere Kosten, Fehler ketten sich. Deshalb Sandbox und Gates. Anthropic: Frameworks helfen beim Start, in Produktion die Abstraktion verstehen oder abbauen.
+**Analogie:** Die Telefonzentrale in einem Unternehmen. Du rufst an, die Zentrale fragt kurz, worum es geht, und stellt dich zur richtigen Abteilung durch.
+
+**Warum das hilft:** Ohne Routing versuchst du, *einen* Prompt (Anweisung ans Modell) für alles zu optimieren — und der wird auf allem mittelmäßig. Mit Routing bekommt jede Kategorie einen spezialisierten Pfad.
+
+**Wichtig:** Die Kategorien müssen ehrlich sein. Wenn 70 Prozent aller Aufgaben in „Sonstiges" landen, ist das Routing kaputt.
+
+## Pattern 3: Parallelisierung
+
+**Was es ist:** Mehrere Aufrufe laufen gleichzeitig statt nacheinander. Zwei Varianten:
+
+- **Sectioning (Aufteilung):** Unabhängige Teilaufgaben werden parallel bearbeitet. Beispiel: Ein Aufruf schreibt die Tests, ein anderer erstellt den Changelog-Eintrag. Beide brauchen einander nicht.
+- **Voting (Abstimmung):** *Dieselbe* Prüfung wird mehrfach durchgeführt. Beispiel: Drei verschiedene Prompts prüfen Code auf Sicherheitslücken. Merge (Zusammenführen) nur, wenn mindestens zwei Alarm schlagen.
+
+**Analogie:** Beim Umzug trägst du nicht allein Kiste für Kiste. Sectioning: einer trägt Kisten, einer baut Möbel ab. Voting: drei Leute prüfen unabhängig, ob die Wohnung leer ist — wenn zwei sagen „ja", glaubst du es.
+
+**Wann schlecht:** Wenn Aufgabe B das Ergebnis von Aufgabe A braucht. Dann ist parallel starten Verschwendung — B arbeitet mit veralteten oder fehlenden Daten.
+
+## Pattern 4: Orchestrator-Worker
+
+**Was es ist:** Ein zentrales Modell (der Orchestrator, also der Dirigent) bekommt eine Aufgabe, zerlegt sie *dynamisch* in Teilaufgaben, verteilt sie an Worker (Arbeiter) und setzt die Ergebnisse zusammen.
+
+**Unterschied zu Parallelisierung:** Bei Parallelisierung stehen die Teilaufgaben vorher fest. Beim Orchestrator-Worker entscheidet das Modell erst zur Laufzeit, welche Teilaufgaben nötig sind.
+
+**Analogie:** Ein Projektleiter bekommt den Auftrag „renoviert die Wohnung". Er geht durch die Räume, entscheidet: „Bad braucht neue Fliesen, Küche nur Farbe, Flur passt" — und schickt je einen Handwerker los. Die Aufteilung steht nicht vorher fest, sondern ergibt sich aus der Situation.
+
+**In der Praxis:** Ein Ticket betrifft mehrere Dateien, aber welche genau, weiß man erst, wenn man reinschaut. Der Orchestrator analysiert das Ticket, entscheidet welche Dateien betroffen sind, und schickt je einen Worker los.
+
+**Achtung:** Kunden hören hier „Multi-Agent" und denken an einen Debattierclub aus KI-Persönlichkeiten. In Wirklichkeit ist es meist ein Dirigent plus einfache Arbeiter — kein Teammeeting.
+
+## Pattern 5: Evaluator-Optimizer (Bewertung und Verbesserung)
+
+**Was es ist:** Zwei Rollen in einer Schleife. Ein Generator erzeugt eine Lösung. Ein Evaluator (Bewerter) prüft sie gegen klare Kriterien. Wenn die Kriterien nicht erfüllt sind, geht die Lösung zurück an den Generator mit dem Feedback.
+
+**Analogie:** Ein Autor schreibt einen Text. Ein Lektor liest ihn und markiert Stellen, die nicht passen. Der Autor überarbeitet. Das geht so lange, bis der Lektor zufrieden ist — oder bis eine maximale Anzahl Durchgänge erreicht ist.
+
+**Wann es lohnt:** Wenn du die Kriterien aufschreiben kannst (zum Beispiel: „Keine neuen API-Endpunkte ohne Authentifizierung", „Alle Tests grün", „Lint ohne Fehler") *und* wenn das Feedback den Output nachweislich verbessert.
+
+**Wann es nicht lohnt:** Ohne klare Kriterien wird daraus ein teurer Ping-Pong — das Modell korrigiert hin und her, ohne besser zu werden.
+
+## Wann der vollautonome Agent dran ist
+
+Erst wenn alle diese Bedingungen zusammenkommen:
+
+1. **Offenes Problem:** Man weiß nicht vorher, welche Schritte nötig sind.
+2. **Schrittzahl unbekannt:** Es könnten 3 oder 30 Schritte sein.
+3. **Echte Rückmeldung aus der Umgebung:** Das Modell bekommt nach jedem Schritt echtes Feedback — Testergebnisse, Compiler-Meldungen, Tool-Ausgaben.
+4. **Klare Stoppbedingungen:** Maximale Anzahl Versuche, Zeitlimit, damit der Agent nicht ewig läuft.
+
+Autonome Agenten sind mächtiger, aber auch teurer und fehleranfälliger. Fehler können sich aufschaukeln: Schritt 5 baut auf dem Fehler aus Schritt 3 auf, und am Ende ist alles schief. Deshalb brauchen sie eine Sandbox (geschützte Umgebung zum Ausprobieren) und klare Gates (Kontrollpunkte, an denen ein Mensch draufschaut).
+
+Anthropic rät: Frameworks (also fertige Softwarepakete, die einem die Arbeit abnehmen sollen) helfen beim Einstieg. Sobald das System in Produktion geht, solltest du die Abstraktion (die Vereinfachung, die das Framework bietet) verstehen oder abbauen — sonst kannst du Fehler nicht finden.
 
 <Zitat
   lang="en"

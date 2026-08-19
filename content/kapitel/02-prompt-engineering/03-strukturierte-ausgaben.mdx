@@ -1,21 +1,31 @@
 ---
 titel: Strukturierte Ausgaben und XML-Tags
-dauerMinuten: 16
-zusammenfassung: Tags trennen Auftrag von Material, ein Schema macht die Antwort prüfbar.
+dauerMinuten: 20
+zusammenfassung: Tags trennen Auftrag von Material, ein Schema macht die Antwort prüfbar — beides ist unerlässlich für automatisierte Workflows.
 reihenfolge: 3
 ---
 
-Prosa ist für Menschen. Agent-Pipelines, Evals und der nächste Tool-Schritt brauchen Grenzen. Zwei Mechaniken lösen dasselbe Problem auf verschiedenen Ebenen: **XML-Tags im Prompt** (wo ist was) und **strukturierte Ausgabe** (wie darf die Antwort aussehen).
+## Das Problem: Prosa ist nicht maschinenlesbar
 
-## XML-Tags: der Prompt als Dokument
+Wenn du ein LLM ohne Format-Vorgabe fragst, bekommst du einen fließenden Absatz zurück — gemischt aus Erklärung, Code, Entschuldigung und Vorschlag. Für einen Menschen in einem Chat ist das okay. Aber sobald ein zweites System die Antwort weiterverarbeiten soll (ein Parser, ein Test, der nächste Schritt in einer Pipeline), wird Prosa zum Problem.
 
-Claude ist darauf trainiert, XML-ähnliche Tags als Struktur zu lesen. Das ist kein XML-Parser im Compiler-Sinn, sondern eine starke Konvention: Inhalt in einem `instructions`-Tag ist Auftrag, Inhalt in `code` ist Material, Inhalt in `examples` ist Kalibrierung.
+Zwei Mechaniken lösen das auf verschiedenen Ebenen:
+1. **XML-Tags im Prompt** (Struktur im *Input*): Sie sagen dem Modell, wo was steht.
+2. **Strukturierte Ausgabe** (Struktur im *Output*): Sie sagen dem Modell, wie die Antwort aussehen muss.
 
-Ohne Tags klebt alles aneinander. Eine Fehlermeldung in der Instruktion wird als Regel gelesen, eine Regel im Stacktrace als Symptom. Mit Tags senkst du diese Verwechslung.
+## XML-Tags: Den Prompt wie ein Dokument strukturieren
 
-Ein minimales Gerüst für Coding-Tasks:
+### Was sind XML-Tags in diesem Kontext?
 
-```
+**XML-Tags** sind Markierungen wie `<instructions>...</instructions>` oder `<context>...</context>`, die du in deinen Prompt einfügst, um verschiedene Bereiche klar voneinander zu trennen. Das ist kein „echtes" XML im technischen Sinn — kein Parser validiert die Syntax. Es ist eine Konvention, die besonders bei Claude stark trainiert ist: Das Modell erkennt Tags als Strukturgrenzen.
+
+### Warum braucht man das?
+
+Ohne Tags klebt alles aneinander. Eine Fehlermeldung in der Instruktion wird als Regel gelesen. Eine Regel im Stacktrace wird als Symptom interpretiert. Das Modell kann nicht zuverlässig unterscheiden, was *Auftrag* ist, was *Material* ist und was *Beispiel* ist — wenn alles als Fließtext dasteht.
+
+### Ein strukturiertes Prompt-Gerüst
+
+```xml
 <instructions>
 Ändere nur Dateien unter src/billing.
 Schreibe keinen neuen Endpunkt.
@@ -24,44 +34,87 @@ Nach der Änderung: npm test -- billing
 
 <context>
 <file path="src/billing/invoice.ts">
-...Ausschnitt...
+...relevanter Ausschnitt...
 </file>
 <error>
-FAIL invoice.test.ts: expected status 409
+FAIL invoice.test.ts: expected status 409, received 200
 </error>
 </context>
 
 <output_format>
-Zuerst ein kurzes <plan>, dann der Patch, dann <test_output>.
+Zuerst ein kurzes <plan> (max. 3 Sätze), dann der Patch,
+dann <test_output> mit dem Ergebnis von npm test.
 Keine Erklärung außerhalb dieser Tags.
 </output_format>
 ```
 
-OpenAI und Gemini erreichen denselben Effekt mit Markdown-Überschriften oder JSON-Blöcken. Der Name der Klammer ist egal. Die **Trennung** ist es nicht. Im Kundengespräch: „Wir strukturieren den Prompt wie eine API, nicht wie eine E-Mail.“
+### Was bewirkt das?
 
-## Strukturierte Ausgabe: der Vertrag nach außen
+- `<instructions>`: Das Modell weiß, das sind die Regeln für diesen Lauf.
+- `<context>`: Das ist das Material, auf dem die Antwort basieren soll.
+- `<output_format>`: So muss die Antwort aussehen.
 
-Tags im Prompt helfen dem Modell beim Lesen. Strukturierte Ausgabe hilft dir beim **Weiterverarbeiten**:
+Die *Namen* der Tags sind frei wählbar. Wichtig ist die **Trennung**, nicht die Bezeichnung. OpenAI und Google erreichen denselben Effekt mit Markdown-Überschriften oder JSON-Blöcken. Aber Tags sind besonders eindeutig, weil sie eine klare Öffnung und Schließung haben.
 
-- JSON mit festem Schema (Feld `verdict`, `files[]`, `risk`)
-- Tool-/Function-Calling statt Freitext („lege Finding an“)
-- Prefill der Assistenten-Antwort mit einer öffnenden JSON-Klammer, damit JSON wahrscheinlicher startet (Claude)
+### Alternativen zu XML-Tags
 
-Was du parsen musst, darf nicht in einer Anekdote versteckt sein. „Sieht gut aus, ich würde noch X tun“ ist in einem Chat nett und in einer Pipeline ein Parse-Error.
+| Technik | Funktioniert gut bei |
+|---------|---------------------|
+| XML-Tags | Claude, allgemein |
+| Markdown-Überschriften (`## Instructions`) | GPT-Modelle, allgemein |
+| JSON-Blöcke | Wenn Input selbst schon JSON ist |
+| Triple-Backticks | Code-Abschnitte hervorheben |
 
-Zwei Härtegrade:
+## Strukturierte Ausgabe: Der Vertrag für den Output
 
-1. **Weich:** „Antworte nur als JSON mit diesen Keys.“ Gut für interne Tools, bricht gelegentlich.
-2. **Hart:** JSON-Schema / constrained decoding / Tool-Parameter. Der Provider erzwingt die Form. Das ist der Default, sobald ein zweites System die Antwort schluckt.
+Tags im Prompt helfen dem Modell beim *Lesen*. Strukturierte Ausgabe hilft dir beim *Weiterverarbeiten*.
 
-Für OneCode-Evals (Angebot 3) ist hart Pflicht. Für einen einmaligen Agent-Lauf im Repo reicht oft weich plus ein Parser, der bei Bruch den Lauf abbricht statt zu improvisieren.
+### Was ist strukturierte Ausgabe?
+
+Statt dass das Modell frei formuliert, gibst du vor, in welchem Format die Antwort kommen muss:
+
+- **JSON mit festem Schema:** Felder wie `verdict`, `files[]`, `risk`
+- **Tool-/Function-Calling:** Das Modell ruft eine definierte Funktion auf, statt Freitext zu erzeugen
+- **Prefill:** Du startest die Antwort des Modells mit einer öffnenden Klammer `{`, damit JSON wahrscheinlicher wird (bei Claude)
+
+### Zwei Härtegrade
+
+**Weich (Prompt-basiert):**
+> „Antworte nur als JSON mit diesen Keys: `verdict`, `files`, `reason`."
+
+Das funktioniert meistens — aber nicht immer. Das Modell kann trotzdem in Prosa verfallen, besonders bei langen Antworten oder wenn es „unsicher" ist.
+
+**Hart (Provider-erzwungen):**
+- JSON-Schema über die API (`response_format: { type: "json_schema", ... }`)
+- Tool-/Function-Parameter (das Modell *muss* einen Tool-Call zurückgeben)
+- Constrained Decoding (der Provider erlaubt nur Token, die zum Schema passen)
+
+Harte Strukturierung ist der Default, sobald ein zweites System (eine Pipeline, ein Eval, ein Dashboard) die Antwort verarbeiten muss. Weiche Strukturierung reicht für einmalige, interaktive Agent-Läufe, bei denen ein Mensch draufschaut.
+
+### Warum ist das so wichtig?
+
+Was du parsen musst, darf nicht in einer Anekdote versteckt sein. „Sieht gut aus, ich würde noch X tun" ist in einem Chat nett — und in einer Pipeline ein Parse-Error.
 
 ## Erfolgskriterien in die Struktur legen
 
-Struktur ohne Gate ist nur Pretty-Print. Pack das Done-Kriterium in dasselbe Schema: `tests: pass | fail`, `command`, `excerpt`. Anthropic sagt es für Agenten klar: gib Claude einen Check, den es selbst ausführen kann. Derselbe Satz gilt für Prompts ohne Agent. Wenn „fertig“ nicht maschinenlesbar ist, ist es Verhandlung.
+Struktur ohne Prüfung ist nur hübsche Formatierung. Der nächste Schritt: Pack das **Done-Kriterium** ins selbe Schema.
+
+Statt:
+```json
+{ "verdict": "done", "summary": "Alles gefixt" }
+```
+
+Besser:
+```json
+{ "verdict": "done", "tests": "pass", "command": "npm test -- billing", "exit_code": 0 }
+```
+
+Jetzt kann ein System automatisch prüfen, ob die Aufgabe wirklich erledigt ist — statt dem Modell zu *glauben*, dass „alles gefixt" stimmt.
+
+Anthropics Empfehlung für Agents: Gib dem Modell einen Check, den es selbst ausführen kann. Dasselbe Prinzip gilt schon auf Prompt-Ebene: Wenn „fertig" nicht maschinenlesbar definiert ist, ist es Verhandlung.
 
 <Merksatz>
-XML-Tags (oder gleichwertige Klammern) trennen Auftrag, Material und Beispiele. Ein Schema macht die Antwort zum Datensatz. Ohne beides mischt das Modell Dokumentation, Code und Hoffnung in einem Absatz.
+XML-Tags (oder gleichwertige Klammern) trennen Auftrag, Material und Beispiele im Input. Ein Schema macht die Antwort zum prüfbaren Datensatz im Output. Ohne beides mischt das Modell Dokumentation, Code und Hoffnung in einem Absatz.
 </Merksatz>
 
 <Quelle

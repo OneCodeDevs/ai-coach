@@ -1,51 +1,111 @@
 ---
 titel: ".cursor/rules und CLAUDE.md"
-dauerMinuten: 18
+dauerMinuten: 35
 zusammenfassung: Immer-an-Fakten klein halten, pfadscharf splitten — Cursor-Rules und CLAUDE.md lösen dasselbe Budgetproblem unterschiedlich.
 reihenfolge: 2
 ---
 
-AGENTS.md ist der gemeinsame Nenner. In der Praxis hat jedes starke Tool eine **schärfere** Datei daneben. Bei Cursor sind das `.cursor/rules/*.mdc`. Bei Claude Code ist das `CLAUDE.md` plus optional `.claude/rules/`. Wer alles in alle Dateien kopiert, hat drei Wahrheiten und keinen Agenten, der ihnen folgt.
+In der letzten Lektion hast du AGENTS.md kennengelernt — die universelle Einweisung, die jedes KI-Tool lesen kann. In der Praxis hat aber jedes Tool **zusätzlich** sein eigenes, mächtigeres System. Vergleich es mit einem Unternehmen: AGENTS.md ist die allgemeine Betriebsordnung, die für alle gilt. Aber jede Abteilung hat zusätzlich ihre eigenen, detaillierteren Regeln.
 
-## CLAUDE.md: jedes Session-Start
+Bei **Cursor** (einem KI-gestützten Code-Editor) heißen diese Regeln `.cursor/rules`. Bei **Claude Code** (Anthropics Kommandozeilen-KI) heißt die Datei `CLAUDE.md`. Beide lösen dasselbe Problem — aber auf unterschiedliche Art.
 
-Claude lädt CLAUDE.md (Projekt, User, Managed Policy, plus `CLAUDE.local.md` für privates) **vollständig** in jedes Fenster. Deshalb die harte Größenordnung aus den Docs: Ziel unter 200 Zeilen. Länger heißt: mehr Token, weniger Gehorsam.
+## Was ist das Grundproblem?
 
-Inhalt: Build, Test, Layout, „always do X“, Architektur in Stichpunkten. Nicht: Release-Runbook, 30-Zeilen-React-Essay, kopierter Style-Guide.
+Jedes Mal, wenn du mit einer KI chattest, verbraucht die Unterhaltung sogenannte **Token** — das sind die Recheneinheiten, die das Sprachmodell verarbeitet. Grob gesagt: je mehr Text die KI lesen muss, desto mehr Token werden verbraucht und desto teurer wird es. Außerdem hat jedes Modell ein begrenztes **Context Window** (Kontextfenster) — die maximale Textmenge, die es gleichzeitig „im Kopf" behalten kann.
 
-Zusätzlich:
+Das bedeutet: Du kannst nicht einfach ein 100-seitiges Handbuch in jede Anfrage packen. Du musst **auswählen**, welche Informationen der Agent wann bekommt. Genau das ist die Kunst: wenig Text bei jedem Start, mehr Text nur wenn nötig.
 
-- `.claude/rules/` für pfad- oder glob-skoppierte Regeln, analog zu Cursor
-- `@imports` ziehen weitere Dateien **trotzdem beim Start** ins Fenster. Import ist Organisation, kein Lazy-Load. Lazy-Load sind Skills.
-- `/init` scaffoldet. Du streichst Halluzinationen und ergänzt Invarianten, die kein Crawl sieht.
+## CLAUDE.md: Was Claude Code beim Start liest
 
-Auto-Memory (Notizen, die Claude selbst schreibt) ist kein Ersatz für CLAUDE.md. Das eine ist eure Policy, das andere Lernschrott aus einer Session. Policy versioniert ihr. Memory reviewt ihr.
+Wenn du **Claude Code** öffnest (ein Terminal-Programm, in dem du mit Claudes KI direkt in der Kommandozeile arbeitest), passiert Folgendes: Claude sucht nach einer Datei namens `CLAUDE.md` im Projektverzeichnis und lädt sie **vollständig** in jede neue Sitzung. Alles, was darin steht, liest Claude — bei jedem einzelnen Gespräch.
 
-## Cursor-Rules: Metadaten, wann geladen wird
+Deshalb gilt eine harte Regel: **Halte CLAUDE.md unter etwa 200 Zeilen.** Je länger die Datei, desto mehr Token verbrauchst du pro Anfrage, und desto weniger zuverlässig folgt Claude den Anweisungen. Stell dir vor, du gibst einem Praktikanten ein 200-seitiges Handbuch mit auf den Weg — nach Seite 30 liest er nur noch quer.
 
-`.mdc` ohne Frontmatter ist für das Rules-System tot. Ihr braucht `alwaysApply`, `globs`, `description`.
+### Was gehört in CLAUDE.md?
 
-| Typ | Wann laden | Wofür |
+Kurze, harte Fakten über dein Projekt:
+
+- Wie baut man das Projekt? (`pnpm install && pnpm dev`)
+- Wie laufen Tests? (`pnpm test`)
+- Wie ist das Projekt aufgebaut? (Ordnerstruktur in Stichpunkten)
+- Universelle Regeln: „Schreibe immer Tests zu neuen Funktionen", „Verwende TypeScript strict mode"
+- Architektur-Eckpunkte: „Backend ist Express, Frontend ist Next.js, Datenbank ist PostgreSQL"
+
+### Was gehört NICHT in CLAUDE.md?
+
+- Release-Anleitungen mit 30 Schritten (das ist ein Skill, dazu mehr in Lektion 4)
+- Lange Style-Guides (die kopiert man nicht, die verlinkt man)
+- Einmalige Aufgaben oder aktuelle Tickets
+
+### Weitere Dateien rund um CLAUDE.md
+
+Claude Code kennt mehrere Ebenen:
+
+- **`CLAUDE.md`** im Projektverzeichnis: gilt für alle, die an diesem Projekt arbeiten
+- **`CLAUDE.local.md`**: eine lokale Variante, die **nicht** in Git eingecheckt wird — für persönliche Einstellungen wie den Pfad zur lokalen Testdatenbank
+- **`.claude/rules/`**: ein Ordner für pfad- oder muster-spezifische Regeln (ähnlich wie Cursor-Rules, siehe unten)
+- **`@imports`**: Du kannst in CLAUDE.md andere Dateien einbinden. Aber Vorsicht: importierte Dateien werden trotzdem **beim Start** geladen, nicht erst bei Bedarf. Import ist Organisation, kein Lazy-Load (verzögertes Laden).
+
+Der Befehl **`/init`** in Claude Code erstellt eine erste CLAUDE.md automatisch, indem Claude dein Projekt analysiert. Du prüfst das Ergebnis dann, streichst Fehler und ergänzt Regeln, die Claude nicht erraten konnte.
+
+### Auto-Memory vs. CLAUDE.md
+
+Claude Code hat ein sogenanntes **Auto-Memory** — Notizen, die sich Claude selbst während einer Sitzung macht. Das klingt praktisch, ist aber kein Ersatz für CLAUDE.md. Der Unterschied:
+
+- **CLAUDE.md** ist eure bewusste, versionierte Policy (Richtlinie). Ihr schreibt sie, ihr reviewt sie, ihr committed sie in Git.
+- **Auto-Memory** ist ungeprüfter Lernschrott aus einer einzelnen Sitzung. Vielleicht nützlich, vielleicht Unsinn.
+
+Policy versioniert ihr. Memory reviewt ihr.
+
+## Cursor-Rules: Regeln mit Metadaten
+
+**Cursor** ist ein Code-Editor (ähnlich wie VS Code), der KI tief integriert hat. Cursor hat sein eigenes Regel-System: Dateien mit der Endung `.mdc` im Ordner `.cursor/rules/`.
+
+### Was ist eine .mdc-Datei?
+
+Eine `.mdc`-Datei ist eine Markdown-Datei mit einem speziellen Kopfbereich (dem sogenannten **Frontmatter** — ein Block am Anfang der Datei, eingerahmt von `---`, der Metadaten enthält). Ohne diesen Frontmatter ist die Datei für das Rules-System unsichtbar.
+
+Der Frontmatter kann diese Felder enthalten:
+
+- **`alwaysApply`**: Soll die Regel bei **jedem** Gespräch geladen werden?
+- **`globs`**: Dateimuster (z. B. `src/billing/**/*.ts`) — die Regel wird nur geladen, wenn eine passende Datei im Kontext ist
+- **`description`**: Eine Beschreibung — der Agent liest sie und entscheidet selbst, ob die Regel relevant ist
+
+### Die vier Typen von Cursor-Rules
+
+| Typ | Wann wird geladen? | Wofür geeignet? |
 | --- | --- | --- |
-| Always | jeder Agent-Chat | Invarianten, Sicherheitsverbote |
-| Glob | passende Dateien im Context | Framework-Konventionen |
-| Intelligent | Agent liest die Description | Domänenwissen, das selten ist |
-| Manual | nur per `@rule` | schwere Runbooks, die ihr bewusst anstoßt |
+| **Always** | Bei jedem Chat automatisch | Unveränderliche Grundregeln, Sicherheitsverbote |
+| **Glob** | Nur wenn passende Dateien im Kontext sind | Framework-Konventionen (z. B. „in React-Dateien immer funktionale Komponenten") |
+| **Intelligent** | Agent liest die Description und entscheidet selbst | Seltenes Domänenwissen, das nur manchmal relevant ist |
+| **Manual** | Nur wenn du explizit `@regelname` im Chat schreibst | Schwere Anleitungen, die du bewusst auslöst |
 
-Always-Apply-Regeln sind CLAUDE.md mit anderem Dateinamen: sie kosten **jeden** Turn. Dieselben 200-Zeilen-Disziplin. Globs sind der eigentliche Gewinn gegenüber einer einzigen CLAUDE.md.
+### Always-Apply = dasselbe Problem wie CLAUDE.md
 
-Team Rules (Dashboard) liegen vor Project Rules vor User Rules. Für Kunden mit Cursor Teams könnt ihr Org-Policy dort erzwingen. Trotzdem gehört das Repo-Spezifische ins Repo, sonst ist die Übergabe (Angebot 2) an ein Team ohne denselben Seat wertlos.
+Always-Apply-Regeln werden bei **jedem** Gespräch geladen — genau wie CLAUDE.md. Deshalb gilt dieselbe Disziplin: kurz halten, unter 200 Zeilen insgesamt. Jede Always-Regel kostet bei jedem Turn Token, auch wenn sie gerade irrelevant ist.
 
-## Die Abgrenzung, die ihr vertraglich braucht
+**Globs sind der eigentliche Gewinn** gegenüber einer einzigen großen Datei. Du kannst sagen: „Lade die React-Regeln nur, wenn der Agent eine `.tsx`-Datei bearbeitet." So bekommt der Agent nur die Information, die er gerade braucht.
 
-Schreib eine Wahrheit **einmal**, verlinke sie.
+### Team Rules
 
-- Querschnitt, tool-agnostisch → `AGENTS.md`
-- Claude-spezifisch (Hooks, Skill-Namen, Permission-Hinweise) → `CLAUDE.md`
-- Cursor-spezifisch (Globs, `@file`-Templates) → `.cursor/rules`
-- Verfahren mit vielen Schritten → Skill
+Cursor bietet für Teams ein Dashboard, über das Regeln zentral verwaltet werden können. Die Reihenfolge: **Team-Regeln** schlagen **Projekt-Regeln** schlagen **persönliche Regeln**. Trotzdem sollte alles Projektspezifische im Repo liegen — sonst funktioniert die Übergabe an ein Team ohne denselben Cursor-Seat nicht.
 
-Wenn Cursor und Claude dieselben Fakten brauchen, steht der Satz in AGENTS.md. Die anderen Dateien sagen „befolgt AGENTS.md“ plus das Tool-Delta. Widerspruch ist ein Defect in eurem Delivery-System, kein Stil.
+## Die Abgrenzung: Was gehört wohin?
+
+Jetzt wird es wichtig: Du hast AGENTS.md, CLAUDE.md und Cursor-Rules. Wie vermeidest du, dass überall dasselbe steht und irgendwann Widersprüche entstehen?
+
+Die Faustregel: **Schreib eine Wahrheit einmal, verlinke sie.**
+
+| Inhalt | Gehört in … |
+| --- | --- |
+| Querschnitt, tool-agnostisch (gilt für alle) | `AGENTS.md` |
+| Claude-spezifisch (Hooks, Skill-Namen, Berechtigungen) | `CLAUDE.md` |
+| Cursor-spezifisch (Globs, `@file`-Templates) | `.cursor/rules` |
+| Verfahren mit vielen Schritten | Skill (Lektion 4) |
+
+Wenn Cursor und Claude dieselben Fakten brauchen, steht der Satz **in AGENTS.md**. Die anderen Dateien sagen nur: „Befolge AGENTS.md" — plus das, was toolspezifisch ist.
+
+**Widerspruch zwischen den Dateien ist kein Stilproblem, sondern ein Defekt.** Wenn AGENTS.md sagt „verwende pnpm" und CLAUDE.md sagt „verwende npm", wird der Agent eine der beiden Anweisungen ignorieren — und du weißt nicht welche.
 
 <Merksatz>
 CLAUDE.md und always-on-Rules sind Start-Context: kurz, prüfbar, selten geändert. Globs und Descriptions laden den Rest. Verfahren haben in beiden nichts verloren.

@@ -1,45 +1,110 @@
 ---
 titel: Skills als versionierte Workflows
-dauerMinuten: 18
+dauerMinuten: 35
 zusammenfassung: Ein Skill ist ein Verfahren im Repo, das nur bei Treffer in den Context kommt — im Gegensatz zu immer-an-Rules.
 reihenfolge: 4
 ---
 
-Rules und AGENTS.md beantworten: *wie ist dieses Repo*. Skills beantworten: *wie führen wir diesen Job aus*. Das ist der Unterschied, den Anthropic in den Docs und in der Academy-Schulung einzieht, und den OneCode in Angebot 1 als Liefergegenstand braucht.
+Bisher hast du gelernt, wie du einem KI-Agenten **Fakten** über dein Projekt mitgibst: AGENTS.md, CLAUDE.md, Cursor-Rules, Copilot-Instructions. Alle diese Dateien beantworten die Frage: *Wie ist dieses Projekt aufgebaut?*
 
-## Was ein Skill physisch ist
+Aber es gibt eine zweite Frage, die genauso wichtig ist: *Wie führen wir bestimmte Aufgaben durch?* Zum Beispiel: Wie machen wir ein Release? Wie legen wir eine Datenbank-Migration an? Wie schneiden wir ein neues Feature?
 
-Ein Ordner mit `SKILL.md`. YAML-Frontmatter mindestens mit **Name** und **Description** (die Description entscheidet, ob der Agent den Skill von allein zieht). Darunter Markdown: Schritte, Checks, Verbote. Daneben optional `references/`, Scripts, Templates.
+Solche Verfahren (Abläufe mit mehreren Schritten, Checklisten, Prüfpunkten) gehören **nicht** in AGENTS.md oder CLAUDE.md. Warum? Weil sie dort bei **jedem** Gespräch mitgeladen würden — auch wenn du nur einen kleinen Tippfehler beheben willst. Das kostet Token und verwirrt den Agenten.
 
-Skills folgen einem offenen Dateiformat (Agent Skills), über Claude Code hinaus. In Claude Code liegen Projekt-Skills unter `.claude/skills/billing-release/SKILL.md`, persönliche unter `~/.claude/skills/`. Invocation per Slash-Command oder automatisch, wenn die Description zum Request passt. Alte Dateien in `.claude/commands/` sind in Skills aufgegangen.
+Die Lösung heißt: **Skills**.
 
-Cursor kennt inzwischen eigene Skills analog: wiederkehrende Workflows, nicht immer im Fenster.
+## Was ist ein Skill?
 
-## Progressive Disclosure ist das Budget-Argument
+Ein **Skill** ist eine Anleitung für den KI-Agenten, die nur dann geladen wird, wenn sie gebraucht wird. Stell dir einen Werkzeugkasten vor: AGENTS.md ist das Schild an der Werkstatt-Tür („wir arbeiten hier mit Holz, diese Säge nicht anfassen"). Ein Skill ist die detaillierte Bauanleitung für einen bestimmten Schrank — du holst sie nur heraus, wenn du tatsächlich diesen Schrank baust.
 
-Beim Start sieht der Agent nur Name plus Description aller Skills (billig). Den Body lädt er, **wenn** der Job matched. Weitere Dateien erst, wenn der Body sie anfordert. Genau deshalb darf ein Skill lang sein, eine CLAUDE.md nicht.
+### Technisch gesehen
 
-Das ist die Regel fürs Schneiden:
+Ein Skill besteht aus einem **Ordner** mit einer Datei namens `SKILL.md`. Diese Datei hat:
 
-| Inhalt | Ort |
-| --- | --- |
-| „Tests: `pnpm test`“ | AGENTS.md / CLAUDE.md |
-| „So schneiden wir ein Billing-Release (20 Schritte, Checkliste, Rollback)“ | Skill `billing-release` |
-| „React Hooks in `src/components`“ | Cursor-Rule mit Glob oder `.claude/rules` |
+1. **Frontmatter** (der Kopfbereich mit Metadaten zwischen `---`-Markierungen): Mindestens ein **Name** und eine **Description** (Beschreibung).
+2. **Body** (der Hauptteil): Markdown-Text mit Schritten, Prüfungen, Verboten — alles, was der Agent für diese spezifische Aufgabe braucht.
+3. **Optional**: Weitere Dateien im selben Ordner — Referenzen, Skripte, Templates.
 
-Wenn ihr dasselbe Release-Runbook in CLAUDE.md klebt, zahlt jeder Tippfehler-Fix 20 Schritte Context. Wenn ihr es nicht dokumentiert, halluziniert der Agent Git-Tags.
+Ein Beispiel für die Ordnerstruktur:
 
-## Versioniert heißt: Git, Review, Semantik
+```
+.claude/skills/
+  billing-release/
+    SKILL.md           # Die Anleitung
+    references/
+      checklist.md     # Zusätzliche Referenz
+```
 
-Skills sind Code. Sie liegen im Repo, sie gehen durch PR, sie haben einen Owner. Ein Skill ohne Test- oder Check-Schritt ist ein Blogpost. Ein guter Skill endet mit einem Befehl, der fehlschlagen kann, und mit „nicht fertig bei Rot“.
+### Wie der Agent den Skill findet
 
-Description schreiben wie ein Router: Trigger-Wörter, die ein Mensch wirklich tippt („when the user asks to cut a billing release“, „when adding a Prisma migration“). Zu vage: der Skill feuert nie. Zu breit: er feuert bei jedem Chat und vernichtet den Vorteil.
+Hier kommt die **Description** ins Spiel — und sie ist entscheidend. Beim Start einer Sitzung sieht der Agent **nur den Namen und die Description** aller verfügbaren Skills. Das ist billig: nur wenige Token pro Skill. Der Agent liest die Descriptions wie ein Inhaltsverzeichnis.
 
-Was nicht in einen Skill gehört: Geheimnisse, kundenindividuelle URLs (dafür lokale Ignored-Files), einmalige Tickets.
+Erst **wenn** ein Skill zur aktuellen Aufgabe passt, lädt der Agent den vollen Body. Und weitere Dateien (aus `references/` etc.) erst, wenn der Body sie anfordert.
 
-Im Academy-Kurs „Introduction to agent skills“ ist genau diese Trennung der Kern: Skills vs CLAUDE.md vs Subagents vs Hooks vs MCP. Für das Kundengespräch reicht: **Fakten immer-an, Verfahren on-demand, Zwang per Hook, Tools per MCP.**
+Dieses Prinzip heißt **Progressive Disclosure** (schrittweise Enthüllung): Der Agent bekommt Information in Häppchen, nicht als Ganzes. Das spart Token und hält den Fokus.
 
-Angebot 1 liefert 3–7 Skills, die echte Abläufe des Kunden kodieren (Feature-Schnitt, Hotfix, Migration, Review). Angebot 2 lässt sie liegen, damit der Gründer denselben Workflow ohne euch anstößt.
+### Skill vs. CLAUDE.md: Die Schnitt-Regel
+
+| Inhalt | Gehört in … | Warum? |
+| --- | --- | --- |
+| „Tests laufen mit `pnpm test`" | AGENTS.md / CLAUDE.md | Kurzer Fakt, immer relevant |
+| „So schneiden wir ein Billing-Release (20 Schritte, Checkliste, Rollback)" | Skill `billing-release` | Langes Verfahren, nur bei Releases relevant |
+| „React Hooks gehören nach `src/components`" | Cursor-Rule mit Glob oder `.claude/rules` | Fakt, nur bei React-Dateien relevant |
+
+Wenn du das Release-Verfahren in CLAUDE.md klebst, bezahlst du 20 Schritte Context bei **jedem** kleinen Bugfix. Wenn du es gar nicht dokumentierst, erfindet der Agent eigene Git-Tags und Abläufe — Halluzination aus fehlendem Kontext.
+
+## Wo liegen Skills?
+
+### In Claude Code
+
+- **Projekt-Skills**: `.claude/skills/billing-release/SKILL.md` — gehören zum Projekt, liegen in Git, werden mit dem Team geteilt
+- **Persönliche Skills**: `~/.claude/skills/` (im Home-Verzeichnis) — nur für dich, z. B. dein persönlicher Code-Review-Workflow
+
+Du rufst einen Skill auf per **Slash-Command** (z. B. `/billing-release`) oder **automatisch**, wenn die Description zum aktuellen Request passt. Das automatische Erkennen funktioniert wie eine Suchmaschine: Die Description enthält Schlüsselwörter, die der Agent mit deiner Anfrage abgleicht.
+
+### In Cursor
+
+Cursor hat ein analoges Konzept: wiederkehrende Workflows, die nicht permanent im Fenster liegen. Die Mechanik ist ähnlich — der Agent entscheidet anhand der Beschreibung, ob er den Skill lädt.
+
+### Das offene Format: Agent Skills
+
+Skills folgen einem **offenen Standard** namens „Agent Skills" — ähnlich wie AGENTS.md tool-übergreifend ist. Das bedeutet: Ein Skill, den du für Claude Code schreibst, könnte theoretisch auch von anderen Tools gelesen werden.
+
+## Eine gute Description schreiben
+
+Die Description ist der **Router** deines Skills — sie entscheidet, ob der Skill gefunden und geladen wird. Schreib sie so, wie ein Mensch die Aufgabe formulieren würde:
+
+**Gut:** „When the user asks to cut a billing release, roll back a failed release, or asks about the release checklist."
+
+**Schlecht:** „Billing stuff." (Zu vage — der Skill feuert nie, weil der Agent den Bezug nicht erkennt.)
+
+**Auch schlecht:** „For any billing-related question." (Zu breit — der Skill wird bei jedem Gespräch geladen, das „billing" erwähnt, auch wenn es nur um eine Rechnung im Frontend geht. Dann verlierst du den Vorteil des Lazy-Load.)
+
+Denk an Trigger-Wörter: „when adding a Prisma migration", „when deploying to staging", „when the user asks to cut a release". Je konkreter, desto besser.
+
+## Skills sind Code
+
+Ein wichtiger Punkt: Skills sind keine Notizen in einem Wiki. Sie liegen **im Repository**, gehen durch **Pull Requests**, haben einen **Owner** (Verantwortlichen). Genau wie Code.
+
+Ein guter Skill endet mit einem **Prüfschritt** — einem Befehl, der fehlschlagen kann. Zum Beispiel: „Führe `pnpm test --filter billing` aus. Bei Rot: nicht fortfahren." Ein Skill ohne Prüfschritt ist ein Blogpost, kein Verfahren.
+
+### Was nicht in einen Skill gehört
+
+- **Geheimnisse** (API-Keys, Passwörter) — die gehören in Umgebungsvariablen
+- **Kundenspezifische URLs** — die gehören in lokale, ignorierte Dateien
+- **Einmalige Tickets** — die gehören in den Chat-Prompt
+
+## Das Gesamtbild: Fakten vs. Verfahren
+
+Hier ist die Zusammenfassung, die alles aus den letzten Lektionen verbindet:
+
+- **Fakten** (kurz, immer relevant): AGENTS.md, CLAUDE.md, Cursor-Rules mit Always-Apply
+- **Fakten** (nur bei bestimmten Dateien relevant): Cursor-Rules mit Globs, `.claude/rules/`, pfadspezifische Copilot-Instructions
+- **Verfahren** (lang, nur bei bestimmten Aufgaben relevant): **Skills**
+- **Zwang** (technisch erzwungen, nicht nur beschrieben): Hooks, CI-Gates
+- **Externe Werkzeuge** (APIs, Datenbanken, Services): MCP-Server
+
+Oder in einem Satz: **Fakten immer-an, Verfahren on-demand, Zwang per Hook, Tools per MCP.**
 
 <Merksatz>
 Skills sind versionierte Runbooks mit Lazy-Load. Rules sind Fakten. Wer Verfahren in die immer-an-Datei schreibt, kauft Context ohne Lieferqualität.

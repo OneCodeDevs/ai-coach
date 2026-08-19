@@ -1,43 +1,176 @@
 ---
 titel: Host, Client, Server und die Primitives
-dauerMinuten: 16
+dauerMinuten: 35
 zusammenfassung: MCP ist USB-C für Agenten — Host steuert, Client verbindet, Server liefert Tools, Resources und Prompts.
 reihenfolge: 1
 ---
 
-MCP ist kein Modell und kein Agent. Es ist ein offenes Protokoll, mit dem eine KI-Anwendung standardisiert an Daten, Tools und vorbereitete Workflows andockt. Die Analogie aus der Spezifikation sitzt: USB-C für Geräte, MCP für Agenten. Einmal gebaut, an viele Hosts anschließbar.
+## Was ist MCP überhaupt?
 
-## Drei Rollen, die Kunden durcheinanderwerfen
+Bevor wir in die Details gehen, klären wir die Grundbegriffe.
 
-Die Spezifikation trennt drei Teilnehmer. Wenn du die im Gespräch vermischt, klingt „wir machen MCP“ nach Magie.
+**Protokoll** — Ein Protokoll ist eine Sammlung von Regeln, die festlegen, wie zwei Systeme miteinander reden. Stell dir vor, du schickst einen Brief: Es gibt Regeln, wo die Adresse steht, wo die Briefmarke hin muss und wie der Umschlag gefaltet wird. Ohne diese Regeln kommt der Brief nicht an. Ein Protokoll für Software funktioniert genauso — nur eben für Daten statt für Papier.
 
-1. **Host** ist die KI-Anwendung: Cursor, VS Code mit Copilot, Claude Desktop, Claude Code. Der Host orchestriert, zeigt Zustimmungsdialoge und entscheidet, welcher Kontext ins Modell geht.
-2. **Client** ist die Verbindungskomponente *im* Host. Pro Server ein Client, eine dedizierte Verbindung. VS Code, das Sentry und ein lokales Filesystem anbindet, hat zwei Clients, nicht „einen MCP“.
-3. **Server** ist das Programm, das Kontext und Fähigkeiten bereitstellt. Lokal über stdio (Kindprozess, stdin/stdout) oder remote über Streamable HTTP.
+**MCP** steht für **Model Context Protocol**. Es ist ein offenes Protokoll, mit dem KI-Anwendungen (also Programme, die ein Sprachmodell verwenden) sich standardisiert mit der Außenwelt verbinden können: mit Datenbanken, Dateien, Ticketsystemen, APIs und mehr.
 
-„Server“ heißt hier nicht „läuft in der Cloud“. Der Filesystem-Server von Anthropic ist ein lokaler Prozess. Der Sentry-Server läuft bei Sentry. Beides sind MCP-Server.
+MCP ist kein Modell. Es ist kein Agent. Es ist die Steckdose, über die ein Agent an echte Werkzeuge herankommt.
 
-## Zwei Schichten
+### Die USB-C-Analogie
 
-Die **Datenschicht** spricht JSON-RPC 2.0: Discovery, Tools, Resources, Prompts, Notifications. Ab der Protokollversion `2026-07-28` ist das Protokoll auf dieser Ebene zustandslos: jede Anfrage trägt Version und Capabilities mit, der Client kann `server/discover` schicken, bevor er Tools aufruft.
+Die offizielle Analogie hilft: USB-C ist ein Standard-Anschluss. Egal ob Ladekabel, Monitor oder Festplatte — der Stecker passt immer. Du musst nicht für jedes Gerät einen eigenen Anschluss am Laptop haben.
 
-Die **Transportschicht** ist der Kanal: stdio lokal, Streamable HTTP remote. OAuth und Bearer-Tokens gehören zum Transport, nicht zur Semantik der Tools. Derselbe JSON-RPC-Body, anderer Weg.
+MCP ist USB-C für KI-Agenten. Einmal einen Server gebaut, kann ihn jede kompatible KI-Anwendung nutzen — Cursor, VS Code mit Copilot, Claude Desktop. Du baust das Werkzeug nicht für jede Anwendung neu.
+
+## Was ist eine API?
+
+Dieses Wort fällt im MCP-Kontext ständig, also klären wir es hier.
+
+**API** steht für *Application Programming Interface* — eine Programmierschnittstelle. Stell dir ein Restaurant vor: Du (der Gast) bestellst über die Speisekarte. Die Küche (das System) bereitet das Essen zu. Die Speisekarte ist die API — sie sagt dir, was du bestellen kannst, welche Optionen es gibt (medium, well-done) und was du zurückbekommst (einen Teller mit Essen).
+
+In der Software-Welt bedeutet das: Eine API definiert, welche Anfragen ein Programm annimmt und welche Antworten es zurückgibt. Wenn ein Agent die GitHub-API benutzt, fragt er zum Beispiel: „Gib mir alle offenen Issues in Repo X." Die API antwortet mit einer Liste.
+
+MCP verbindet einen Agenten mit solchen APIs — aber auf eine standardisierte, sichere Weise, statt dass der Agent versucht, sich die API-Aufrufe selbst zusammenzureimen (was oft schiefgeht).
+
+## Drei Rollen: Host, Client, Server
+
+MCP kennt drei Teilnehmer. Diese Trennung ist wichtig, weil Kunden und Teams sie ständig durcheinanderwerfen.
+
+### 1. Host — Die KI-Anwendung
+
+Der Host ist das Programm, in dem du mit der KI arbeitest. Beispiele:
+
+- **Cursor** (die IDE, in der du gerade vielleicht lernst)
+- **VS Code mit Copilot**
+- **Claude Desktop** oder **Claude Code**
+
+Der Host hat die Kontrolle. Er entscheidet:
+- Welche Server angebunden werden
+- Welcher Kontext (also welche Informationen) ans Modell weitergegeben wird
+- Wann ein Mensch um Bestätigung gefragt wird, bevor ein Werkzeug etwas tut
+
+Stell dir den Host als den Büroleiter vor: Er entscheidet, wer anrufen darf, welche Akten auf den Schreibtisch kommen und wann der Chef unterschreiben muss.
+
+### 2. Client — Die Verbindungsleitung
+
+Der Client ist die technische Verbindung zwischen Host und einem einzelnen Server. Pro Server gibt es einen eigenen Client — eine eigene „Leitung".
+
+Wenn dein VS Code gleichzeitig mit GitHub und einem Dateisystem-Server verbunden ist, laufen zwei Clients: einer für GitHub, einer fürs Dateisystem. Das ist nicht „ein MCP", sondern zwei separate Verbindungen unter einem Dach.
+
+Der Client ist für dich als Anwender unsichtbar. Du konfigurierst ihn nicht einzeln. Aber es hilft zu wissen, dass er existiert, weil die Trennung erklärt, warum Server sich nicht gegenseitig sehen können.
+
+### 3. Server — Der Werkzeuglieferant
+
+Der Server ist das Programm, das dem Agenten konkrete Fähigkeiten gibt. Beispiele:
+
+- Ein **Filesystem-Server** liest und schreibt Dateien in einem Ordner
+- Ein **GitHub-Server** liest Issues, erstellt Pull Requests
+- Ein **Datenbank-Server** führt SQL-Abfragen aus
+
+Wichtig: „Server" heißt hier **nicht** „läuft irgendwo in der Cloud". Ein MCP-Server kann ein kleines Programm auf deinem Rechner sein, das als Kindprozess (ein Unterprogramm) gestartet wird. Der Filesystem-Server zum Beispiel läuft komplett lokal — deine Daten verlassen den Rechner nie.
+
+Es gibt aber auch Server, die über das Internet erreichbar sind (Remote-Server). Der Sentry-Server zum Beispiel läuft bei Sentry in der Cloud, weil die Fehlerdaten dort liegen.
+
+### Zusammenspiel der drei Rollen
+
+```
+Du tippst im Chat
+       ↓
+   [ HOST ]  ← Cursor, VS Code, Claude Desktop
+       ↓
+   [ CLIENT ] ← eine Verbindung pro Server
+       ↓
+   [ SERVER ] ← liefert Tools, Resources, Prompts
+```
+
+Der Host fragt den Server: „Was kannst du?" Der Server antwortet mit einer Liste. Das Modell im Host wählt aus, was es braucht. Der Host führt den Aufruf aus und zeigt dir gegebenenfalls einen Bestätigungsdialog.
+
+## Zwei Schichten: Daten und Transport
+
+MCP hat zwei Ebenen, wie eine Straße zwei Aspekte hat: *was* transportiert wird (die Fracht) und *wie* es transportiert wird (per LKW oder Schiff).
+
+### Die Datenschicht — Was gesprochen wird
+
+Die Datenschicht nutzt ein Format namens **JSON-RPC 2.0**. Das ist ein Standard, der festlegt, wie Anfragen und Antworten aussehen — ähnlich wie ein Formular mit festen Feldern.
+
+Auf dieser Ebene passiert:
+- **Discovery** — „Was kannst du mir anbieten?"
+- **Tool-Aufrufe** — „Führe diese Funktion aus"
+- **Resources abrufen** — „Gib mir diese Daten"
+- **Prompts laden** — „Gib mir diese Vorlage"
+
+### Die Transportschicht — Wie es übertragen wird
+
+Es gibt zwei Wege:
+
+1. **stdio** (Standard Input/Output) — Für lokale Server. Der Host startet den Server als Kindprozess und sie reden über Text-Streams. Wie zwei Programme, die sich über ein Rohr Nachrichten zuschicken. Einfach, schnell, kein Netzwerk nötig.
+
+2. **Streamable HTTP** — Für Remote-Server. Die Kommunikation läuft übers Internet, mit Authentifizierung (OAuth, Bearer-Tokens). Wird genutzt, wenn der Server woanders läuft — bei GitHub, Sentry, oder in eurer Cloud.
+
+Der Clou: Die Datenschicht bleibt gleich, egal welcher Transport genutzt wird. Derselbe Aufruf, nur ein anderer Weg.
 
 ## Die drei Server-Primitives
 
-Das ist der Teil, den du auswendig können musst.
+**Primitive** bedeutet hier: Grundbaustein. So wie ein Haus aus Wänden, Decken und Böden besteht, besteht ein MCP-Server aus drei Grundbausteinen:
 
-- **Tools** sind ausführbare Funktionen. Das Modell wählt sie, der Host ruft sie auf. Datei schreiben, Issue kommentieren, SQL ausführen: das sind Tools. `tools/list` zum Entdecken, `tools/call` zum Ausführen.
-- **Resources** sind Datenquellen, kein Code. Schema einer Datenbank, Inhalt einer Datei, API-Antwort. Der Host zieht sie als Kontext, ohne dass das Modell „handeln“ muss.
-- **Prompts** sind wiederverwendbare Vorlagen: Systemtexte, Few-Shots, geführte Workflows. Der Mensch (oder der Host) startet sie; sie sind keine versteckten Tools.
+### Tools — Werkzeuge, die etwas tun
 
-Ein Datenbank-Server kann alle drei gleichzeitig anbieten: Resource für das Schema, Tools für Queries, Prompt mit Beispielen für sichere SELECT-Muster.
+Ein Tool ist eine ausführbare Funktion. Das Modell entscheidet, wann es ein Tool braucht. Der Host führt es aus (nach deiner Bestätigung, bei sensiblen Aktionen).
 
-Clients können dem Server **Elicitation** anbieten: der Server fragt den Nutzer nach. Sampling (Server bittet den Host um ein LLM-Completion) ist in `2026-07-28` deprecated. Neue Server holen sich das Modell nicht über MCP, sondern über die Provider-API.
+Beispiele für Tools:
+- Eine Datei schreiben
+- Ein GitHub-Issue kommentieren
+- Eine SQL-Abfrage ausführen
+- Eine E-Mail versenden
+
+Technisch: Der Client ruft `tools/list` auf, um zu sehen, welche Tools verfügbar sind. Dann `tools/call`, um eines auszuführen.
+
+**Analogie:** Tools sind wie die Knöpfe an einer Maschine. Jeder Knopf macht etwas Konkretes — aber du musst ihn drücken (oder das Drücken erlauben).
+
+### Resources — Datenquellen zum Lesen
+
+Eine Resource ist ein Stück Information, das der Agent *lesen* kann, ohne etwas zu verändern. Kein Code, keine Aktion — nur Daten.
+
+Beispiele für Resources:
+- Das Schema einer Datenbank (welche Tabellen, welche Spalten)
+- Der Inhalt einer Konfigurationsdatei
+- Die Antwort einer API-Abfrage (schreibgeschützt)
+
+**Analogie:** Resources sind wie Nachschlagewerke im Regal. Du kannst nachschauen, aber du veränderst nichts.
+
+### Prompts — Vorlagen für wiederkehrende Abläufe
+
+Ein Prompt (im MCP-Sinn) ist eine wiederverwendbare Textvorlage: ein Systemtext, ein Satz Beispiele, ein geführter Workflow. Der Mensch oder der Host startet einen Prompt — er wird nicht heimlich vom Modell aufgerufen.
+
+Beispiele:
+- Eine Vorlage für „Incident-Triage in unserem System"
+- Ein Few-Shot-Beispiel für sichere SQL-Abfragen
+- Ein vordefinierter Workflow für Code-Review
+
+**Analogie:** Prompts sind wie Checklisten oder Formulare, die immer wieder gleich ausgefüllt werden. Statt jedes Mal neu zu formulieren, nimmt man die Vorlage.
+
+### Ein Server kann alle drei gleichzeitig anbieten
+
+Ein Datenbank-Server könnte zum Beispiel haben:
+- **Resource:** Das Datenbankschema (Tabellen, Spalten, Typen)
+- **Tools:** Abfragen ausführen, Einträge erstellen
+- **Prompt:** Beispiele für sichere SELECT-Abfragen
+
+## Elicitation — Der Server fragt den Nutzer
+
+Manchmal braucht ein Server eine Information vom Menschen: „In welchem Zeitraum soll ich suchen?" oder „Willst du wirklich alle Einträge löschen?"
+
+Dafür gibt es **Elicitation**: Der Server kann über den Host eine Rückfrage an den Nutzer stellen. Das ersetzt das alte „Sampling" (bei dem der Server das Sprachmodell um eine Antwort bat) — Sampling ist in der aktuellen Protokollversion veraltet.
 
 ## Was MCP bewusst nicht ist
 
-MCP sagt nicht, wie der Host das Modell aufruft, wie du Context budgetierst oder wann ein Mensch mergen darf. Es standardisiert nur den Austausch. Deshalb ist „wir haben MCP“ keine Architektur. Es ist eine Steckdose. Die Verkabelung im Repo (Rules, Gates, Tests) bleibt deine Arbeit.
+MCP regelt **nur** die Verbindung zwischen Host und Server. Es sagt nicht:
+
+- Wie der Host das Modell aufruft
+- Wie du dein Context-Budget verwaltest (also wie viel Text ins Modell passt)
+- Wann ein Mensch einen Merge genehmigen darf
+- Wie du deine Agents-Architektur baust
+
+MCP ist eine Steckdose. Die Verkabelung im Projekt (Rules, Gates, Tests, Workflows) bleibt deine Arbeit. „Wir haben MCP" ist keine Architektur — es ist eine Grundvoraussetzung, wie „wir haben Strom".
 
 <Merksatz>
 Host orchestriert, Client verbindet, Server liefert. Tools handeln, Resources informieren, Prompts strukturieren. Wer die drei Rollen und die drei Primitives nicht trennen kann, verkauft ein Buzzword.

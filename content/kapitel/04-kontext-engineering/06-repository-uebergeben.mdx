@@ -1,45 +1,141 @@
 ---
 titel: Ein Repository agentenfähig übergeben
-dauerMinuten: 18
+dauerMinuten: 35
 zusammenfassung: "Die Checkliste von Angebot 2: Dateien, Gates, Probe-Lauf — danach bauen Gründer und Agenten ohne Onboarding-Call weiter."
 reihenfolge: 6
 ---
 
-Angebot 1 verdrahtet Agents in Repo, Tickets, Tests, CI. Angebot 2 endet mit einer **Übergabe, die Agenten lesen können**, nicht mit einem Slide „so arbeitet ihr jetzt“. Wenn der Gründer am Montag Cursor oder Claude Code auf das Repo setzt und der Agent als Erstes `npm` in einem `pnpm`-Repo erfindet, habt ihr nicht übergeben. Ihr habt deployt und gehofft.
+Du hast jetzt alle Bausteine kennengelernt: AGENTS.md, tool-spezifische Regeln, Skills und agentenlesbare Fachlogik. In dieser letzten Lektion geht es darum, wie du all das zu einem **funktionierenden Gesamtpaket** zusammensetzt — so, dass jemand (oder ein Agent) das Projekt zum ersten Mal öffnen und sofort produktiv arbeiten kann.
 
-## Das Paket, das im Repo liegen muss
+## Warum „Übergabe" mehr ist als „Dateien existieren"
 
-Pflicht, versioniert, ohne Secrets:
+Stell dir vor, du kaufst ein gebrauchtes Auto. Der Verkäufer sagt: „Hier sind die Schlüssel." Aber er erklärt dir nicht, dass das Lenkrad nach links zieht, dass der Tankdeckel nur mit einem Trick aufgeht und dass der Bordcomputer auf Englisch eingestellt ist. Technisch hast du alles bekommen. Praktisch stehst du nach 5 Minuten am Straßenrand.
 
-1. **`AGENTS.md` im Root** mit Bootstrap, Test, Lint, Verbote. Nested-Dateien in den heißen Packages.
-2. **Tool-Delta, dünn:** `.github/copilot-instructions.md` und/oder `CLAUDE.md` und/oder `.cursor/rules`, die auf AGENTS.md zeigen statt sie zu kopieren.
-3. **Mindestens ein Skill** für den Haupt-Workflow des Kunden (Feature-Schnitt, Hotfix, Migration). Description so, dass `/skill` und Autoload greifen.
-4. **Domain-Index:** Glossar plus Invarianten neben dem kanonischen Code.
-5. **CI-Gate:** derselbe Testbefehl wie in AGENTS.md, Required auf `main`. Der Cloud-Agent darf ohne grün nicht mergen, auch der Mensch nicht stillschweigend.
-6. **Ignore-Regeln:** `CLAUDE.local.md`, `.env`, lokale Skills mit URLs bleiben privat. Die Übergabe erklärt das in einer Zeile im README (menschlich) und in AGENTS.md (maschinell).
+Genau so fühlt sich ein Repository an, das Kontext-Dateien hat, aber nie **getestet** wurde: Dateien existieren, aber ein frischer Agent scheitert trotzdem, weil ein Befehl falsch ist, ein Pfad veraltet oder eine Invariante fehlt.
 
-Optional, oft wertvoll: Hook oder Check, der Secrets-Scan oder „nicht in `dist/` schreiben“ erzwingt. Bitte in Markdown ist keine Enforcement.
+**Echte Übergabe bedeutet:** Ein KI-Agent, der das Projekt noch nie gesehen hat, kann einen echten Auftrag erledigen — ohne dass jemand im Slack nachfragen muss.
 
-## Der Probe-Lauf ist Teil der Abnahme
+## Das Paket: Was im Repository liegen muss
 
-Übergabe heißt nicht „Dateien existieren“. Übergabe heißt: **ein frischer Agent in einem frischen Clone** schafft einen vereinbarten Mini-Auftrag ohne Slack.
+Hier ist die vollständige Checkliste. Alles muss versioniert sein (in Git), nichts davon enthält echte Geheimnisse:
 
-Protokoll, das ihr intern so fahrt:
+### 1. AGENTS.md im Root
 
-- neues Worktree oder frischer Clone, keine lokalen User-Rules, die das Ergebnis schönen
-- Auftrag aus einer Zeile, der den Skill oder die Domain trifft („füge Feld X hinzu, Tests grün“)
-- ihr messt: hat er AGENTS.md gelesen, den richtigen Package-Manager, den Testfilter, die Invariante?
-- Failures werden zur Patch-Liste an euren Kontext, nicht zum „nimm Opus“.
+Die Basis aus Lektion 1. Enthält:
+- Bootstrap-Befehle (wie starte ich das Projekt?)
+- Test-, Lint- und Typecheck-Befehle
+- Sicherheitsverbote
+- Grundlegende Konventionen
 
-Wenn der Agent die Invariante bricht, ist das Paket nicht fertig. Punkt. Das ist dasselbe Qualitätsverständnis wie ein roter Build.
+In Projekten mit mehreren Paketen oder Apps: **verschachtelte AGENTS.md-Dateien** in den wichtigsten Unterordnern (den „heißen Packages" — also den Bereichen, in denen der Agent am häufigsten arbeiten wird).
 
-## Was ihr dem Gründer sagt, und was nicht
+### 2. Tool-spezifische Dateien — dünn
 
-Sagt: hier startest du den Agenten, hier liegt der Skill, hier ist der Check, hier stoppst du bei Konflikt mit der Tabelle in `transitions.ts`. Sagt nicht: 40 Folien Tool-Vergleich. Der Gründer soll *weiterbauen*, nicht eure Tool-Religion übernehmen. AGENTS.md hält die Tür für Codex, Copilot, Cursor, Claude Code offen.
+Je nachdem, welche Tools im Einsatz sind:
+- `.github/copilot-instructions.md` für Copilot
+- `CLAUDE.md` für Claude Code
+- `.cursor/rules/` für Cursor
 
-Risiken, die ihr beim Namen nennt: Context-Drift (Dateien veralten), doppelte Wahrheiten, Skills die niemand triggert, Gates die in CI anders heißen als lokal. Gegenmittel ist Ownership: eine Person, ein PR-Label `context`, Review wie bei Code.
+Wichtig: Diese Dateien **zeigen auf AGENTS.md**, statt den Inhalt zu kopieren. Sie enthalten nur das tool-spezifische Delta (den Unterschied) — z. B. Cursor-spezifische Glob-Muster oder Claude-spezifische Skill-Namen.
 
-Damit schließt sich der Bogen. Kapitel 2 spezifiziert den einzelnen Prompt. Kapitel 3 wählt den Modus und die Schleife. Kapitel 4 macht beides zum **Repo-Bestandteil**. Das ist das Produkt, das OneCode verkauft.
+Warum? Weil kopierter Inhalt irgendwann auseinanderläuft. Dann steht in einer Datei „pnpm", in der anderen „npm", und der Agent wählt zufällig.
+
+### 3. Mindestens ein Skill
+
+Für den wichtigsten Arbeitsablauf des Teams: Feature-Entwicklung, Hotfix, Migration, was auch immer am häufigsten vorkommt.
+
+Die **Description** muss so geschrieben sein, dass der Agent den Skill sowohl über den Slash-Command als auch automatisch findet (Stichwort: konkrete Trigger-Wörter, wie in Lektion 4 erklärt).
+
+### 4. Domain-Index
+
+Das **Glossar** plus die wichtigsten **Invarianten**, platziert neben dem Code, den sie beschreiben (wie in Lektion 5 erklärt).
+
+### 5. CI-Gate
+
+Ein **CI-Gate** (Continuous Integration Gate) ist ein automatischer Prüfpunkt, der bei jedem Push läuft. Konkret: Der **exakte Testbefehl**, der in AGENTS.md steht, muss auch in der CI-Pipeline laufen — und zwar als **Required Check** (Pflichtprüfung) auf dem `main`-Branch.
+
+Warum ist das so wichtig? Wenn du dem Agenten sagst „führe `pnpm test` aus", er es tut, und die Tests grün sind — aber in CI ein anderer Befehl läuft und dort rot ist — dann hat dein Kontext gelogen. Der Agent hat alles richtig gemacht und das Ergebnis ist trotzdem kaputt.
+
+Die Regel: **Kein Merge ohne grünen Check.** Weder für den Agent noch für den Menschen.
+
+### 6. Ignore-Regeln
+
+Manche Dateien gehören nicht in Git und nicht in den Kontext des Agenten:
+- `CLAUDE.local.md` (lokale Einstellungen)
+- `.env`-Dateien (Umgebungsvariablen mit Secrets)
+- Lokale Skills mit kundenspezifischen URLs
+
+Die Übergabe erklärt diese Ausnahmen **an zwei Stellen**: einmal im README (für Menschen) und einmal in AGENTS.md (für Agenten).
+
+### Optional aber wertvoll
+
+- Ein **Hook** (ein automatisches Skript), das bei jedem Commit einen Secrets-Scan durchführt oder verhindert, dass jemand in `dist/` schreibt. Eine Bitte in einer Markdown-Datei ist keine Durchsetzung — ein Hook schon.
+
+## Der Probe-Lauf: Die echte Abnahme
+
+Das ist der wichtigste Teil der Übergabe, und der Teil, den die meisten überspringen.
+
+**Übergabe bedeutet nicht „Dateien existieren". Übergabe bedeutet: Ein frischer Agent in einem frischen Clone schafft einen echten Mini-Auftrag ohne Hilfe.**
+
+### Das Protokoll
+
+So testest du, ob deine Übergabe funktioniert:
+
+1. **Frischer Clone**: Klone das Repository in ein neues Verzeichnis. Keine lokalen Einstellungen, keine User-Rules, die das Ergebnis schönen. Der Agent startet mit **leerem Gedächtnis**.
+
+2. **Ein-Zeilen-Auftrag**: Gib dem Agenten eine einfache, aber echte Aufgabe, die den Skill oder die Fachlogik berührt. Zum Beispiel: „Füge das Feld `discount_reason` zum Invoice-Modell hinzu. Tests müssen grün sein."
+
+3. **Beobachte**: Hat der Agent AGENTS.md gelesen? Den richtigen Paketmanager verwendet? Den richtigen Testfilter? Die Invariante beachtet?
+
+4. **Fehler → Patch**: Wenn der Agent etwas falsch macht, ist das kein Grund, ein anderes Modell zu nehmen. Es ist ein Hinweis, dass in deinen Kontext-Dateien etwas fehlt. Schreib den fehlenden Satz dazu.
+
+**Wenn der Agent die Invariante bricht, ist das Paket nicht fertig.** Punkt. Das ist dasselbe Qualitätsverständnis wie bei einem roten Build in CI: Nicht ausliefern, erst fixen.
+
+## Was du der Person erklärst, die das Projekt übernimmt
+
+Halte es kurz und praktisch. Erkläre:
+
+- **Wo startet man den Agenten?** (Welches Tool, welcher Befehl)
+- **Wo liegt der Skill?** (Pfad und Slash-Command)
+- **Wo ist der Check?** (CI-Pipeline, Testbefehl)
+- **Wo stoppt man bei Konflikten?** (Invarianten-Datei, Stopp-Regel)
+
+Erkläre **nicht**: 40 Folien Tool-Vergleich. Die Person soll *weiterbauen*, nicht deine Tool-Religion übernehmen. AGENTS.md hält die Tür für alle Tools offen — Codex, Copilot, Cursor, Claude Code.
+
+## Risiken, die du beim Namen nennst
+
+Ehrlichkeit schafft Vertrauen. Diese Risiken existieren bei jeder Übergabe:
+
+### Context-Drift
+Die Kontext-Dateien veralten mit der Zeit. Jemand ändert den Testbefehl in CI, vergisst aber AGENTS.md zu aktualisieren. Nach drei Monaten stimmt nichts mehr.
+
+**Gegenmittel**: Ownership. Eine Person ist verantwortlich. Ein PR-Label `context` sorgt dafür, dass Änderungen an Kontext-Dateien nicht untergehen. Review wie bei Code.
+
+### Doppelte Wahrheiten
+Zwei Dateien sagen Unterschiedliches. Der Agent wählt zufällig.
+
+**Gegenmittel**: Eine Quelle der Wahrheit (AGENTS.md), alle anderen verlinken.
+
+### Skills, die niemand triggert
+Die Description ist zu vage oder zu spezifisch. Der Skill wird nie geladen.
+
+**Gegenmittel**: Probe-Lauf (siehe oben). Wenn der Agent den Skill nicht findet, ist die Description falsch.
+
+### Gates, die lokal anders heißen als in CI
+`npm test` lokal, `pnpm turbo test` in CI.
+
+**Gegenmittel**: Ein Befehl, eine Wahrheit, an beiden Stellen identisch.
+
+## Das Gesamtbild des Kapitels
+
+Dieses Kapitel hat einen Bogen geschlagen:
+
+- **Lektion 1–3**: Wie du verschiedenen Tools sagst, wie dein Projekt funktioniert (AGENTS.md, Cursor-Rules, CLAUDE.md, Copilot-Instructions)
+- **Lektion 4**: Wie du lange Verfahren als Skills auslagerst, damit sie nicht jeden Chat belasten
+- **Lektion 5**: Wie du Geschäftsregeln so aufschreibst, dass der Agent sie versteht und prüfen kann
+- **Lektion 6**: Wie du alles zusammenpackst und testest, ob es wirklich funktioniert
+
+Das Ergebnis: Ein Repository, das nicht nur von Menschen weiterentwickelt werden kann, sondern auch von KI-Agenten — zuverlässig, nachvollziehbar und ohne ständige Rückfragen.
 
 <Merksatz>
 Übergabe ist ein Probe-Lauf mit leerem Gedächtnis: Clone, Agent, Mini-Auftrag, grüner Check, getroffene Invariante. Dateien ohne diesen Lauf sind Dekoration.

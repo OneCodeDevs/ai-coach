@@ -1,37 +1,98 @@
 ---
 titel: Guardrails mit Tripwires
-dauerMinuten: 14
+dauerMinuten: 26
 zusammenfassung: Ein Guardrail, der nur im Prompt steht, ist eine Bitte. Ein Tripwire ist ein Abbruch.
 reihenfolge: 3
 ---
 
-Kunden verwechseln drei Dinge: Policy-Text im System-Prompt, ein Moderationsmodell und ein **Guardrail mit Tripwire**. Nur das Dritte stoppt den Lauf, bevor der teure Agent Schreibrechte ausübt oder der Output an den User geht. OpenAI’s Agents SDK macht das explizit: schlägt das Guardrail an, fliegt eine Exception, der Runner hält.
+## Die Grundidee: Sicherheitsnetze für KI-Agenten
+
+Stell dir einen Spielplatz vor. Ein **Guardrail** (Leitplanke) ist der Zaun drumherum — er soll verhindern, dass Kinder auf die Straße laufen. Ein **Tripwire** (Stolperdraht) ist ein Alarm, der auslöst und sofort jemanden ruft, wenn ein Kind über die Grenze geht. Der Zaun allein hält niemanden auf, wenn er nur aus Schildern besteht — er muss physisch da sein.
+
+Genau so ist es bei KI-Agenten (Programmen, die selbstständig Aufgaben erledigen, z. B. Code schreiben oder Mails verschicken). Kunden verwechseln häufig drei Dinge:
+
+1. **Policy-Text im System-Prompt** — eine Anweisung an das Modell wie „Tu nichts Gefährliches". Das ist eine **Bitte**. Das Modell kann sie ignorieren, missverstehen oder durch geschickte Eingaben austricksen lassen.
+
+2. **Ein Moderationsmodell** — ein zweites KI-System, das Inhalte prüft. Besser als nur ein Prompt, aber nicht perfekt — KI-Modelle können auch falsch urteilen.
+
+3. **Ein Guardrail mit Tripwire** — eine **echte Sperre**, die den Vorgang stoppt, bevor etwas Schlimmes passiert. Wenn der Alarm (Tripwire) auslöst, fliegt eine Exception (eine Fehlermeldung im Programm), und der Agent hält sofort an.
+
+Nur die dritte Variante **stoppt** tatsächlich, bevor der Agent Schreibrechte ausübt (also Dinge verändert) oder eine Antwort an den Benutzer rausgeht. OpenAIs Agents SDK (ein Software-Entwicklungspaket für KI-Agenten) macht das explizit: Schlägt das Guardrail an, wird eine Exception ausgelöst, und der Lauf (Runner) hält.
 
 ## Drei Stellen, drei Fragen
 
-1. **Input-Guardrail** — Darf dieser User-Input den Agenten überhaupt starten? Typisch: Jailbreak, Prompt Injection, Out-of-Scope (Mathehausaufgaben auf dem Support-Bot), Secret-Paste. Im SDK laufen Input-Guardrails nur beim *ersten* Agenten der Kette. Parallel (Default) ist schnell, aber der teure Agent hat oft schon Tokens verbrannt. **Blocking** (`run_in_parallel=False`) ist Pflicht, wenn Tools Side Effects haben oder ihr Kosten deckeln wollt.
-2. **Output-Guardrail** — Darf diese Antwort raus? PII, erfundene Rechtsauskunft, „führe das SQL aus“. Output-Guardrails laufen nach dem finalen Output — zu spät für bereits abgeschickte Mails, deshalb gehören Side Effects nicht in denselben Schritt wie den Chat-Text.
-3. **Tool-Guardrail** — Darf *dieser* Tool-Call mit *diesen* Argumenten laufen? Das ist die Stelle, die bei Excessive Agency zählt: `rm`, Production-DB, Zahlungs-API, `git push --force`. Input-Tool-Guardrails können den Call skippen oder ersetzen; Output-Tool-Guardrails können Secrets aus der Tool-Antwort schwärzen.
+Guardrails können an drei verschiedenen Stellen im Ablauf eines Agenten greifen:
 
-Ein Tripwire ist das Signal `tripwire_triggered=true`. Kein Höflichkeitssatz, keine Retry-Schleife ins Unendliche. Der Caller entscheidet: User-Fehler, Fallback-Modell, Mensch in der Queue.
+### 1. Input-Guardrail — „Darf dieser Input den Agenten starten?"
+
+Bevor der Agent überhaupt anfängt zu arbeiten, wird geprüft: Ist die Eingabe des Benutzers in Ordnung?
+
+Typische Fälle, die ein Input-Guardrail abfängt:
+- **Jailbreak** — ein Versuch, die Sicherheitsregeln des Modells zu umgehen („Ignoriere alle vorherigen Anweisungen und …")
+- **Prompt Injection** — versteckte Anweisungen in scheinbar harmlosem Text (mehr dazu in der OWASP-Lektion)
+- **Out-of-Scope** — jemand stellt dem Support-Bot Mathe-Hausaufgaben
+- **Secret-Paste** — jemand kopiert versehentlich ein echtes Passwort in den Chat
+
+Wichtig: Im Agents SDK laufen Input-Guardrails standardmäßig **parallel** zum Agenten — das heißt, der Agent hat eventuell schon angefangen zu arbeiten (und Tokens verbraucht, also Kosten erzeugt), bevor das Guardrail fertig geprüft hat.
+
+Für Fälle, in denen der Agent Dinge verändern kann (sogenannte **Side Effects** — Nebenwirkungen wie Dateien schreiben oder Mails verschicken) oder ihr Kosten deckeln wollt, gibt es die Option **Blocking** (`run_in_parallel=False`): Dann startet der Agent erst, wenn das Guardrail grünes Licht gibt.
+
+### 2. Output-Guardrail — „Darf diese Antwort raus?"
+
+Nachdem der Agent seine Arbeit getan hat, wird geprüft: Ist die Antwort, die er geben will, in Ordnung?
+
+Typische Fälle:
+- **PII** (Personally Identifiable Information — persönlich identifizierbare Informationen) wie Namen, Adressen, Kreditkartennummern in der Antwort
+- Erfundene Rechtsauskünfte
+- Gefährliche Anweisungen wie „Führe dieses SQL (Datenbankabfrage) aus"
+
+Aber Achtung: Output-Guardrails laufen **nach** dem Ergebnis. Wenn der Agent in einem vorherigen Schritt bereits eine Mail verschickt hat, ist es zu spät. Deshalb gilt: **Side Effects** (Aktionen, die nicht rückgängig gemacht werden können) gehören nicht in denselben Schritt wie den Chat-Text.
+
+### 3. Tool-Guardrail — „Darf dieser Werkzeug-Aufruf mit diesen Argumenten laufen?"
+
+Das ist die wichtigste Stelle für die Sicherheit. Wenn der Agent ein Werkzeug benutzen will (z. B. eine Datei löschen, eine Datenbank-Abfrage ausführen, Code committen), wird geprüft: Darf er das? Mit genau diesen Parametern?
+
+Hier greifen Guardrails bei **Excessive Agency** (übermäßige Handlungsmacht — wenn ein Agent zu viele Rechte hat):
+- `rm` (Löschbefehl) auf wichtige Dateien
+- Zugriff auf die Produktions-Datenbank
+- Zahlungs-APIs
+- `git push --force` (erzwungenes Überschreiben im Code-Repository)
+
+**Input-Tool-Guardrails** können den Aufruf ganz überspringen oder durch einen sicheren Aufruf ersetzen. **Output-Tool-Guardrails** können sensible Daten (z. B. Passwörter) aus der Antwort des Werkzeugs schwärzen, bevor der Agent sie sieht.
+
+## Was passiert, wenn ein Tripwire auslöst?
+
+Ein Tripwire ist das Signal `tripwire_triggered=true`. Kein höflicher Hinweis, keine endlose Wiederholungsschleife. **Der Lauf stoppt.**
+
+Dann entscheidet die Anwendung (nicht der Agent selbst):
+- War es ein **Benutzerfehler**? → Fehlermeldung anzeigen
+- Gibt es ein **Fallback-Modell** (eine Ersatzlösung)? → Einfacheres Modell einsetzen
+- Muss ein **Mensch** übernehmen? → Anfrage in die Warteschlange
 
 ## Deterministisch zuerst, Modell danach
 
-Ein Guardrail darf ein kleines, billiges Modell sein — OpenAI’s Lehrbuchbeispiel prüft mit einem schnellen Agenten, ob jemand Hausaufgaben durchschleusen will, bevor das teure Modell startet. Das ist richtig für Semantik. Es ist falsch als einzige Linie für Dinge, die Regex und Parser besser können:
+Ein Guardrail kann ein kleines, billiges KI-Modell sein — z. B. eins, das prüft, ob jemand Hausaufgaben durchschleusen will. Das ist richtig für **semantische** Prüfungen (inhaltliche Bedeutung).
 
-- API-Keys und `sk-` in Tool-Argumenten
-- JSON-Schema der Function-Call-Parameter
-- Allowlist für Domains, Pfade, Git-Refs
-- Maximale Diff-Größe, maximale Tool-Calls, maximale Kosten
+Aber es ist **falsch als einzige Schutzlinie** für Dinge, die einfache Programmlogik besser prüfen kann:
 
-Das Modell als Guardrail halluziniert Fails und Misses. Deterministische Checks sind langweilig und gewinnen Incidents. Die Kombination ist das Produkt, das ihr verkauft: **Schema und Policy-Code plus semantischer Check plus Tripwire.**
+- **API-Keys** und Passwörter in den Argumenten erkennen (z. B. Texte, die mit `sk-` beginnen) → einfacher Textvergleich
+- **JSON-Schema-Validierung** — passt der Werkzeug-Aufruf zum erwarteten Format? → Schema-Prüfer
+- **Allowlist** (Positivliste) für erlaubte Domains, Dateipfade, Git-Branches → einfacher Abgleich
+- **Maximale Diff-Größe**, maximale Anzahl Tool-Aufrufe, maximale Kosten → Zahlenvergleich
 
-## Was du im Kundengespräch nicht sagst
+Warum nicht einfach alles mit KI prüfen? Weil KI-Modelle als Guardrails **halluzinieren** — sie melden Probleme, die es nicht gibt (False Positives), und übersehen echte Probleme (False Negatives). Einfache, deterministische Prüfungen (Checks, die immer gleich reagieren) sind langweilig — und gewinnen echte Sicherheitsvorfälle.
 
-Nicht: „Wir schreiben in den System-Prompt, er soll nichts Gefährliches tun.“  
-Sondern: „Unerlaubte Inputs und Tool-Calls lösen einen Tripwire aus. Der Agent merget nicht. Ein Mensch oder ein Fallback übernimmt. Das steht in CI und im Runner, nicht nur in der Rule-Datei.“
+Die Kombination ist das Produkt, das ihr verkauft: **Schema- und Policy-Code plus semantischer KI-Check plus Tripwire.**
 
-Claude Code ist das Anschauungsobjekt: Permissions, Sandbox, fail-closed für unbekannte Commands, isolierter Context für Web-Fetch. Das ist Guardrail-Design, nicht Prompt-Poesie. Wenn der Kunde Copilot hat, hat er Autocomplete — kein Tripwire vor `apply_patch` auf `/auth`.
+## Was du im Kundengespräch sagst
+
+**Nicht:** „Wir schreiben in den System-Prompt, er soll nichts Gefährliches tun."
+
+**Sondern:** „Unerlaubte Eingaben und Werkzeug-Aufrufe lösen einen Tripwire aus. Der Agent merget nicht. Ein Mensch oder ein Fallback übernimmt. Das ist in der CI (der automatischen Prüfpipeline) und im Runner (dem Programm, das den Agenten ausführt) fest eingebaut — nicht nur in einer Textdatei."
+
+Claude Code ist das Anschauungsbeispiel: Es hat ein Berechtigungssystem, eine Sandbox (eine isolierte Umgebung), und unbekannte Befehle werden standardmäßig abgelehnt (fail-closed). Web-Inhalte werden in einem eigenen, isolierten Bereich geladen. Das ist **Guardrail-Design**, nicht Prompt-Poesie.
+
+Wenn der Kunde nur Copilot hat (Microsofts KI-Assistent für Code), hat er **Autocomplete** — aber kein Tripwire vor dem Befehl, der die Login-Seite verändert.
 
 <Merksatz>
 Ein Guardrail ohne Tripwire ist ein Kommentar. Tripwires gehören vor Side Effects; Prompts gehören in die Dokumentation des gewünschten Verhaltens.
