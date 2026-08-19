@@ -2,7 +2,7 @@ import "server-only";
 
 import { generateText, Output } from "ai";
 import { z } from "zod";
-import { getModel, isAnthropicProvider } from "@/lib/ai/provider";
+import { getModel } from "@/lib/ai/provider";
 import type { Kapitel, PraxisAufgabe } from "@/lib/content/schemas";
 import {
   praxisContext,
@@ -18,17 +18,10 @@ const praxisResultSchema = z.object({
 
 export type PraxisEvaluation = z.infer<typeof praxisResultSchema>;
 
-function cachedSystem(content: string) {
-  if (!isAnthropicProvider()) {
-    return { role: "system" as const, content };
-  }
-  return {
-    role: "system" as const,
-    content,
-    providerOptions: {
-      anthropic: { cacheControl: { type: "ephemeral" as const } },
-    },
-  };
+function systemPrompt(content: string): string {
+  // Important: The AI SDK rejects `role: "system"` inside the `messages` array.
+  // We therefore pass system instructions via the top-level `system` option.
+  return content;
 }
 
 export async function evaluatePraxis(input: {
@@ -37,17 +30,15 @@ export async function evaluatePraxis(input: {
   abgabe: string;
   versuch: number;
 }): Promise<PraxisEvaluation> {
+  const system = systemPrompt(
+    [PRAXIS_REVIEWER_SYSTEM_PROMPT, praxisContext(input.kapitel)].join("\n\n"),
+  );
+
   const result = await generateText({
     model: getModel("default"),
     output: Output.object({ schema: praxisResultSchema }),
-    messages: [
-      cachedSystem(PRAXIS_REVIEWER_SYSTEM_PROMPT),
-      cachedSystem(praxisContext(input.kapitel)),
-      {
-        role: "user",
-        content: praxisAufgabePrompt(input),
-      },
-    ],
+    system,
+    messages: [{ role: "user", content: praxisAufgabePrompt(input) }],
   });
 
   if (!result.output) {

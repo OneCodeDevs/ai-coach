@@ -2,7 +2,7 @@ import "server-only";
 
 import { generateText, Output } from "ai";
 import { z } from "zod";
-import { getModel, isAnthropicProvider } from "@/lib/ai/provider";
+import { getModel } from "@/lib/ai/provider";
 import type { Kapitel } from "@/lib/content/schemas";
 import {
   chapterContext,
@@ -43,17 +43,10 @@ const journalSchema = z.object({
   ),
 });
 
-function cachedSystem(content: string) {
-  if (!isAnthropicProvider()) {
-    return { role: "system" as const, content };
-  }
-  return {
-    role: "system" as const,
-    content,
-    providerOptions: {
-      anthropic: { cacheControl: { type: "ephemeral" as const } },
-    },
-  };
+function systemPrompt(content: string): string {
+  // Important: The AI SDK rejects `role: "system"` inside the `messages` array.
+  // We therefore pass system instructions via the top-level `system` option.
+  return content;
 }
 
 export async function evaluateAnswer(input: {
@@ -65,17 +58,15 @@ export async function evaluateAnswer(input: {
   answer: string;
   transcript: TranscriptTurn[];
 }): Promise<Evaluation> {
+  const system = systemPrompt(
+    [TUTOR_SYSTEM_PROMPT, chapterContext(input.kapitel)].join("\n\n"),
+  );
+
   const result = await generateText({
     model: getModel("default"),
     output: Output.object({ schema: evaluationSchema }),
-    messages: [
-      cachedSystem(TUTOR_SYSTEM_PROMPT),
-      cachedSystem(chapterContext(input.kapitel)),
-      {
-        role: "user",
-        content: questionPrompt(input),
-      },
-    ],
+    system,
+    messages: [{ role: "user", content: questionPrompt(input) }],
   });
 
   if (!result.output) {
@@ -102,12 +93,15 @@ export async function writeJournal(input: {
     })
     .join("\n\n");
 
+  const system = systemPrompt(
+    [JOURNAL_SYSTEM_PROMPT, chapterContext(input.kapitel)].join("\n\n"),
+  );
+
   const result = await generateText({
     model: getModel("eval"),
     output: Output.object({ schema: journalSchema }),
+    system,
     messages: [
-      cachedSystem(JOURNAL_SYSTEM_PROMPT),
-      cachedSystem(chapterContext(input.kapitel)),
       {
         role: "user",
         content: [
