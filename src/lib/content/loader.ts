@@ -83,6 +83,7 @@ export const listKapitel = cache(async (): Promise<Kapitel[]> => {
             erwartet: ["n/a"],
           },
         ],
+        praxis: [],
         zertifikate: [],
         dir: path.join(kapitelDir(), folder),
         lessons: [],
