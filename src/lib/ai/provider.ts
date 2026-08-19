@@ -16,7 +16,9 @@ function anthropicModel(kind: ModelKind): LanguageModel {
 }
 
 function googleModel(): LanguageModel {
-  return google(process.env.GOOGLE_MODEL ?? "gemini-2.5-flash");
+  // Gemini provider is periodically deprecating older model versions.
+  // Use a current default to avoid "no longer available" runtime errors.
+  return google(process.env.GOOGLE_MODEL ?? "gemini-3.6-flash");
 }
 
 function compatibleModel(name: string, baseURL: string, apiKey?: string, modelId?: string) {
