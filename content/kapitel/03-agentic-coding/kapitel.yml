@@ -1,0 +1,67 @@
+slug: agentic-coding
+nummer: 3
+titel: Agentic Coding in der Praxis
+untertitel: Autocomplete, Chat und Agent sind verschiedene Risikoklassen — und die Tools unterscheiden sich in Gate, Kontext und Git.
+dauerMinuten: 92
+lernziele:
+  - Autocomplete, Chat und Agent als unterschiedliche Risikoklassen erklären
+  - Cursor mit Rules, Plan-Modus und gezieltem Kontext produktiv nutzen
+  - Claude Code (CLAUDE.md, Plan, Verifikation) im Kundengespräch einordnen
+  - GitHub Copilot Agent Mode und Custom Instructions voneinander trennen
+  - Codex, Aider und Cline grob vergleichen, ohne Tool-Religion
+  - Plan-/Review-Schleifen und Human Quality Gates als Default verkaufen
+exam:
+  - id: drei-modi
+    topic: Autocomplete vs Chat vs Agent
+    frage: Worin unterscheiden sich Autocomplete, Chat und Agent in Risiko, Kontext und Kontrolle?
+    erwartet:
+      - Autocomplete vervollständigt lokal
+      - Chat antwortet, ändert nicht autonom die Welt
+      - Agent nutzt Tools über mehrere Schritte
+      - Risiko steigt mit Schreib- und Terminalzugriff
+  - id: cursor-praxis
+    topic: Cursor in der Praxis
+    frage: Wie steuerst du Cursor so, dass der Agent nicht das ganze Repo halluziniert?
+    erwartet:
+      - Rules und AGENTS.md als persistenter Kontext
+      - Dateien gezielt in den Context holen
+      - Plan vor großen Edits
+      - Rules gelten nicht für Tab
+  - id: claude-code
+    topic: Claude Code
+    frage: Welche Schleife empfiehlt Anthropic für Claude Code, und warum braucht der Agent einen Check?
+    erwartet:
+      - erst explorieren und planen, dann code
+      - CLAUDE.md für persistente Projektregeln
+      - Tests oder Build als Verifikation
+      - Context Window ist die knappe Ressource
+  - id: copilot-agent
+    topic: GitHub Copilot Agent Mode
+    frage: Was unterscheidet Copilot-Completions von Agent Mode, und wo liegen Custom Instructions?
+    erwartet:
+      - Completions sind Inline-Vorschläge
+      - Agent Mode darf mehrstufig Werkzeuge nutzen
+      - .github/copilot-instructions.md für das Repo
+      - Cloud-Agent arbeitet über Issues und PRs
+  - id: tool-vergleich
+    topic: Codex, Aider, Cline
+    frage: Wodurch unterscheiden sich Codex, Aider und Cline, wenn ein Kunde nach „dem einen Agenten“ fragt?
+    erwartet:
+      - Codex mit AGENTS.md und OpenAI-Ökosystem
+      - Aider ist git-zentriertes Pairing im Terminal
+      - Cline verlangt Freigabe pro Aktion
+      - kein Tool ersetzt Tests und Review
+  - id: plan-review
+    topic: Plan- und Review-Schleifen
+    frage: Wie sieht eine belastbare Agent-Schleife aus, und wie setzt du Kontext gezielt?
+    erwartet:
+      - Plan bestätigen vor dem Edit
+      - Diff reviewen, nicht den Chat
+      - nur nötige Dateien in den Context
+      - Mensch als Quality Gate vor Merge
+zertifikate:
+  - title: Accelerate AI-assisted development using GitHub Copilot (APL-2007)
+    url: https://learn.microsoft.com/en-us/credentials/applied-skills/accelerate-app-development-by-using-github-copilot/
+    anbieter: Microsoft Applied Skills
+    hinweis: Kostenloses Lab. Englisch. Gute Aufwärmrunde für Copilot, weniger agentic als das Issue-Lab.
+artefakt: Entscheidungsraster für Kundengespräche (Modus, Tool, Gate)

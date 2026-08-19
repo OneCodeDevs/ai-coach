@@ -1,0 +1,63 @@
+slug: vibe-to-production
+nummer: 7
+titel: Von Vibe Code zu Production Software
+untertitel: Fraunhofer-Risiken, einwöchiges Audit, Umbau der tragenden Teile, Übergabe an dich und deine Agenten.
+dauerMinuten: 94
+lernziele:
+  - Vibe Coding von KI-gestütztem Engineering unterscheiden und die Fraunhofer-Risiken einem Founder erklären können
+  - Ein Audit von Architektur und Datenmodell in einer Woche priorisieren
+  - Auth, Permissions und Secrets als Blocker für Production benennen
+  - Dependencies und Supply Chain im KI-generierten Repo prüfen
+  - Modulgrenzen und Tests an den schmerzhaften Stellen setzen
+  - CI, Fehlerbehandlung, Logging und agentenfähige Übergabe (Rules, Skills) skizzieren
+exam:
+  - id: vibe-coding
+    topic: Vibe Coding und Risiken
+    frage: Ein Founder sagt, der MVP laufe und sei mit Cursor entstanden. Was ist Vibe Coding nach Karpathy bzw. Fraunhofer, und welche Risiken musst du als erstes benennen?
+    erwartet:
+      - Natürlichsprachliche Steuerung statt zeilenweisem Verstehen
+      - Fraunhofer trennt Vibe Coding von KI-gestütztem Engineering
+      - Qualität, Security, fehlende Tests, Systemverständnis
+      - Halluzinierte Dependencies und rechtliche Unsicherheit
+  - id: architektur-audit
+    topic: Architektur und Datenmodell
+    frage: Was schaust du in Woche 1 an Architektur und Daten an, und was lieferst du dem Founder am Freitag?
+    erwartet:
+      - Modulgrenzen, Datenflüsse, Single Points of Failure
+      - Schema, Migrationen, wer wohin schreibt
+      - Priorisierte Risikoliste mit Aufwand
+      - Kein Big-Rewrite-Versprechen ohne Befund
+  - id: auth-secrets
+    topic: Auth, Permissions, Secrets
+    frage: Der Login wirkt fertig. Welche Fragen stellst du zu Auth, Berechtigungen und Secrets, bevor irgendetwas öffentlich geht?
+    erwartet:
+      - Wer ist authentifiziert vs. autorisiert
+      - Secrets nicht im Repo und nicht im Client
+      - Session, Cookies, Token-Lebensdauer
+      - Jede Route und jedes Tool mit demselben Modell
+  - id: supply-chain
+    topic: Dependencies und Supply Chain
+    frage: Warum ist die package.json eines vibe-codierten MVPs ein eigenes Audit-Thema?
+    erwartet:
+      - Halluzinierte oder aufgegebene Pakete
+      - Lockfile und gepinnte Versionen
+      - Unnötige Rechte und Postinstall-Skripte
+      - Lizenz- und Geheimnis-Leaks in Dependencies
+  - id: tests-grenzen
+    topic: Modulgrenzen und Tests
+    frage: Wo schreibst du zuerst Tests, und warum nicht überall?
+    erwartet:
+      - An Geld, Auth, Datenintegrität, öffentlichen APIs
+      - Grenzen, die der Agent sonst zerläuft
+      - Charakter-Tests gegen bestehendes Verhalten
+      - Fläche statt 100 Prozent Coverage
+  - id: uebergabe
+    topic: CI, Logging, agentenfähige Übergabe
+    frage: Was muss nach dem Umbau im Repo liegen, damit der Founder mit Agenten weiterbauen kann, ohne denselben Schutt zu erzeugen?
+    erwartet:
+      - CI auf jedem PR
+      - Fehlerbehandlung und Logging an den Rändern
+      - AGENTS.md, Rules, Skills
+      - Gates bleiben, Vibe nur in unkritischen Flächen
+artefakt: Ein-Wochen-Audit-Checkliste gegen ein reales Repo anwenden (Architektur, Datenmodell, Auth, Secrets, Dependencies, Tests, CI). Ergebnis ist eine priorisierte Risikoliste mit Aufwand, kein Rewrite-Plan aus dem Bauch.
+zertifikate: []

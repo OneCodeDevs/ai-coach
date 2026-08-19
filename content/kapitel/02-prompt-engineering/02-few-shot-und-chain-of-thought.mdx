@@ -1,0 +1,62 @@
+---
+titel: Few-Shot und Chain-of-Thought
+dauerMinuten: 15
+zusammenfassung: Beispiele zeigen das Muster, Chain-of-Thought den Weg — beides nur dort, wo Unsicherheit sitzt.
+reihenfolge: 2
+---
+
+Zwei Techniken werden ständig durcheinandergeworfen. **Few-Shot** sagt: so sieht gut aus, so sieht schlecht aus. **Chain-of-Thought (CoT)** sagt: denk die Zwischenschritte laut, bevor du die Antwort nennst. Beides kostet Token. Beides ist ein Werkzeug, kein Default.
+
+## Few-Shot: das Muster schlägt das Adjektiv
+
+„Schreibe idiomatisches TypeScript“ ist ein Wunsch. Zwei kurze Input/Output-Paare aus dem eigenen Repo sind eine Spezifikation: Import-Stil, Fehlerobjekt, Testnamen, wie ihr `Result` modelliert.
+
+Drei Regeln, die in Kundenrepos halten:
+
+1. **Echte Beispiele, keine erfundenen.** Das Modell kopiert den Ton und die Fehler der Samples. Halluzinierte Samples verdoppeln Halluzinationen.
+2. **Kanten zeigen, nicht nur den Happy Path.** Ein positives und ein negatives Beispiel verhindern, dass das Modell nur den Mittelwert der Prosa trifft.
+3. **Wenige, dichte Shots.** Drei klare Fälle schlagen zwölf redundante. Jedes Beispiel liegt dauerhaft im Context.
+
+Few-Shot ist die richtige Waffe bei Format, Klassifikation, Review-Kommentaren, Commit-Messages, Mapping von Ticket zu Dateien. Es ist die falsche Waffe, wenn das Repo das Pattern schon laut in Code ausdrückt. Dann lieber `@` auf die kanonische Datei statt sie ins Prompt zu kippen.
+
+Google und OpenAI behandeln Beispiele als Kernstrategie, nicht als Nice-to-have. Im Verkaufsgespräch: „Wir kalibrieren den Agenten an euren Diffs, nicht an Marketing-Adjektiven.“
+
+## Chain-of-Thought: Zwischenschritte, wo Schlussfolgerung nötig ist
+
+CoT hilft, wenn die Aufgabe **mehrere abhängige Urteile** braucht: Root-Cause vor Fix, Berechtigung vor Query, Invariante vor Refactor. Der klassische Trigger ist „arbeite die Prüfung schrittweise ab, nenne Annahmen, dann erst die Änderung“.
+
+Was CoT nicht ist:
+
+- kein Ersatz für Tests
+- kein Ersatz für das Lesen der Datei
+- kein Freibrief, 800 Token Begründung vor jede Rename-Zeile zu setzen
+
+Bei trivialem Code (Rename, Boilerplate, Schema-Feld hinzufügen) erzeugt CoT vor allem Lärm und zieht Unsicherheit in eine Aufgabe, die keine hat. Bei Agenten mit **Extended Thinking** oder Reasoning-Modellen ist ein Teil dieser Arbeit schon intern. Dann brauchst du im Prompt eher: „zeige die Entscheidung in drei Sätzen, nicht den gesamten inneren Monolog.“
+
+## Die Kombination, die sitzt
+
+Für Reviews und Incident-Analysen: Few-Shot für das **Ausgabeformat** (Finding, Schwere, Datei, Nachweis), CoT für die **Bewertung**. Für Implementierung: oft nur Few-Shot plus ein hartes Gate (`npm test`). Das Modell soll nicht philosophieren, es soll den Check grün kriegen.
+
+Wenn du CoT und Few-Shot mischst, trenne sie visuell. Sonst frisst das Beispiel die Denkschritte oder umgekehrt. XML-Tags (nächste Lektion) sind genau dafür da.
+
+<Merksatz>
+Few-Shot kalibriert Form und Urteil an Beispielen. CoT erzwingt Zwischenschritte, wo das Modell sonst zum Ergebnis springt. Beides ist teurer Context. Einsetzen, wo Unsicherheit sitzt, nicht wo das Repo schon spricht.
+</Merksatz>
+
+<Quelle
+  url="https://ai.google.dev/gemini-api/docs/prompting-strategies"
+  lang="en"
+  typ="Google — Gemini prompting strategies"
+  dauer="20 Min"
+  account={false}
+  excerpt="Provide examples to show the model the pattern you want. Break complex tasks into steps. Use chain-of-thought when the model must reason before answering, not when the task is a straightforward transform."
+/>
+
+<Quelle
+  url="https://www.kaggle.com/whitepaper-prompt-engineering"
+  lang="en"
+  typ="Kaggle / Lee Boonstra — Prompt Engineering whitepaper"
+  dauer="45 Min"
+  account={false}
+  excerpt="Few-shot prompting uses input-output examples to steer the model. Chain-of-thought prompting elicits intermediate reasoning. Both should be tested; more tokens are not automatically more quality."
+/>

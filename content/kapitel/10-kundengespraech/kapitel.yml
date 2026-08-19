@@ -1,0 +1,53 @@
+slug: kundengespraech
+nummer: 10
+titel: Das Kundengespräch
+untertitel: Drei Angebote in eigenen Worten, Discovery, Einwände, AI Act — und der skeptische CTO.
+dauerMinuten: 86
+lernziele:
+  - Die drei OneCode-Angebote mit Pitch, Pain und Lösung in eigenen Worten unterscheiden
+  - Discovery-Fragen stellen, die Founder und CTOs in den richtigen Offer-Slot führen
+  - Copilot-, Preis-, Risiko- und „unsere Devs machen das selbst“-Einwände ohne Defensive beantworten
+  - AI-Act-Pflichten nennen, die Softwareanbieter wirklich treffen — ohne Rechtsberatung zu spielen
+  - Ein simuliertes CTO-Interview zu Gates, MCP, Evals und Vibe-Code-Audit bestehen
+exam:
+  - id: drei-angebote
+    topic: Angebot 1 vs. 2 vs. 3
+    frage: "Ich bin CTO. In 90 Sekunden: Was ist der Unterschied zwischen eurem Delivery-System, dem Vibe-Code-Umbau und dem Quality-Gate — und welches davon brauche ich, wenn Copilot schon lizenziert ist?"
+    erwartet:
+      - Angebot 1 ist das System im Repo (Rules, Kontext, Agent-Tasks, Human Gates) für laufende Delivery
+      - Angebot 2 ist fester Scope, Prototyp zu Production, Audit plus Umbau plus agentenfähige Übergabe
+      - Angebot 3 ist Evals, Guardrails, PR-Gates, Observability, Fallbacks für KI-Code
+      - Copilot ist ein Tool, keines der drei Angebote; ohne System bleiben Tools lokal und ungeprüft
+  - id: discovery
+    topic: Discovery-Frage
+    frage: "Stellen Sie mir eine Discovery-Frage, die entscheidet, ob wir Angebot 1 oder 2 brauchen — und erklären Sie, warum die Frage das tut."
+    erwartet:
+      - Frage nach Zustand des Produkts (Last vs. Prototyp) oder nach System hinter den Tools
+      - Angebot 2 wenn MVP läuft aber nicht belastbar ist
+      - Angebot 1 wenn das Team schon liefert, aber Agents ohne Regeln und Gates arbeiten
+      - keine Feature-Liste, sondern Pain und Blast Radius
+  - id: copilot-einwand
+    topic: Einwand Copilot
+    frage: "Wir haben doch schon Copilot. Warum sollte ich euch bezahlen, statt die Lizenzen zu verdoppeln?"
+    erwartet:
+      - Copilot beschleunigt Tasten, ersetzt nicht Rules, Kontextmodell, Validierung
+      - unklar welcher Agent welche Aufgabe mit welchem Kontext fährt
+      - Quality Gates und Evals sind nicht in der Copilot-Lizenz enthalten
+      - Hands-on im Kundenrepo, keine Slides
+  - id: quality-gate
+    topic: Ein Quality Gate benennen
+    frage: "Nennen Sie ein konkretes Quality Gate, das vor dem Merge von Agent-Code greift — nicht ein Prinzip, ein Check."
+    erwartet:
+      - required CI-Check (Tests, Secret-Scan, SAST oder Eval-Smoke)
+      - oder Tool-Tripwire vor destruktiven Calls
+      - oder CODEOWNERS-Review auf Auth/Payments
+      - Mensch oder Maschine mit Abbruch, kein Wiki-Satz
+  - id: ai-act
+    topic: AI Act Pflicht für Softwareanbieter
+    frage: "Welche Pflicht aus der KI-Verordnung trifft uns als Softwarehaus wirklich — und was ist nur Folklore? Keine Kanzlei-Show."
+    erwartet:
+      - Art. 4 KI-Kompetenz für Personal, das KI betreibt oder nutzt (gilt unabhängig von Hochrisiko)
+      - Transparenz wenn Nutzer mit KI interagieren bzw. KI-Content (Art. 50-Richtung)
+      - Hochrisiko nur bei Anhang-III-Kontext, nicht automatisch jedes SaaS
+      - explizit keine Rechtsberatung, Verweis auf Text und Bitkom-Leitfaden
+zertifikate: []

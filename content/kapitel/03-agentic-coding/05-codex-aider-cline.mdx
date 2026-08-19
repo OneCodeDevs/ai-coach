@@ -1,0 +1,68 @@
+---
+titel: Codex, Aider, Cline im Vergleich
+dauerMinuten: 16
+zusammenfassung: Drei weitere Agenten, drei Philosophien — Git, Freigabe, Ökosystem. Keiner ersetzt das Gate.
+reihenfolge: 5
+---
+
+Kunden fragen nach dem einen Tool. Du antwortest mit Achsen. Cursor, Claude Code und Copilot hast du. Drei weitere tauchen in Ausschreibungen und in Senior-Teams auf: **OpenAI Codex**, **Aider**, **Cline**. Ziel ist nicht Vollständigkeit. Ziel ist, im Gespräch nicht ins Schwimmen zu geraten.
+
+## Codex (OpenAI)
+
+Codex ist OpenAIs Coding-Agent: CLI, IDE-Anbindung, Cloud-Jobs. Native Konvention ist **AGENTS.md** (OpenAI hat das Format mit vorangetrieben). Customization läuft über diese Datei plus projektlokale Config, nicht über ein `.mdc`-Ökosystem.
+
+Stärke: Anschluss an das OpenAI-Ökosystem, AGENTS.md als Lowest Common Denominator, gut wenn der Kunde schon GPT im Unternehmen standardisiert hat. Schwäche im Pitch: du musst trotzdem Tests, Secrets-Policy und Review bauen. Codex liest AGENTS.md, es erzwingt sie nicht wie ein Hook.
+
+## Aider
+
+Aider ist Pair-Programming im Terminal, hart an **Git**. Es mappt das Repo (tree-sitter), nimmt Dateien per `/add` in den Chat, schreibt Commits, kann Lint und Tests selbst fahren. Chat-Modi trennen Ask, Architect und Code: erst reden, dann Entwurf, dann Patch.
+
+Stärke: nachvollziehbare Diffs, wenig Magie, du siehst jeden Commit. Conventions-Datei (historisch `CONVENTIONS.md`, heute oft über `read: AGENTS.md` in `.aider.conf.yml`). Schwäche: kein volles IDE-Agent-UX, der Mensch bleibt nah am Loop. Für Kunden mit striktem Git-Workflow oft einfacher zu erklären als ein Cloud-Agent.
+
+## Cline
+
+Cline sitzt in VS Code, JetBrains und als CLI. Der Markenkern: **jede Aktion braucht Freigabe**. Lesen, Schreiben, Terminal, Browser. Du kannst das lockern, der Default ist Human-in-the-Loop auf Tool-Ebene.
+
+Stärke: sichtbar kontrollierbar, eigene Provider-Keys oder Cline-Abo, SDK für denselben Core in Automationen. Schwäche: der Loop ist langsamer, wenn jemand wirklich jede `sed`-Zeile klickt. Für regulierte Kunden ist genau das das Feature.
+
+## Das Raster für das Gespräch
+
+| Frage | Codex | Aider | Cline |
+| --- | --- | --- | --- |
+| Wo lebt der Agent? | CLI / IDE / Cloud | Terminal (+ Watch in der IDE) | Editor, CLI, Kanban |
+| Kontext-Datei | AGENTS.md | read-Files, Conventions | Instructions / Rules analog |
+| Git-Modell | Agent-Commits je nach Setup | Pairing mit Commits als Default | nach Freigabe |
+| Menschliches Gate | Config und Review | nah am Diff | Freigabe pro Tool-Call |
+
+Was du nicht tust: ein Tool zum Gewinner küren. Was du tust: Modus (Kapitelanfang), Gate, wo die Instructions liegen. OneCode liefert das System im Repo so, dass derselbe Standard (AGENTS.md, Tests, Skills) mehrere Clients füttert. Tool-Lock-in ist ein Risiko, das du beim Namen nennst.
+
+<Merksatz>
+Codex spielt im OpenAI- und AGENTS.md-Netz, Aider im Git-Diff, Cline in der expliziten Freigabe. Vergleichbar sind Gate und Kontext, nicht das Logo.
+</Merksatz>
+
+<Quelle
+  url="https://developers.openai.com/codex/concepts/customization"
+  lang="en"
+  typ="OpenAI — Codex customization"
+  dauer="15 Min"
+  account={false}
+  excerpt="Customize Codex with AGENTS.md and project-level configuration so the agent knows how to build, test and respect repo conventions."
+/>
+
+<Quelle
+  url="https://aider.chat/docs/"
+  lang="en"
+  typ="Aider — Documentation"
+  dauer="20 Min"
+  account={false}
+  excerpt="Aider is AI pair programming in your terminal. It is git-centric, uses a repository map, and lets you /add files, choose architect vs code modes, and run lint and tests."
+/>
+
+<Quelle
+  url="https://docs.cline.bot/cline-overview"
+  lang="en"
+  typ="Cline — Overview"
+  dauer="10 Min"
+  account={false}
+  excerpt="Cline is an editor- and terminal-native agent. Model access can be Cline-hosted or bring-your-own key. Approval before actions is the default control model."
+/>

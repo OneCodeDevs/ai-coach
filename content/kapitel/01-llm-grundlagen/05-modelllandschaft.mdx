@@ -1,0 +1,48 @@
+---
+titel: Modelllandschaft und Kostenmodelle
+dauerMinuten: 18
+zusammenfassung: Welches Modell für welchen Job — und warum der Context die Rechnung sprengt.
+reihenfolge: 5
+---
+
+Kunden hören Produktnamen. Du musst Kosten- und Eignungslogik hören. Drei Achsen reichen für ein Gespräch:
+
+1. **Fähigkeit** — Reasoning, Instruction-Following, Tool Use, langer Context
+2. **Latenz** — interaktiver Chat vs. Batch
+3. **Preis** — meist getrennt für Input- und Output-Token, oft mit Rabatt für Cache-Hits und Batch
+
+## Warum der teuerste Call nicht der teuerste Lauf ist
+
+Ein Agent liest viel und schreibt wenig. Input-Token dominieren. Eine 80k-Token-Codebasis in jedem Turn zu schicken, macht ein „günstiges“ Modell teurer als ein teures Modell mit hartem Context-Budget.
+
+**Prompt Caching** (bei Anthropic u. a.) senkt genau diese Wiederholungskosten: der statische System-Prompt plus Kapiteltext kostet nach dem ersten Write nur noch einen Bruchteil. Deshalb cachen wir in dieser Plattform den Tutor-System-Prompt.
+
+## Grobe Einsatzregel für OneCode
+
+- **Klein / schnell** (Haiku-Klasse, Flash, lokale 14B): Routing, Klassifikation, erstes Feedback, Routine-Edits
+- **Mittel** (Sonnet-Klasse): der Arbeitsalltag im Repo
+- **Groß** (Opus-Klasse, starke Reasoning-Modelle): harte Architektur, verfahrene Bugs, Auswertung
+- **Lokal**: Datenschutz, Offline, Demos ohne Cloud — mit ehrlichem Qualitätsabschlag
+
+Im Kundengespräch nie „wir nutzen immer Modell X“ sagen. Sagen: „wir matchen Modell an Risiko und Wiederholrate, und wir messen Token.“
+
+<Merksatz>
+Kosten sind Token mal Preis, nicht Modellname mal Bauchgefühl. Langer Context ohne Cache ist der stille Budgetkiller.
+</Merksatz>
+
+<Quelle
+  url="https://learn.microsoft.com/de-de/training/modules/fundamentals-generative-ai/"
+  lang="de"
+  typ="Microsoft Learn — Einführung in generative KI-Konzepte"
+  dauer="60 Min"
+  account={true}
+/>
+
+<Quelle
+  url="https://platform.claude.com/docs/en/about-claude/pricing"
+  lang="en"
+  typ="Anthropic — Pricing"
+  dauer="10 Min"
+  account={false}
+  excerpt="Input and output tokens are priced separately. Prompt caching can reduce the cost of repeated long prefixes substantially."
+/>

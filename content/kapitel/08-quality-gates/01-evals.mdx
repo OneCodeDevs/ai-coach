@@ -1,0 +1,72 @@
+---
+titel: Evals — von Bauchgefühl zu messbaren Kriterien
+dauerMinuten: 16
+zusammenfassung: Warum „fühlt sich besser an“ keine Qualitätssicherung ist, und wie du ein Eval als Test mit Grader baust.
+reihenfolge: 1
+---
+
+Ein Agent, der montags drei Tickets schließt und dienstags still Auth kaputt macht, „fühlt sich“ bis zum Incident gut an. Bauchgefühl ist kein Gate. Ein Eval ist ein Test: festes Input, definierter Erfolg, wiederholbarer Lauf. Ohne das kannst du weder ein Modell upgraden noch einen Prompt ändern, ohne zu hoffen.
+
+## Was ein Eval wirklich ist
+
+Anthropic trennt die Begriffe sauber, und genau so sollst du sie im Kundengespräch verwenden:
+
+- **Task** — ein Fall mit Input und Erfolgskriterium (Issue, Prompt, Fixture-Repo).
+- **Trial** — ein Versuch. Modelle variieren; ein Lauf ist Anekdote, fünf Läufe sind Signal.
+- **Grader** — Logik, die Transcript oder Outcome bewertet. Ein Task darf mehrere Grader haben.
+- **Transcript** — der komplette Verlauf inklusive Tool-Calls. „Der Agent hat Ja gesagt“ ist nicht dasselbe wie „in der Datenbank steht eine Buchung“.
+- **Outcome** — der Zustand der Welt nach dem Lauf. Bei Coding-Agents: Tests, Diff, Dateibaum.
+- **Harness** — die Infrastruktur, die Tasks parallel fährt, aufzeichnet und aggregiert.
+
+Der entscheidende Satz gegenüber einem Founder: **du evaluierst immer Modell plus Harness.** Claude Code ohne eure Rules ist ein anderes System als Claude Code mit euren Rules. Wer „wir haben GPT-x getestet“ sagt, hat oft nur das Modell getestet.
+
+## Capability versus Regression
+
+Zwei Suiten, zwei Passraten, sonst lügst du dir Qualität schön:
+
+1. **Capability-Evals** fragen: Was kann der Agent inzwischen? Die Passrate darf am Anfang niedrig sein. Das ist der Hügel, den ihr klettert.
+2. **Regression-Evals** fragen: Kann er noch, was er konnte? Die Passrate soll nahe 100 Prozent liegen. Fällt sie, ist etwas kaputt — nicht „das Modell ist kreativer geworden“.
+
+Tasks, die dauerhaft grün sind, **graduieren** in die Regression-Suite. Genau so vermeidest du, dass ihr an einem neuen Trick arbeitet und still den Checkout zerlegt.
+
+## Für Coding-Agents zuerst Code-Grader
+
+Software hat den Vorteil, den Chatbots nicht haben: der Compiler und die Testsuite sind billige, objektive Grader. SWE-bench bewertet genau so — fail-to-pass, ohne bestehende Tests zu brechen. Dein Minimum für Angebot 3 ist deshalb nicht ein Dashboard mit Smileys, sondern:
+
+1. eine kleine Bank echter Tickets oder synthetischer Bugs aus dem Kundenrepo,
+2. ein Fixture (Repo-Stand, Testdaten, Secrets als Dummies),
+3. ein **deterministischer** Grader: Testsuite, Typecheck, Lint, Secret-Scan,
+4. erst danach ein Modell-Grader für Dinge, die Tests nicht sehen (Überengineering, falsche Abstraktion, ignorierte Rules).
+
+OpenAI beschreibt denselben Zyklus als Flywheel: Produktionsfehler einsammeln, in die Eval-Menge heben, Prompt oder Gate ändern, erneut messen. Wer nur Gold-Beispiele aus dem Onboarding hat, misst Demo-Qualität. Wer Traces aus Production sampelt, misst Kundenqualität.
+
+<Merksatz>
+Ein Eval ist Input plus Grader plus Schwelle — wiederholt. „Sieht gut aus“ ist kein Grader. Ohne Regression-Suite ist jedes Modell-Upgrade ein Blindflug.
+</Merksatz>
+
+<Quelle
+  url="https://developers.openai.com/api/docs/guides/evals"
+  lang="en"
+  typ="OpenAI — Evals"
+  dauer="25 Min"
+  account={false}
+  excerpt="Evals let you measure model and agent behavior on a dataset with graders. Treat evaluation as an API resource you version, run, and compare — not as a spreadsheet on someone's laptop."
+/>
+
+<Quelle
+  url="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"
+  lang="en"
+  typ="Anthropic — Demystifying evals for AI agents"
+  dauer="40 Min"
+  account={false}
+  excerpt="An eval is a test: a task, trials, graders, a transcript and an outcome. You evaluate the agent harness and the model together. Capability evals climb; regression evals must not slip."
+/>
+
+<Quelle
+  url="https://cookbook.openai.com/examples/evaluation/building-an-evaluation-flywheel"
+  lang="en"
+  typ="OpenAI Cookbook — Evaluation flywheel"
+  dauer="30 Min"
+  account={false}
+  excerpt="Production traces become eval cases. Failed production behavior feeds the dataset, you change the system, and you re-run. That loop is how quality compounds instead of rotting after the demo."
+/>

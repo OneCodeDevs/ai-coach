@@ -1,0 +1,62 @@
+---
+titel: Discovery-Fragen für Founder und CTO
+dauerMinuten: 16
+zusammenfassung: Fragen, die den Offer-Slot öffnen — keine Feature-Tour, kein Tech-Bingo.
+reihenfolge: 2
+---
+
+Discovery ist nicht Smalltalk vor dem Pitch. Es ist die Arbeit, nach der du **ein** Angebot vorschlägst und die anderen bewusst liegen lässt. Wer nach fünf Minuten mit MCP-Namen um sich wirft, hat nicht entdeckt, der hat imponiert. Der skeptische CTO merkt den Unterschied.
+
+Sprich in Schmerzen, Blast Radius und System. Tools kommen später, sonst mappt ihr jedes Wehklagen auf das shiny Object der Woche.
+
+## Fragen, die Angebot 1 oder 2 trennen
+
+Das ist die wichtigste Gabel:
+
+1. **„Läuft bei euch schon Last vor Kunden — oder ein Prototyp, den ihr nicht anfassen wollt?“**  
+   Last + wachsendes Team + Agent-Chaos → eher 1. Prototyp, der „irgendwie live“ ist, Auth wackelt, keine Tests → eher 2.
+
+2. **„Welche Tools sind da — und was ist das System dahinter: Rules, Kontext, wer darf mergen?“**  
+   Lange Tool-Liste, leere Blicke bei Rules → Pain von 1. „Wir haben nur Cursor und einen Founder, der merget“ plus wackliges MVP → 2, danach 1.
+
+3. **„Wann ist zuletzt ein Agent-Diff in Production Schaden angelegt — und wie habt ihr das merkt?“**  
+   „Noch nicht, aber…“ ist Angebot 3 präventiv. „Ja, und Review hat’s nicht gesehen“ ist 3 plus vielleicht 1.
+
+## Fragen an den Founder (Business)
+
+- Was darf in acht Wochen auf keinen Fall passieren (Ausfall, Leak, Investoren-Demo)?
+- Wer trägt den Merge-Druck — du, ein CTO, niemand?
+- Muss Code die Firma verlassen (Cloud-LLM), oder ist lokal ein hartes Constraint?
+- Ist das Ziel Tempo (Features) oder Überleben (Stabilität, Security)? Beides sagen alle; eines ist wahr.
+
+## Fragen an den CTO (System)
+
+- Welcher Agent darf Shell, MCP, Deploy — mit wessen Credentials?
+- Gibt es required checks, die *rot den Merge blocken*, oder nur Höflichkeits-CI?
+- Existiert eine Eval oder nur Dogfooding?
+- Wo liegen Context Files — im Repo, in Köpfen, in Notion-Friedhöfen?
+- Wie groß ist das Repo, wie hart die Domainlogik? Agents sterben an beidem anders.
+
+## Fragen, die Angebot 3 allein rechtfertigen
+
+- Seht ihr Token-Kosten pro Feature oder nur die Monatsrechnung?
+- Wer wird gerufen, wenn der Agent um 2 Uhr eine Migration anfasst?
+- Dürfen wir an einem PR-Pfad ein Gate *stehen lassen*, wenn wir gehen — oder soll nur ein Workshop bleiben?
+
+## Disziplin
+
+Maximal eine klärende Nachfrage pro Antwort, dann spiegeln: „Ich höre X, das klingt nach Angebot Y, weil Z. Liege ich falsch?“ Falsch liegen ist erlaubt. Drei Angebote parallel „wir können alles“ ist nicht erlaubt.
+
+Schreibe nach dem Call drei Zeilen intern: ICP, Offer, härtestes Risiko. Wenn du das nicht kannst, war es ein nettes Gespräch, kein Discovery.
+
+<Merksatz>
+Discovery entscheidet 1, 2 oder 3 über den Zustand des Produkts und des Systems hinter den Tools — nicht über die Länge der Tool-Liste.
+</Merksatz>
+
+<Quelle
+  url="https://www.iese.fraunhofer.de/blog/vibe-coding-definition-potenziale-risiken/"
+  lang="de"
+  typ="Fraunhofer IESE — Wann Vibe Coding endet und Engineering beginnt"
+  dauer="15 Min"
+  account={false}
+/>

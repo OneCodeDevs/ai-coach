@@ -1,0 +1,76 @@
+---
+titel: Anatomie eines Prompts
+dauerMinuten: 16
+zusammenfassung: Rolle, Instruktion, Kontext und Format sind vier getrennte Jobs, keine Stilfrage.
+reihenfolge: 1
+---
+
+Ein Prompt ist kein Spruch, den man „gut formuliert“. Es ist eine Schnittstelle. Was du nicht spezifizierst, füllt das Modell mit Plausibilität. Bei Coding-Aufgaben ist Plausibilität oft der Bug.
+
+Die Hersteller sagen dasselbe mit anderen Worten. OpenAI: klarer Auftrag, Referenz, aufgeteilte Schritte. Anthropic: Claude wie eine brillante Neue, der die Hausregeln fehlen. Google: Strategie statt Magie. Für den Kundengespräch reicht ein Raster mit vier Teilen.
+
+## Die vier Teile
+
+1. **Rolle.** Wer spricht, mit welcher Policy. Nicht Cosplay.
+2. **Instruktion.** Was genau jetzt zu tun ist, in welcher Reihenfolge, mit welchem Stopp.
+3. **Kontext.** Das Material, auf dem die Antwort stehen soll: Datei, Fehler, Ticket, API-Vertrag.
+4. **Format.** Die Gestalt der Ausgabe, sodass ein Mensch oder ein Parser sie prüfen kann.
+
+Wenn einer der Teile fehlt, rät das Modell. Raten sieht in einem Chat höflich aus und in einem Diff teuer.
+
+## Rolle ist Policy, nicht Theater
+
+`Du bist ein Senior-Entwickler` ändert fast nichts. Modelle sind bereits auf Hilfsbereitschaft und Code trainiert. Die Rolle wird nützlich, wenn sie **Verbote, Prioritäten und Qualitätstore** trägt:
+
+- keine neuen Dependencies ohne Begründung
+- bestehende Patterns im Repo schlagen Greenfield
+- bei Unklarheit nachfragen statt erfinden
+- Tests vor dem Behaupten von „fertig“
+
+Das ist System-Verhalten. Es gehört oft in den System-Prompt oder in Rules, nicht in jeden Task neu.
+
+## Instruktion als Auftrag
+
+Die Instruktion ist ein Ticket, kein Mood. Schlecht: „Mach die Auth sauberer.“ Besser: „Ersetze Session-Cookies durch das bestehende JWT-Middleware in `src/auth`. Keine neuen Pakete. Danach `npm test` ausführen und nur mergen, wenn grün.“
+
+Nummerierte Schritte helfen, wenn die Reihenfolge zählt. Ein Satz reicht, wenn der Auftrag klein ist. Anthropics Faustregel ist brutal und brauchbar: zeig den Prompt einem Kollegen ohne Projektwissen. Wenn der ratlos ist, ist es das Modell auch.
+
+## Kontext als Grounding
+
+Kontext ist nicht „möglichst viel Repo“. Kontext ist das, ohne das die Instruktion unterbestimmt bleibt: die Datei mit dem Bug, der Stacktrace, der OpenAPI-Ausschnitt, zwei Gegenbeispiele. Alles andere ist Lärm und kostet Token in jedem Turn.
+
+Im Agent-Setup kommt Kontext oft über Tools (Lesen, Grep, Tests). Der Prompt muss dann sagen, **wonach** zu suchen ist, nicht den ganzen Baum einkopieren.
+
+## Format als Vertrag
+
+Ohne Format bekommst du Prosa, gemischt mit Code, gemischt mit Entschuldigungen. Mit Format bekommst du etwas, das CI, ein Reviewer oder der nächste Prompt-Schritt schlucken kann: Diff-only, JSON mit festen Keys, eine Liste von Dateipfaden, „PATCH dann TEST-OUTPUT“.
+
+Format ist keine Schönheit. Es ist die Stelle, an der du den Output maschinenlesbar und damit testbar machst.
+
+<Merksatz>
+Rolle setzt die Regeln, Instruktion den Auftrag, Kontext das Material, Format den Vertrag. Fehlt ein Teil, interpoliert das Modell — und Interpolation ist in Produktionscode ein Defect.
+</Merksatz>
+
+<Zitat
+  lang="en"
+  quelle="Anthropic"
+  text="Think of Claude as a brilliant but new employee who lacks context on your norms and workflows. The more precisely you explain what you want, the better the result."
+/>
+
+<Quelle
+  url="https://developers.openai.com/api/docs/guides/prompt-engineering"
+  lang="en"
+  typ="OpenAI — Prompt engineering"
+  dauer="25 Min"
+  account={false}
+  excerpt="Write clear instructions, provide reference text, split complex tasks into simpler subtasks, and give the model time to think. Treat prompting as an iterative specification, not a one-liner."
+/>
+
+<Quelle
+  url="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview"
+  lang="en"
+  typ="Anthropic — Prompt engineering overview"
+  dauer="15 Min"
+  account={false}
+  excerpt="Prompt engineering is the practice of writing clear, structured instructions so the model can do the job you actually want, instead of the job it infers."
+/>

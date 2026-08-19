@@ -1,0 +1,45 @@
+---
+titel: Tokenisierung und Embeddings
+dauerMinuten: 15
+zusammenfassung: Wie Text zu Zahlen wird, bevor ein Modell überhaupt nachdenken kann.
+reihenfolge: 1
+---
+
+Ein Sprachmodell sieht keinen Text. Es sieht Integer. Sobald du das verinnerlicht hast, werden Context-Limits, Kosten und seltsame Wortbrüche plötzlich erwartbar statt mysteriös.
+
+## Von Zeichen zu Token
+
+Tokenisierung zerlegt Text in Stücke, die das Modell kennt. Das sind selten ganze Wörter. Häufig sind es Teilworte, Satzzeichen oder häufige Buchstabenfolgen. `unbelievable` kann drei Token sein, ein Leerzeichen davor ein eigenes, und ein deutscher Umlaut kostet oft mehr als ein ASCII-Buchstabe.
+
+Zwei praktische Folgen für den Alltag:
+
+1. **Zählen ist nicht Zählen von Wörtern.** Eine Seite Prosa ist nicht dieselbe Tokenmenge wie eine Seite minifizierter JSON. Code, XML-Tags und Base64 sind token-ineffizient.
+2. **Das Modell kennt keine „Wörter“.** Es kennt Token-IDs. Deshalb kann es mitten im Wort umbrechen, seltsam hyphenieren oder bei seltenen Identifiers halluzinieren.
+
+Nach der Tokenisierung kommt die Einbettung: jede ID wird auf einen Vektor abgebildet. Ab da rechnet das Netz nur noch mit Geometrie.
+
+## Embeddings sind Bedeutung als Koordinate
+
+Ein Embedding ist ein Vektor, der semantische Nähe abbilden soll. Sätze mit ähnlicher Bedeutung liegen näher beieinander als Sätze, die nur dieselben Buchstaben teilen. Genau das nutzt semantische Suche und damit RAG: Dokumente werden eingebettet, die Frage ebenfalls, der nächste Nachbar kommt in den Prompt.
+
+Das ist kein Verstehen. Es ist eine brauchbare Annäherung. Deshalb scheitert RAG, wenn Chunks zu grob, zu klein oder ohne den nötigen Nachbar-Kontext geschnitten sind — nicht weil „das Modell dumm ist“.
+
+<Merksatz>
+Token sind die Währung des Modells. Embeddings sind die Karte, auf der ähnliche Bedeutungen Nachbarn sind. Beides ist Mechanik, kein Bewusstsein.
+</Merksatz>
+
+<Quelle
+  url="https://www.iese.fraunhofer.de/blog/wie-funktionieren-llms/"
+  lang="de"
+  typ="Fraunhofer IESE — Wie funktionieren LLMs?"
+  dauer="25 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://learn.microsoft.com/de-de/agent-framework/journey/llm-fundamentals"
+  lang="de"
+  typ="Microsoft Learn — Grundlagen von LLMs"
+  dauer="30 Min"
+  account={false}
+/>

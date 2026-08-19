@@ -1,0 +1,64 @@
+---
+titel: Agents in CI/CD
+dauerMinuten: 16
+zusammenfassung: Actions prüft jedes PR. Cloud Agents schreiben Branches. Review-Pflicht bleibt die Merge-Bedingung.
+reihenfolge: 5
+---
+
+GitHub Actions ist die Maschine, die bei Events im Repo läuft: Push, PR, Schedule, Issue geöffnet. Workflows liegen in `.github/workflows`, bestehen aus Jobs auf Runnern, Steps sind Skripte oder wiederverwendbare Actions. Das musst du einem Founder in zwei Minuten erklären können, weil „der Agent ist in der CI“ sonst heißt: irgendwo läuft YAML, niemand weiß weshalb.
+
+## Zwei Rollen, die nicht dieselbe YAML sind
+
+**CI als Gate.** Jeder Agent-PR löst denselben Workflow aus wie ein menschlicher PR: Install, Test, Lint, Secret-Scan, Build. Kein Sonderpfad „ist ja nur Copilot“. Required status checks in der Branch Protection. Wenn der Agent Tests „repariert“, indem er sie löscht, muss das entweder am Review oder an einer Policy (Coverage nicht unter X, Snapshot-Diff sichtbar) sterben.
+
+**Agent als Worker in Actions.** Copilot Cloud Agent läuft in einer kurzlebigen Umgebung, die GitHub Actions bereitstellt: Repo auschecken, Tests *in dieser Umgebung* fahren, commiten. Das ist nicht euer Prod-Deploy-Workflow. Minuten und AI Credits laufen auf. Timeout 59 Minuten, ein Repo, ein Branch. Automation kann Copilot bei Issue-Open oder nach Plan starten. Trotzdem: PR danach, Mensch davor mergen.
+
+Zusätzlich gibt es agentische Workflows in natürlicher Sprache auf GitHub. Für Kunden, die schon klassisches YAML haben, ist der erste Schritt fast immer: vorhandene CI härten, dann den Cloud Agent darauf setzen. Nicht YAML durch einen Chat ersetzen, der unbeobachtet deployt.
+
+## Review-Pflicht konkret
+
+- `main` geschützt. Kein Agent-Account in der Bypass-Liste, außer ihr habt das schriftlich als Risiko akzeptiert (Regelsätze können Copilot sonst sogar *blocken*, wenn nur bestimmte Autoren committen dürfen).
+- Mindestens ein menschlicher Reviewer. Copilot Code Review darf zusätzlich laufen und kostet ebenfalls Actions-Minuten auf privaten Repos.
+- Deploy-Job `environment: production` mit Required Reviewers. Agent-PR deployt nicht.
+- Secrets nur auf den Jobs, die sie brauchen. Der Agent-Runner bekommt keine Prod-Deploy-Keys.
+
+## Was OneCode im Repo anlegt
+
+1. Den bestehenden CI-Workflow so, dass `pull_request` auf Agent-Branches greift.
+2. Keine `push` nach `main` ohne Protection.
+3. Optional: Label oder Assignee `copilot` als Einstieg, nicht als Merge-Bot.
+4. Custom Instructions / `AGENTS.md`, die sagen: Tests nicht löschen, keine Secrets committen, PR-Text referenziert Issue.
+
+Der Quickstart von GitHub (Demo-Workflow auf `push`) ist zum Lernen der UI da, nicht zum Kopieren in Kunden-`main`. Sobald der erste Workflow existiert, gehört er versioniert und reviewed wie Anwendungscode.
+
+## Kundeneinwand „dann ist ja alles automatisch“
+
+Nein. Automatisch ist der Check. Automatisch darf der Agent einen roten PR grün kriegen, indem er echten Code ändert. Automatisch ist nicht die Produktentscheidung. Wer das vermischt, hat nach drei Monaten eine `main`, der nur noch Agenten verstehen.
+
+<Merksatz>
+CI ist das automatische Gate auf jedem PR, egal wer ihn geschrieben hat. Der Cloud Agent ist ein Worker auf einem Branch. Review-Pflicht und Production-Environment bleiben menschlich.
+</Merksatz>
+
+<Quelle
+  url="https://docs.github.com/de/actions/get-started/understand-github-actions"
+  lang="de"
+  typ="GitHub Docs — Grundlegendes zu Actions (Workflow, Job, Runner)"
+  dauer="20 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://docs.github.com/de/actions/get-started/quickstart"
+  lang="de"
+  typ="GitHub Docs — Actions-Schnellstart"
+  dauer="15 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://docs.github.com/de/copilot/concepts/agents/cloud-agent/about-cloud-agent"
+  lang="de"
+  typ="GitHub — Cloud Agent, Actions-Umgebung, Grenzen"
+  dauer="20 Min"
+  account={false}
+/>

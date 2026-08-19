@@ -1,0 +1,73 @@
+---
+titel: CI/CD, Fehlerbehandlung, Logging — und agentenfähige Übergabe
+dauerMinuten: 18
+zusammenfassung: Grün auf jedem PR, Fehler, die ihr seht, Rules, mit denen Agenten nicht denselben Schutt bauen.
+reihenfolge: 6
+---
+
+Der letzte Block von Angebot 2 ist Betrieb plus Übergabe. Der Founder soll nach den Umbau-Wochen *ohne euch* weiterbauen können, inkl. seiner Agenten. Dafür braucht das Repo dasselbe, was Kapitel 6 einem Engineering-Team gibt, nur oft zum ersten Mal: CI, sichtbare Fehler, und Kontext, der nicht im privaten Chat liegt.
+
+## CI/CD, diesmal als Mindeststandard
+
+Aus den [GitHub-Actions-Grundlagen](https://docs.github.com/de/actions/get-started/understand-github-actions): Workflow im Repo, Event `pull_request`, Job auf einem sauberen Runner, `npm ci`, Test, Lint, Build. [Schnellstart](https://docs.github.com/de/actions/get-started/quickstart) zeigt die Mechanik. Bei euch kommt dazu:
+
+- Branch Protection auf der Default-Branch: required checks, kein Direktpush, Review.
+- Preview-Deploys dürfen Secrets der *Preview*-Umgebung nutzen, nicht Prod.
+- Agent-PRs laufen durch dieselbe Pipeline. Kein Skip wegen „nur Docs“, wenn Docs ein Script mit ausführen.
+
+Ohne das ist jede lokale „es startet auf meinem Mac“-Demo Vibe in Production-Verkleidung.
+
+## Fehlerbehandlung und Logging
+
+Vibe-Apps schlucken Fehler (`catch { return null }`), zeigen Generic-500, loggen nichts Brauchbares oder alles inklusive Token. Sollzustand:
+
+- Fehlerklassen: 4xx mit klarer Ursache für den Client, 5xx ohne interne Stacks nach außen.
+- Timeouts und Retries an den Rändern (Stripe, LLM-Provider), nicht um die Domain-Invariante.
+- Strukturierte Logs: Request-ID, User-ID wenn erlaubt, Operation, Dauer. Keine Payloads mit PII defaultmäßig.
+- Alert auf Fehlerbudget an den Geld- und Auth-Pfaden, nicht auf jeden 404.
+
+Das ist die Brücke zu Angebot 3 (Quality Gate in Production). Für Angebot 2 reicht: ihr *seht*, wenn Billing oder Login bricht, bevor Twitter es sieht.
+
+## Agentenfähige Übergabe
+
+Kontext, den Agents brauchen, liegt im Repo, nicht in eurem Kopf. Anschluss an [Kontext-Engineering](/kapitel/kontext-engineering):
+
+- **`AGENTS.md` / Custom Instructions:** Architekturgrenzen, „nicht anfassen ohne Test“, Verbote (Secrets, Coverage löschen, `any` in Domain).
+- **Rules** kurz, budgetbewusst (Context Window aus Kapitel 1).
+- **Skills** für wiederholte Aufgaben: „neue API-Route mit Auth-Check und Test“, „Dependency nur mit Lockfile und Begründung“.
+- **MCP-Allowlist** ([Kapitel 5](/kapitel/mcp)): Filesystem aufs Repo, GitHub-Issues, keine Prod-DB.
+- **Human Quality Gates** ([Kapitel 6](/kapitel/agentic-workflows)): Merge und Prod bleiben menschlich.
+
+Die Übergabe-Session ist ein gemeinsamer Lauf: ein kleines Issue, Agent, CI, Review durch den Founder. Wenn er das Gate nicht bedienen kann, habt ihr Software übergeben, kein System.
+
+## Der Satz zum Abschluss des Angebots
+
+Vibe bleibt erlaubt auf unkritischen Flächen, *nachdem* die tragenden Teile Grenzen, Tests und CI haben. Wer weiter nur chattet, erzeugt denselben Schutt. Euer Artefakt aus Woche 1, die Checkliste, wird die Definition of Done für „dürfen wir live“. Alles, was auf der Blocker-Liste noch offen ist, geht nicht live. Das ist das Gespräch, für das der Founder euch bezahlt, nicht ein schönerer Gradient auf dem Landing-Button.
+
+<Merksatz>
+Production ist CI auf jedem PR, Fehler, die ihr beobachten könnt, und Regeln, die Agenten lesen. Die Übergabe ist ein System im Repo, kein ZIP und kein Chat-Export.
+</Merksatz>
+
+<Quelle
+  url="https://docs.github.com/de/actions/get-started/understand-github-actions"
+  lang="de"
+  typ="GitHub Docs — Actions-Komponenten"
+  dauer="20 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://docs.github.com/de/actions/get-started/quickstart"
+  lang="de"
+  typ="GitHub Docs — Ersten Workflow anlegen"
+  dauer="15 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://www.iese.fraunhofer.de/blog/vibe-coding-definition-potenziale-risiken/"
+  lang="de"
+  typ="Fraunhofer IESE — Hybrid: Prototyp plus Engineering"
+  dauer="10 Min"
+  account={false}
+/>

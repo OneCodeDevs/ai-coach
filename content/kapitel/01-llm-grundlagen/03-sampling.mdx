@@ -1,0 +1,44 @@
+---
+titel: Sampling und Temperature
+dauerMinuten: 12
+zusammenfassung: Warum Coding-Aufgaben fast immer kühl gesampelt werden sollten.
+reihenfolge: 3
+---
+
+Nach der Vorwärtsrechnung steht über dem Vokabular eine Wahrscheinlichkeitsverteilung. Sampling entscheidet, welcher Token als nächstes kommt. Temperature, Top-p und Top-k verdrehen diese Verteilung.
+
+## Temperature
+
+Temperature 0 (oder sehr nah dran) nimmt fast immer den wahrscheinlichsten Token. Das ist der Default für Code, Refactorings, Structured Output und alles, wo „kreativ“ teuer ist.
+
+Höhere Temperature macht seltene Token wahrscheinlicher. Gut für Brainstorming, schlecht für `import`-Zeilen. Ein Agent, der bei Temperature 1 APIs erfindet, ist kein Wunder — du hast Varianz bestellt.
+
+Wichtig gegenüber Kunden: **Temperature 0 ist nicht bitweise deterministisch.** Batching, Floating-Point und Provider-Implementierung können trotzdem divergieren. Für Reproduzierbarkeit brauchst du zusätzlich Seeds wo der Anbieter sie anbietet, plus Evals — nicht nur den Slider.
+
+## Top-p und Top-k
+
+- **Top-k** behält nur die k wahrscheinlichsten Token.
+- **Top-p (Nucleus)** behält die kleinste Menge, deren Wahrscheinlichkeitssumme p erreicht.
+
+Beide beschneiden den langen Schwanz. In der Praxis stellst du Temperature und lässt Top-p bei einem vernünftigen Default (oft 1.0 oder 0.9), statt an drei Knöpfen gleichzeitig zu drehen. Ein Parameter, den du erklären kannst, schlägt drei, die sich gegenseitig aufheben.
+
+<Merksatz>
+Für Implementierungsarbeit: Temperature niedrig. Varianz ist ein Feature für Ideen und ein Bug für Compiler.
+</Merksatz>
+
+<Quelle
+  url="https://www.iese.fraunhofer.de/blog/wie-funktionieren-llms/"
+  lang="de"
+  typ="Fraunhofer IESE — Dekodierung, Greedy, Top-k"
+  dauer="20 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://ai.google.dev/gemini-api/docs/prompting-strategies"
+  lang="en"
+  typ="Google — Prompt design strategies (Parameter)"
+  dauer="15 Min"
+  account={false}
+  excerpt="Temperature controls randomness. Lower temperatures are better for deterministic tasks; higher temperatures increase diversity in the model's responses."
+/>

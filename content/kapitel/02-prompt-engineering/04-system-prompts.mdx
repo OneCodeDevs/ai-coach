@@ -1,0 +1,67 @@
+---
+titel: System-Prompts und Custom Instructions
+dauerMinuten: 14
+zusammenfassung: Dauerhafte Policy gehört ins System, der Auftrag in die User-Message — sonst gewinnt der letzte Satz.
+reihenfolge: 4
+---
+
+Produkte nennen es unterschiedlich: System Prompt, Custom Instructions, User Rules, Repo-Instructions. Der Mechanismus ist derselbe. Es gibt einen Kanal, der **bei jedem Turn** gilt, und einen Kanal für **diese Aufgabe**. Wer beides vermischt, bekommt entweder eine Policy, die nach zwei Chats vergessen ist, oder einen System-Text, der das eigentliche Ticket erdrückt.
+
+## Was in den System-Kanal gehört
+
+Nur was in *jeder* Interaktion wahr bleiben soll:
+
+- Sprache und Ton (kurz, Deutsch, keine Motivationsfloskeln)
+- harte Verbote (keine Secrets committen, `dist/` nicht anfassen)
+- Qualitätsgate (Tests laufen, Diff klein halten)
+- Produktgrenzen (dieser Agent ändert kein Schema ohne Migration)
+
+Das ist Policy. Sie darf konkret sein. „Sei hilfreich“ ist keine Policy. „Wenn der Build rot ist, ist die Aufgabe nicht fertig“ ist eine.
+
+Anthropic und OpenAI behandeln die System-Message als den Ort für Rolle und dauerhafte Regeln. Dieselben Inhalte tauchen in ChatGPT, Claude.ai, Copilot und Cursor als **Custom Instructions** oder Rules wieder auf. Für den Kunden: ein Dokument, drei Dateinamen, gleicher Job.
+
+## Was in den Task gehört
+
+Alles, was nur jetzt gilt: Ticket, Stacktrace, Ziel-Branch, „rühr `src/legacy` nicht an **in diesem** PR“. Wenn du das ins System schiebst, gilt es morgen noch und sabotiert den nächsten Auftrag.
+
+Eine brauchbare Trennung für Coding-Agenten:
+
+| Kanal | Inhalt | Lebensdauer |
+| --- | --- | --- |
+| System / Instructions / Rules | Konventionen, Verbote, Gates | Repo-Leben |
+| User / Chat | Auftrag, Dateien, Akzeptanz *dieser* Änderung | ein Lauf |
+
+Microsoft Copilot-Trainings und die Custom-Instructions-Doku drehen sich genau um diese Trennung: organisationsweit und repo-weit das Stabile, im Chat das Ticket.
+
+## Custom Instructions sind kein Roman
+
+Jede Zeile im System-Kanal liegt in **jedem** Request. Kapitel 1: Context ist Budget. Ein 2.000-Zeilen-Manifesto macht zwei Dinge gleichzeitig: es kostet Geld und es senkt die Trefferquote, weil die aktuelle Instruktion im Rauschen untergeht.
+
+Praxis:
+
+- System kurz, stichpunktartig, prüfbar
+- lange Verfahren nicht ins System, sondern in ein Dokument, das der Agent bei Bedarf liest (Kapitel 4: Skills)
+- Widersprüche zwischen System, Repo-Instructions und User-Prompt aktiv suchen. Bei Konflikt gewinnt oft der letzte oder der spezifischste Satz, nie „der vernünftigste“.
+
+Im Kundengespräch nicht „wir schreiben einen genialen System-Prompt“ verkaufen. Verkaufen: „wir trennen Hausordnung und Ticket, und wir messen, ob die Hausordnung noch gelesen wird.“
+
+<Merksatz>
+System-Prompt und Custom Instructions sind die Hausordnung. Der Task ist das Ticket. Hausordnung kurz und hart, Ticket konkret. Was nur einmal gilt, hat im System nichts verloren.
+</Merksatz>
+
+<Quelle
+  url="https://learn.microsoft.com/de-de/training/paths/copilot/"
+  lang="de"
+  typ="Microsoft Learn — Copilot Learning Path"
+  dauer="mehrere Module"
+  account={true}
+/>
+
+<Quelle
+  url="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+  lang="en"
+  typ="Anthropic — System vs. task prompting"
+  dauer="15 Min"
+  account={false}
+  excerpt="Put durable role, constraints and output rules in the system prompt. Keep the user turn for the actual task. Long system prompts consume context on every call."
+/>

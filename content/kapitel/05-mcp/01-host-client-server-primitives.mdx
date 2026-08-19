@@ -1,0 +1,71 @@
+---
+titel: Host, Client, Server und die Primitives
+dauerMinuten: 16
+zusammenfassung: MCP ist USB-C für Agenten — Host steuert, Client verbindet, Server liefert Tools, Resources und Prompts.
+reihenfolge: 1
+---
+
+MCP ist kein Modell und kein Agent. Es ist ein offenes Protokoll, mit dem eine KI-Anwendung standardisiert an Daten, Tools und vorbereitete Workflows andockt. Die Analogie aus der Spezifikation sitzt: USB-C für Geräte, MCP für Agenten. Einmal gebaut, an viele Hosts anschließbar.
+
+## Drei Rollen, die Kunden durcheinanderwerfen
+
+Die Spezifikation trennt drei Teilnehmer. Wenn du die im Gespräch vermischt, klingt „wir machen MCP“ nach Magie.
+
+1. **Host** ist die KI-Anwendung: Cursor, VS Code mit Copilot, Claude Desktop, Claude Code. Der Host orchestriert, zeigt Zustimmungsdialoge und entscheidet, welcher Kontext ins Modell geht.
+2. **Client** ist die Verbindungskomponente *im* Host. Pro Server ein Client, eine dedizierte Verbindung. VS Code, das Sentry und ein lokales Filesystem anbindet, hat zwei Clients, nicht „einen MCP“.
+3. **Server** ist das Programm, das Kontext und Fähigkeiten bereitstellt. Lokal über stdio (Kindprozess, stdin/stdout) oder remote über Streamable HTTP.
+
+„Server“ heißt hier nicht „läuft in der Cloud“. Der Filesystem-Server von Anthropic ist ein lokaler Prozess. Der Sentry-Server läuft bei Sentry. Beides sind MCP-Server.
+
+## Zwei Schichten
+
+Die **Datenschicht** spricht JSON-RPC 2.0: Discovery, Tools, Resources, Prompts, Notifications. Ab der Protokollversion `2026-07-28` ist das Protokoll auf dieser Ebene zustandslos: jede Anfrage trägt Version und Capabilities mit, der Client kann `server/discover` schicken, bevor er Tools aufruft.
+
+Die **Transportschicht** ist der Kanal: stdio lokal, Streamable HTTP remote. OAuth und Bearer-Tokens gehören zum Transport, nicht zur Semantik der Tools. Derselbe JSON-RPC-Body, anderer Weg.
+
+## Die drei Server-Primitives
+
+Das ist der Teil, den du auswendig können musst.
+
+- **Tools** sind ausführbare Funktionen. Das Modell wählt sie, der Host ruft sie auf. Datei schreiben, Issue kommentieren, SQL ausführen: das sind Tools. `tools/list` zum Entdecken, `tools/call` zum Ausführen.
+- **Resources** sind Datenquellen, kein Code. Schema einer Datenbank, Inhalt einer Datei, API-Antwort. Der Host zieht sie als Kontext, ohne dass das Modell „handeln“ muss.
+- **Prompts** sind wiederverwendbare Vorlagen: Systemtexte, Few-Shots, geführte Workflows. Der Mensch (oder der Host) startet sie; sie sind keine versteckten Tools.
+
+Ein Datenbank-Server kann alle drei gleichzeitig anbieten: Resource für das Schema, Tools für Queries, Prompt mit Beispielen für sichere SELECT-Muster.
+
+Clients können dem Server **Elicitation** anbieten: der Server fragt den Nutzer nach. Sampling (Server bittet den Host um ein LLM-Completion) ist in `2026-07-28` deprecated. Neue Server holen sich das Modell nicht über MCP, sondern über die Provider-API.
+
+## Was MCP bewusst nicht ist
+
+MCP sagt nicht, wie der Host das Modell aufruft, wie du Context budgetierst oder wann ein Mensch mergen darf. Es standardisiert nur den Austausch. Deshalb ist „wir haben MCP“ keine Architektur. Es ist eine Steckdose. Die Verkabelung im Repo (Rules, Gates, Tests) bleibt deine Arbeit.
+
+<Merksatz>
+Host orchestriert, Client verbindet, Server liefert. Tools handeln, Resources informieren, Prompts strukturieren. Wer die drei Rollen und die drei Primitives nicht trennen kann, verkauft ein Buzzword.
+</Merksatz>
+
+<Quelle
+  url="https://modelcontextprotocol.io/docs/2026-07-28/getting-started/intro"
+  lang="en"
+  typ="MCP — What is the Model Context Protocol?"
+  dauer="15 Min"
+  account={false}
+  excerpt="Think of MCP like a USB-C port for AI applications. MCP provides a standardized way to connect AI applications to external systems."
+/>
+
+<Quelle
+  url="https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture"
+  lang="en"
+  typ="MCP — Architecture overview (Host, Client, Server, Primitives)"
+  dauer="25 Min"
+  account={false}
+  excerpt="MCP Host is the AI application. MCP Client maintains a connection to a server. Servers expose tools, resources and prompts."
+/>
+
+<Quelle
+  url="https://modelcontextprotocol.io/specification/2026-07-28"
+  lang="en"
+  typ="MCP Specification 2026-07-28"
+  dauer="Nachschlagewerk"
+  account={false}
+  excerpt="Hosts initiate connections. Clients are connectors within the host. Servers provide context and capabilities via JSON-RPC 2.0."
+/>

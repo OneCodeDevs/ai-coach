@@ -1,0 +1,70 @@
+---
+titel: Quality Gates im Pull Request
+dauerMinuten: 15
+zusammenfassung: Der PR ist das Produkt-Gate. Agent-Code merget nur, wenn Maschinen und ein gezielter Mensch Ja sagen.
+reihenfolge: 4
+---
+
+Angebot 3 verkauft nicht ein Dashboard. Es verkauft den Moment vor dem Merge: **darf dieser Diff in `main`?** AI-Code entsteht schneller als Reviews. Wenn euer Gate „ein Mensch scrollt 800 Zeilen“ ist, habt ihr kein Gate, ihr habt Hoffnung. Der Pull Request ist die richtige Naht, weil Git, CI und CODEOWNERS schon existieren. Ihr hängt Evals und Policy dort ein, wo das Team ohnehin merget.
+
+## Was die Maschine entscheiden muss
+
+Required checks, nicht optionale Kommentare:
+
+1. **Grüne Tests** auf dem Zielbranch-Stand, inklusive der Tests, die das Ticket verlangt. Fehlen Tests für den geänderten Pfad, ist das ein Fail — nicht ein „bitte noch Tests“-Emoji.
+2. **Typecheck / Lint** auf dem berührten Tree. Agents lieben Drive-by-Formatierungen; das Gate darf den Diff nicht mit Style-Noise unlesbar machen, aber es darf kaputte Types nicht durchlassen.
+3. **Secret-Scan und Dependency-Audit** auf Diff und Lockfile. Agents kopieren `.env.example` gerne zu echt.
+4. **SAST / Semgrep** auf High-Confidence-Rules für den Stack (SQL, XSS, insecure defaults). Nicht 4000 Infos, sondern die Rules, die ihr wirklich blockt.
+5. **Eval-Smoke** wo es weh tut: eine kleine Suite (zehn Tasks), die den Agenten oder zumindest den geänderten Prompt-Pfad in CI anstupst. Vollsuite nachts, Smoke am PR.
+
+Der Agent, der den Feature-Diff schreibt, darf **nicht** der einzige Autor der Tests sein, auf die ihr euch verlasst. Entweder existieren die Tests vorher (TDD-Gate, fail-to-pass), oder ein zweiter Lauf / Mensch / festes Fixture prüft Unabhängigkeit. Sonst optimiert ihr auf „Agent täuscht Agent“.
+
+## Was der Mensch entscheiden muss
+
+Menschen sind teuer. Verschwendet sie nicht auf Import-Sortierung. **Human Quality Gates** hängen an Blast Radius:
+
+- Auth, Sessions, Permissions, Payments, PII-Pipelines
+- Schema-Migrationen und destruktive Jobs
+- CI-Config, GitHub Actions, Deploy-Keys, MCP-Server-Erlaubnis
+- neue Tools und neue Netz-Egress-Regeln für Agents
+
+CODEOWNERS plus `required review` auf diesen Pfaden. Der Reviewer prüft nicht Schönheit, sondern: Ist der Failure Mode benannt? Ist das Privilege minimal? Gibt es ein Rollback?
+
+Labelt Agent-PRs (`agent`, Modell, Eval-Score). Dann könnt ihr in sechs Wochen sagen, welche Klasse von Diffs Incidents baut — das ist die Transparenz, die der Pain von Angebot 3 verlangt.
+
+## Policy as Code, nicht Wiki
+
+Rules im Repo (was der Agent lesen soll) und Gates in CI (was ihn stoppt) sind zwei Schichten. Die Rule sagt „keine Secrets committen“. Das Gate *findet* das Secret. Beides verkaufen. Ein Wiki-PDF „AI Policy“ überzeugt keinen skeptischen CTO, ein roter required check schon.
+
+Analogie, die sitzt: ihr würdet menschlichen Juniors auch nicht ohne CI mergen. Der Agent ist ein sehr schneller Junior mit perfektem Selbstbewusstsein. Das Gate ist dieselbe Höflichkeit, nur strikter.
+
+<Merksatz>
+Der PR ist das Quality Gate: Maschinen für Wiederholbares, Menschen für Irreversibles. Tests vom selben Agenten sind keine zweite Meinung.
+</Merksatz>
+
+<Quelle
+  url="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"
+  lang="en"
+  typ="Anthropic — Coding-agent graders in the loop"
+  dauer="20 Min"
+  account={false}
+  excerpt="Deterministic tests, static analysis and tool-call checks belong in the evaluation of coding agents. A PR gate is that same idea applied to the merge: fail-to-pass plus analysis, not vibe review."
+/>
+
+<Quelle
+  url="https://code.claude.com/docs/en/security"
+  lang="en"
+  typ="Claude Code — Permissions and review"
+  dauer="15 Min"
+  account={false}
+  excerpt="Users remain responsible for reviewing proposed code and commands. Auto-approving edits is a mode, not a production merge policy. Treat CI required checks as the organizational equivalent of those permissions."
+/>
+
+<Quelle
+  url="https://developers.openai.com/api/docs/guides/evals"
+  lang="en"
+  typ="OpenAI — Evals in the development loop"
+  dauer="10 Min"
+  account={false}
+  excerpt="Run evals when prompts, tools or models change. Wiring a smoke eval into CI is how a score becomes a merge blocker instead of a slide."
+/>

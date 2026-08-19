@@ -1,0 +1,70 @@
+---
+titel: Skills als versionierte Workflows
+dauerMinuten: 18
+zusammenfassung: Ein Skill ist ein Verfahren im Repo, das nur bei Treffer in den Context kommt — im Gegensatz zu immer-an-Rules.
+reihenfolge: 4
+---
+
+Rules und AGENTS.md beantworten: *wie ist dieses Repo*. Skills beantworten: *wie führen wir diesen Job aus*. Das ist der Unterschied, den Anthropic in den Docs und in der Academy-Schulung einzieht, und den OneCode in Angebot 1 als Liefergegenstand braucht.
+
+## Was ein Skill physisch ist
+
+Ein Ordner mit `SKILL.md`. YAML-Frontmatter mindestens mit **Name** und **Description** (die Description entscheidet, ob der Agent den Skill von allein zieht). Darunter Markdown: Schritte, Checks, Verbote. Daneben optional `references/`, Scripts, Templates.
+
+Skills folgen einem offenen Dateiformat (Agent Skills), über Claude Code hinaus. In Claude Code liegen Projekt-Skills unter `.claude/skills/billing-release/SKILL.md`, persönliche unter `~/.claude/skills/`. Invocation per Slash-Command oder automatisch, wenn die Description zum Request passt. Alte Dateien in `.claude/commands/` sind in Skills aufgegangen.
+
+Cursor kennt inzwischen eigene Skills analog: wiederkehrende Workflows, nicht immer im Fenster.
+
+## Progressive Disclosure ist das Budget-Argument
+
+Beim Start sieht der Agent nur Name plus Description aller Skills (billig). Den Body lädt er, **wenn** der Job matched. Weitere Dateien erst, wenn der Body sie anfordert. Genau deshalb darf ein Skill lang sein, eine CLAUDE.md nicht.
+
+Das ist die Regel fürs Schneiden:
+
+| Inhalt | Ort |
+| --- | --- |
+| „Tests: `pnpm test`“ | AGENTS.md / CLAUDE.md |
+| „So schneiden wir ein Billing-Release (20 Schritte, Checkliste, Rollback)“ | Skill `billing-release` |
+| „React Hooks in `src/components`“ | Cursor-Rule mit Glob oder `.claude/rules` |
+
+Wenn ihr dasselbe Release-Runbook in CLAUDE.md klebt, zahlt jeder Tippfehler-Fix 20 Schritte Context. Wenn ihr es nicht dokumentiert, halluziniert der Agent Git-Tags.
+
+## Versioniert heißt: Git, Review, Semantik
+
+Skills sind Code. Sie liegen im Repo, sie gehen durch PR, sie haben einen Owner. Ein Skill ohne Test- oder Check-Schritt ist ein Blogpost. Ein guter Skill endet mit einem Befehl, der fehlschlagen kann, und mit „nicht fertig bei Rot“.
+
+Description schreiben wie ein Router: Trigger-Wörter, die ein Mensch wirklich tippt („when the user asks to cut a billing release“, „when adding a Prisma migration“). Zu vage: der Skill feuert nie. Zu breit: er feuert bei jedem Chat und vernichtet den Vorteil.
+
+Was nicht in einen Skill gehört: Geheimnisse, kundenindividuelle URLs (dafür lokale Ignored-Files), einmalige Tickets.
+
+Im Academy-Kurs „Introduction to agent skills“ ist genau diese Trennung der Kern: Skills vs CLAUDE.md vs Subagents vs Hooks vs MCP. Für das Kundengespräch reicht: **Fakten immer-an, Verfahren on-demand, Zwang per Hook, Tools per MCP.**
+
+Angebot 1 liefert 3–7 Skills, die echte Abläufe des Kunden kodieren (Feature-Schnitt, Hotfix, Migration, Review). Angebot 2 lässt sie liegen, damit der Gründer denselben Workflow ohne euch anstößt.
+
+<Merksatz>
+Skills sind versionierte Runbooks mit Lazy-Load. Rules sind Fakten. Wer Verfahren in die immer-an-Datei schreibt, kauft Context ohne Lieferqualität.
+</Merksatz>
+
+<Zitat
+  lang="en"
+  quelle="Anthropic"
+  text="Create a skill when you keep pasting the same instructions, checklist, or multi-step procedure into chat, or when a section of CLAUDE.md has grown into a procedure rather than a fact."
+/>
+
+<Quelle
+  url="https://code.claude.com/docs/en/skills.md"
+  lang="en"
+  typ="Claude Code — Skills"
+  dauer="30 Min"
+  account={false}
+  excerpt="A skill is a SKILL.md plus optional files. Claude loads name and description at startup and the body only when the skill applies. Custom commands merged into skills. Follow the Agent Skills standard."
+/>
+
+<Quelle
+  url="https://academy.claude.com/courses/introduction-to-agent-skills"
+  lang="en"
+  typ="Anthropic Academy — Introduction to agent skills"
+  dauer="60 Min"
+  account={true}
+  excerpt="Build SKILL.md files, write descriptions that trigger correctly, use progressive disclosure, and choose between skills, CLAUDE.md, subagents, hooks and MCP."
+/>

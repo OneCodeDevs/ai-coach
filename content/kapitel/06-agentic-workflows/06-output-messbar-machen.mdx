@@ -1,0 +1,61 @@
+---
+titel: Output messbar machen
+dauerMinuten: 15
+zusammenfassung: Erfolg ist gemergter, nicht regressierender Wert — nicht Tokens, nicht LOC, nicht Chat-Sterne.
+reihenfolge: 6
+---
+
+Ohne Messung ist Angebot 1 eine Demo. Der Pitch verspricht mehr Output und Zuverlässigkeit. Also musst du beide Größen operationalisieren, bevor der Workshop endet. GitHub liefert für Copilot Cloud Agent bereits Lifecycle-Metriken: erstellte vs. gemergte PRs, Medianzeit bis Merge. Das ist der Anfang, nicht das Dashboard.
+
+## Was zählt
+
+**Durchsatz, der überlebt.** Anzahl Issues, die *nach Review* auf `main` landeten, in einem Slice, den der Agent angefasst hat. Nicht „PRs geöffnet“. Geöffnete und verworfene PRs sind Lernsignal (Prompt, Ticketqualität, zu großer Scope), kein Ruhm.
+
+**Zeit.** Cycle time Issue-zu-Merge, getrennt nach Risikoklasse. Wenn Agent-PRs schneller mergen, weil niemand sie liest, hast du das Gate abgeschaltet, nicht gewonnen.
+
+**Qualität nach Merge.** Incidents, Hotfixes, Reverts, flaky Tests, die der Agent eingeführt hat, in einem festen Fenster (z. B. 14 Tage). Brauchst du eine Zahl für den Vertrag: Defects/Merge oder „keine P1 aus Agent-PRs ohne menschlichen Owner“.
+
+**Kosten.** Input/Output-Tokens plus Actions-Minuten plus Cloud-Agent-Credits, *pro gemergtem Issue*. Ein billiges Modell, das dreimal in der CI scheitert und neu schreibt, ist teurer als ein teurer Call, der einmal grün wird. Prompt Caching und enge MCP-Tool-Listen sind Hebel, die in dieser Zahl auftauchen.
+
+**Gate-Gesundheit.** Anteil PRs, die ohne menschlichen Review gemerged wurden (Ziel: nahe 0, außer dokumentierte Ausnahme). Anteil destruktiver Tool-Calls ohne HITL (Ziel: 0).
+
+## Was nicht zählt
+
+Zeilen Code, Commit-Frequenz, „der Agent hat 40 Dateien angefasst“, Thumbs-up im Chat, interne Demo-Wow-Runden. Evaluator-Scores ohne Kalibrierung gegen menschliche Reviews. Eine 95-Prozent-„LGTM“-Rate eines LLM-Reviewers, der nie Nein sagt.
+
+## Das einfachste Pattern, das funktioniert
+
+Messung folgt der Architektur. Wenn Chaining plus CI euer Bugfix-Pfad ist, misst du diesen Pfad. Du baust kein Multi-Agent-System, um mehr Graphen zu haben. Anthropic: Komplexität nur, wenn Outcomes besser werden. Die Baseline ist: ein Mensch allein, dieselben Ticketklassen, zwei Sprints. Dann Agent plus Gates. Wenn Merge-Rate steigt *und* Defects nicht, skalierst du. Wenn Defects steigen, schärfst du Tickets, Tools und Gates, nicht die Agentenzahl.
+
+## Im Kickoff festnageln
+
+Drei Zahlen, Owner, Datenquelle:
+
+1. Merge-Quote Agent-PRs
+2. Reverts oder P1 in 14 Tagen
+3. Kosten pro Done-Issue
+
+Hängt die drei an vorhandene Systeme: GitHub Metrics oder ein wöchentliches Sheet, kein neues BI-Projekt. Owner ist der Engineering-Lead, nicht „das Modell“. Ohne Owner verschwinden die Zahlen nach dem Workshop.
+
+Alles andere ist Beobachtung. Der Statusbericht an den Founder ist diese drei Zeilen plus zwei Beispiele: ein Ticket, das das Pattern getragen hat, eines, das zu Recht am Gate gestorben ist. Das zweite Beispiel verkauft die Quality Gates besser als jedes Diagramm.
+
+<Merksatz>
+Erfolg ist gemergter Wert ohne Nachbrand, zu bekannten Kosten. Chat-Beifall ist keine Metrik. Komplexität verdient ihr euch mit besseren Zahlen, nicht mit mehr Agenten.
+</Merksatz>
+
+<Quelle
+  url="https://www.anthropic.com/engineering/building-effective-agents"
+  lang="en"
+  typ="Anthropic — Measure, then add complexity"
+  dauer="10 Min"
+  account={false}
+  excerpt="The key to success is measuring performance and iterating. Add complexity only when it demonstrably improves outcomes."
+/>
+
+<Quelle
+  url="https://docs.github.com/de/copilot/concepts/agents/cloud-agent/about-cloud-agent"
+  lang="de"
+  typ="GitHub — PR-Lifecycle-Metriken für Cloud Agent"
+  dauer="10 Min"
+  account={false}
+/>

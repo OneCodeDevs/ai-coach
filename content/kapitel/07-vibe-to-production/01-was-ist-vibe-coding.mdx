@@ -1,0 +1,51 @@
+---
+titel: Was Vibe Coding ist — und welche Risiken Fraunhofer auflistet
+dauerMinuten: 15
+zusammenfassung: "Karpathy meinte Blindflug. Fraunhofer meint: taugt zum Prototyp, nicht als Production-Prozess."
+reihenfolge: 1
+---
+
+Der ICP von Angebot 2 ist der Founder mit einem MVP, der „irgendwie läuft“. Oft heißt die Entstehungsgeschichte Vibe Coding. Du musst den Begriff scharf halten, sonst diskutierst du über Tools statt über Risiko.
+
+## Die ursprüngliche Definition
+
+Andrej Karpathy, Februar 2025: er baue ein Projekt, aber es sei nicht wirklich Coding. Sehen, sagen, laufen lassen, copy-paste, und es funktioniere meistens. Fraunhofer IESE nimmt das ernst: die Rolle des Menschen verschiebt sich vom Schreiben zum Impulsgeben in natürlicher Sprache. Die Umsetzung macht das Modell. Wer den Vorschlag reviewed oder testet, verlässt laut Fraunhofer schon die *ursprüngliche* Definition. Blindes Annehmen plus Fehlermeldung zurück in den Chat: das ist Vibe. Prüfen, umbauen, Standards: das ist KI-gestütztes Software Engineering.
+
+<Zitat
+  lang="en"
+  quelle="Andrej Karpathy, Februar 2025, zitiert nach Fraunhofer IESE"
+  text="I'm building a project or webapp, but it's not really coding – I just see stuff, say stuff, run stuff, and copy-paste stuff, and it mostly works."
+/>
+
+Der Reiz ist ehrlich: Nicht-Coder kommen zu einem klickbaren Stand, Ideen werden in Stunden statt Wochen sichtbar, Iteration ist billig. Fraunhofer platziert das in Ideation und Prototyping. Tests, Skalierung, Security, Architektur bleiben klassisches Engineering, gern *mit* KI, aber mit Experten, die Zwischenergebnisse überwachen.
+
+## Die Risikoliste, die du im Erstgespräch durchgehst
+
+Fraunhofer tabelliert, was du im Audit wiederfinden wirst:
+
+- **Codequalität:** unstrukturiert, redundant, schwer wartbar. Drei Patterns für dasselbe Problem, weil drei Chats.
+- **Sicherheitslücken:** SQL-Injection, XSS, fehlende Checks, Auth nur auf der schönen Seite der UI.
+- **Sinkendes Systemverständnis:** niemand im Team kann den Control Flow erklären. Der Founder ist der Product Owner des Blackbox-Diffs.
+- **Tool-Abhängigkeit:** ohne Cursor/Replit startet das Projekt nicht, weil Wissen nur in Chat-Verläufen liegt.
+- **Tests und Doku fehlen** oder sind Theater (Tests, die die Implementation nachzeichnen und nichts fangen).
+- **Rechtliches:** Lizenzen kopierter Snippets, personenbezogene Daten im Prompt, unklare Urheberschaft.
+- **Qualität nicht nachvollziehbar:** ohne Tests weißt du nicht, ob funktionale *und* nichtfunktionale Eigenschaften stimmen.
+- **Halluzinationen:** erfundene Packages, erfundene APIs, zusammengewürfelte Fachlogik (Fraunhofer nennt explizit auch falsche Berechnungsmethoden).
+
+Deshalb der Satz, den du nicht weichspülen darfst: Vibe Coding ersetzt keine Software Engineers. Es beschleunigt Ideen. Die Risiken steigen mit Komplexität und Kritikalität. Sobald Nutzer, Zahlungen oder fremde Daten im Spiel sind, ist der Prototyp kein Produkt.
+
+## Was OneCode daraus macht
+
+Ihr verkauft nicht „wir schreiben alles neu, weil KI böse ist“. Ihr verkauft die Fraunhofer-Hybridformel: Vibe für unkritische Flächen und Spike, Engineering für tragende Teile. Woche 1 macht die Grenze sichtbar. Wer den laufenden Prototyp ungeprüft zur Production erklärt, wiederholt den klassischen Prototype-Trap, nur schneller.
+
+<Merksatz>
+Vibe Coding ist Blindflug mit funktionierendem Screen. Production beginnt, wenn jemand den Code verantwortet — inkl. der Stellen, die kein Chat je erklärt hat.
+</Merksatz>
+
+<Quelle
+  url="https://www.iese.fraunhofer.de/blog/vibe-coding-definition-potenziale-risiken/"
+  lang="de"
+  typ="Fraunhofer IESE — Vibe Coding: Definition, Potenziale, Risiken"
+  dauer="20 Min"
+  account={false}
+/>

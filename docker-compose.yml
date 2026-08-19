@@ -1,0 +1,25 @@
+services:
+  app:
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_PATH: /app/data/coach.db
+      CONTENT_DIR: /app/content
+    volumes:
+      - ./data:/app/data
+      - ./content:/app/content
+    networks:
+      - n8n_default
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai-coach.rule=Host(`coach.pynnie.de`)"
+      - "traefik.http.routers.ai-coach.entrypoints=websecure"
+      - "traefik.http.routers.ai-coach.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.ai-coach.loadbalancer.server.port=3000"
+
+networks:
+  n8n_default:
+    external: true

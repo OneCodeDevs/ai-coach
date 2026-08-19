@@ -1,0 +1,71 @@
+---
+titel: Observability, Tracing, Kostenkontrolle
+dauerMinuten: 16
+zusammenfassung: Ohne Trace ist ein Agent-Incident ein Geisterhaus. Token und Kosten gehören in denselben Span wie der Prompt.
+reihenfolge: 6
+---
+
+Nicht-Determinismus ohne Observability ist Aberglaube: ihr ändert den Prompt, „es fühlt sich besser an“, nächste Woche explodiert die Rechnung oder der Agent dreht fünf nutzlose Tool-Loops. Langfuse sagt es ungeschminkt: ohne Tracing ist Debugging Ratespiel. Ein **Trace** ist der Lebenslauf eines Requests — Prompt, Retrieval, Tool-Calls, Antwort, Token, Latenz, Modell — kausal verknüpft, nicht als 40 Log-Zeilen ohne Correlation-Id.
+
+## Was mindestens in den Trace muss
+
+Für Angebot 3 (Transparenz über Fehler, Kosten, Verhalten) ist das Minimum:
+
+- **Identität:** Trace-Id, Session/PR, User oder CI-Job, Environment.
+- **Modell:** requested vs. actually served (`gen_ai.request.model` / `gen_ai.response.model`). Provider routen.
+- **Usage:** `gen_ai.usage.input_tokens`, `gen_ai.usage.output_tokens`, Cache-Read/Write wenn der Provider sie liefert. Input inkl. Cache, weil genau das die Rechnung treibt.
+- **Operation:** `chat`, `execute_tool`, `invoke_agent` — sonst siehst du einen Blob statt einer Kette.
+- **Tool-Spans:** Name, Argument-Hashes oder redacted Args, Dauer, Erfolg.
+- **Outcome:** HTTP/Tool-Error, Eval-Score, Guardrail-Tripwire ja/nein.
+
+Langfuse ist zweckgebaut: Tokens, Prompt/Completion, Scores, Datasets, Alerts. OpenTelemetry GenAI-Conventions sind der Vendor-neutrale Unterbau — dieselben Attribute, exportierbar in euer APM. Claude Code kann Usage über OpenTelemetry metrics spiegeln. Ihr müsst nicht religiös ein Tool wählen; ihr müsst **dieselben Felder** erzwingen, sonst ist „wir haben Logging“ eine Lüge in vier Formaten.
+
+Langfuse schickt Spans asynchron. Das ist die richtige Default-Aussage gegenüber Performance-ängstlichen CTOs: Tracing darf den User-Path nicht blockieren. Was es blockieren *darf*, ist der Merge, wenn der Smoke-Eval rot ist — das ist ein anderes Gate.
+
+## Kosten sind eine Produktmetrik
+
+Kunden kaufen „der Agent arbeitet“. Sie zahlen Token. Deshalb aggregiert ihr **Kosten pro Task** (Ticket, PR, Eval-Lauf), nicht nur Dollar pro API-Call. Ein günstiges Modell, das 40 Turns mit 80k Context braucht, verliert gegen ein teures Modell mit hartem Budget.
+
+Alerts, die Sinn ergeben:
+
+- Kosten oder Token pro Trace über Perzentil 99
+- Loop-Detektor: N identische Tool-Calls
+- Tripwire-Rate und Guardrail-Latenz
+- Cache-Hit-Rate fällt (Prompt-Prefix zerbrochen)
+
+## Was ihr *nicht* loggt
+
+Hidden Context Exposure gilt für Traces genauso wie fürs Modell. Prompts enthalten oft Secrets, Kundendaten, interne Policies. Default: Inhalte redacted oder hashed, opt-in Raw-Prompts nur in Dev. Retention begrenzen. Self-host Langfuse, wenn der Kunde das gesetzlich braucht — das ist ein Discovery-Thema, kein Feature-Haken „wir loggen alles“.
+
+Im Pitch: „Ihr seht, welcher Agent welches Ticket mit welchem Modell, welchen Tools und welchen Kosten bearbeitet hat — und wo der Tripwire gegriffen hat.“ Das ist die fehlende Transparenz aus dem Pain von Angebot 3.
+
+<Merksatz>
+Ein Agent ohne Trace ist nicht „schlank“, er ist unevaluierbar. Token, Tools und Tripwires gehören in denselben Span — ohne Secrets im Klartext.
+</Merksatz>
+
+<Quelle
+  url="https://langfuse.com/docs/observability/overview"
+  lang="en"
+  typ="Langfuse — Observability overview"
+  dauer="20 Min"
+  account={false}
+  excerpt="Application tracing records prompts, responses, token usage, latency and tool or retrieval steps. Observability is the broader capability; tracing is the technique that preserves causal structure for LLM apps."
+/>
+
+<Quelle
+  url="https://langfuse.com/docs/observability/features/token-and-cost-tracking"
+  lang="en"
+  typ="Langfuse — Token and cost tracking"
+  dauer="15 Min"
+  account={false}
+  excerpt="Track usage and cost per trace and span. Costs must be attributed to models and operations so you can budget per task, not guess from the monthly invoice."
+/>
+
+<Quelle
+  url="https://github.com/open-telemetry/semantic-conventions-genai"
+  lang="en"
+  typ="OpenTelemetry — Semantic conventions for GenAI"
+  dauer="25 Min"
+  account={false}
+  excerpt="Standard attributes such as gen_ai.request.model, gen_ai.usage.input_tokens and gen_ai.usage.output_tokens. Instrument once, export to any backend that understands the convention."
+/>

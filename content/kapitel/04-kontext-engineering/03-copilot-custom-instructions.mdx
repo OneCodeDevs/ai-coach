@@ -1,0 +1,60 @@
+---
+titel: Copilot Custom Instructions
+dauerMinuten: 14
+zusammenfassung: copilot-instructions.md und pfadspezifische Dateien sind das Copilot-Äquivalent — kurz, operational, nicht task-spezifisch.
+reihenfolge: 3
+---
+
+Viele OneCode-Kunden kommen mit Copilot-Lizenzen, nicht mit Cursor-Seats. Dann ist Kontext-Engineering keine `.mdc`-Übung, sondern GitHub-Konvention. Wer hier schludert, bekommt Cloud-Agent-PRs, die CI nicht kennen, und Reviews, die euren Billing-Invariant nicht kennen.
+
+## Drei Ebenen im Repo
+
+1. **Repo-weit:** `.github/copilot-instructions.md`. Gilt für Anfragen im Kontext dieses Repos (Chat, Agent, je nach Feature-Matrix auch Code Review).
+2. **Pfad-spezifisch:** `.github/instructions/NAME.instructions.md` mit Frontmatter `applyTo: "src/billing/**"`. Auf github.com vor allem Cloud Agent und Copilot Code Review. IDE-Support folgt der jeweiligen VS-Code-Doku.
+3. **Agent-Dateien:** `AGENTS.md` überall im Baum (nächste gewinnt), alternativ eine Wurzel-`CLAUDE.md` / `GEMINI.md`.
+
+GitHubs eigener Generator-Prompt für Cloud Agent ist das beste Pflichtenheft, das ihr intern kopieren könnt: hochstens zwei Seiten, nicht task-spezifisch, Build/Test/Lint als validierte Befehlsfolgen, Layout so dass der Agent weniger `find` braucht, explizit „vertrau diesen Instructions, suche nur bei Lücken“.
+
+Was hinein muss, in dieser Reihenfolge:
+
+- was das Repo tut, Sprachen, Package-Manager
+- Bootstrap, Test, Lint, Typecheck, der Befehl der in CI wirklich läuft
+- wo Fachmodule liegen (`apps/web`, `packages/billing`)
+- Verbote (Generated Files, Secrets, Force-Push)
+
+Was nicht hinein muss: das aktuelle Ticket, Motivationssätze, ein zweites README.
+
+Im Kundengespräch: Copilot-Instructions sind kein Prompt-Kunstwerk. Sie sind Betriebshandbuch. Wenn der Cloud-Agent `npm test` fährt, obwohl CI `pnpm turbo test` erwartet, ist das kein Modellfehler. Das ist fehlender Satz in dieser Datei. Genau solche Sätze sind Liefergegenstand von Angebot 1, nicht „wir aktivieren Copilot“.
+
+## Priorität und Konflikte
+
+Persönliche Instructions schlagen Repo, Repo schlägt Organisation. Alle Sätze können trotzdem im Prompt landen. Dann sampelt das Modell. Deshalb: Org-Instructions generisch halten („keine Secrets loggen“), Repo-Instructions konkret, persönliche nicht ins Kundenprojekt tragen.
+
+Für Code Review: Copilot liest Instructions aus dem **Head-Branch**. Ihr könnt Instructions im selben PR testen. Die Repo-Einstellung kann Review-Instructions abschalten. Wenn ihr Gates verkauft, bleibt das an.
+
+## Abgleich mit AGENTS.md
+
+Ideal: AGENTS.md trägt die tool-agnostischen Fakten. `copilot-instructions.md` ist dünn und sagt: befolge AGENTS.md, plus Copilot-spezifische Review-Tonality. In der Realität kopieren Teams am Anfang. Dann setzt ihr ein Datum in den Kalender, an dem eine Datei Quelle der Wahrheit wird. Doppelpflege ist der häufigste Grund, warum Agenten nach sechs Wochen wieder raten.
+
+VS Code ergänzt workspace-lokale Custom Instructions. Die gehören in Git, wenn sie das Produkt betreffen, und in `.gitignore`, wenn sie nur den lokalen Pfad zur Testdatenbank enthalten.
+
+<Merksatz>
+Copilot liest .github/copilot-instructions.md immer, pfadspezifische Dateien bei Glob-Treffer, AGENTS.md als Agent-Standard. Zwei Seiten Betrieb, null Tickettexte. Eine Quelle der Wahrheit, sonst Drift.
+</Merksatz>
+
+<Quelle
+  url="https://docs.github.com/de/copilot/how-tos/configure-custom-instructions/add-repository-instructions"
+  lang="de"
+  typ="GitHub — Repository Custom Instructions"
+  dauer="20 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://code.visualstudio.com/docs/copilot/customization/custom-instructions"
+  lang="en"
+  typ="VS Code — Custom instructions"
+  dauer="15 Min"
+  account={false}
+  excerpt="Configure custom instructions so Copilot in VS Code follows workspace conventions. Keep them durable and operational; put one-off tasks in the chat prompt."
+/>

@@ -1,0 +1,61 @@
+slug: mcp
+nummer: 5
+titel: MCP und Werkzeuganbindung
+untertitel: Host, Client, Server, Primitives — und warum das der Hebel für Agenten im Repo ist.
+dauerMinuten: 79
+lernziele:
+  - Host, Client und Server von MCP in eigenen Worten trennen und die drei Server-Primitives nennen können
+  - Bestehende MCP-Server begründet anbinden statt blind zu stapeln
+  - Die Verantwortung beim Bau eines eigenen Servers erklären, ohne ein Tutorial nachzubauen
+  - Tool Poisoning, Confused Deputy und Least Privilege im Kundengespräch konkret machen
+  - MCP als Integrationsschicht für Agents im Repository verkaufen, nicht als Spielzeug
+exam:
+  - id: host-client-server
+    topic: Architektur und Primitives
+    frage: Was ist der Unterschied zwischen MCP-Host, Client und Server, und welche drei Primitives kann ein Server anbieten?
+    erwartet:
+      - Host ist die KI-Anwendung
+      - Client hält die Verbindung zum Server
+      - Server stellt Kontext und Fähigkeiten bereit
+      - Tools, Resources und Prompts
+  - id: bestehende-server
+    topic: Bestehende Server anbinden
+    frage: Wie bindest du einen bestehenden MCP-Server in einem Kundenrepo an, ohne die Angriffsfläche zu verdoppeln?
+    erwartet:
+      - Allowlist statt Marktplatz-Stapel
+      - Tool-Beschreibungen vor Freigabe prüfen
+      - Least Privilege und begrenzte Roots
+      - stdio lokal, HTTP/OAuth remote
+  - id: eigenen-server
+    topic: Eigenen Server bauen
+    frage: Wann lohnt ein eigener MCP-Server, und welche Verantwortung übernimmst du damit?
+    erwartet:
+      - Nur wenn kein vertrauenswürdiger Server die Schnittstelle abdeckt
+      - Schema, Validierung und Least Privilege
+      - Tool-Beschreibungen sind Prompt-Oberfläche
+      - Logging und menschliche Freigabe für destruktive Aktionen
+  - id: mcp-sicherheit
+    topic: MCP-Sicherheit
+    frage: Was ist Tool Poisoning, was ist das Confused-Deputy-Problem, und wie begrenzt du beides?
+    erwartet:
+      - Gift in Tool-Beschreibungen oder Rückgaben
+      - Server handelt mit eigenen, oft zu breiten Rechten
+      - Beschreibungen pinnen und prüfen
+      - Least Privilege, Isolation, Human-in-the-Loop
+  - id: kundengespraech
+    topic: MCP im Kundengespräch
+    frage: Warum ist MCP der Hebel für Agenten im Repository, und was sagst du einem CTO, der „einfach mehr Prompt“ will?
+    erwartet:
+      - Standard statt Einmal-Integrationen
+      - Tools als Grounding statt Halluzination
+      - Regeln und Gates bleiben im Repo
+      - Mehr Prompt ersetzt keine Werkzeuge
+zertifikate:
+  - title: Integrate MCP tools with agents in Microsoft Foundry (APL-3034)
+    url: https://learn.microsoft.com/en-us/credentials/applied-skills/integrate-model-context-protocol-tools-with-agents-in-microsoft-foundry
+    anbieter: Microsoft Applied Skills
+    hinweis: Kostenloses Lab. Der einzige kostenlose Big-Tech-Nachweis, der MCP explizit prüft.
+  - title: Hugging Face MCP Course
+    url: https://huggingface.co/learn/mcp-course/en/unit0/introduction
+    anbieter: Hugging Face / Anthropic
+    hinweis: Kostenlos. Fundamentals-Zertifikat nach Unit 1 ist zuverlässig.

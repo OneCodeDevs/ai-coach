@@ -1,0 +1,57 @@
+slug: llm-grundlagen
+nummer: 1
+titel: Wie Sprachmodelle wirklich arbeiten
+untertitel: Tokens, Context Window, Sampling, Halluzinationen und Kosten — ohne Magie.
+dauerMinuten: 75
+lernziele:
+  - Tokenisierung und Embeddings in eigenen Worten erklären können
+  - Das Context Window als endliches Budget behandeln, nicht als unbegrenzten Speicher
+  - Temperature und Sampling-Parameter für Coding-Aufgaben begründet wählen
+  - Halluzinationen als Systemverhalten beschreiben, nicht als Charakterfehler
+  - Modelle und Preise grob einordnen und im Kundengespräch nicht ins Schwimmen geraten
+exam:
+  - id: tokenisierung
+    topic: Tokenisierung und Embeddings
+    frage: Was ist ein Token, und warum sind Embeddings für Suche und RAG relevant?
+    erwartet:
+      - Token sind Teilworte, keine Wörter
+      - Modelle rechnen mit Token-IDs, nicht mit Text
+      - Embeddings sind Vektoren ähnlicher Bedeutung
+      - semantische Suche vergleicht Vektoren
+  - id: context-window
+    topic: Context Window als Budget
+    frage: Warum wird ein Agent bei langen Sessions schlechter, und was kann man dagegen tun?
+    erwartet:
+      - endliches Context-Budget
+      - History und Tool-Outputs füllen das Fenster
+      - Compaction oder Zusammenfassen
+      - Sub-Agent-Retrieval statt alles mitzuschleppen
+  - id: sampling
+    topic: Sampling und Temperature
+    frage: Wann setzt du Temperature nahe 0, und was passiert wenn du sie hoch drehst?
+    erwartet:
+      - niedrige Temperature für deterministische Coding-Aufgaben
+      - hohe Temperature erhöht Zufall und Varianz
+      - Top-p und Top-k beschneiden die Verteilung
+      - Temperature 0 ist nicht immer bitweise reproduzierbar
+  - id: halluzination
+    topic: Halluzinationen
+    frage: Warum halluziniert ein Modell APIs, die es nicht gibt, und wie gehst du im Agent-Setup damit um?
+    erwartet:
+      - Next-Token-Vorhersage ohne Wahrheitsgarantie
+      - Trainingsschnitt und fehlender Grounding
+      - Tools, Tests und Quellen statt Vertrauen auf den Text
+      - Halluzination als erwartbares Verhalten
+  - id: kosten
+    topic: Modelllandschaft und Kosten
+    frage: Wie rechnest du grob die Kosten eines Agent-Laufs, und warum reicht das teuerste Modell nicht immer?
+    erwartet:
+      - Input- und Output-Token werden getrennt bepreist
+      - langer Kontext treibt Input-Kosten
+      - Prompt Caching senkt Wiederholungskosten
+      - kleines Modell für Routine, großes für harte Stellen
+zertifikate:
+  - title: Transformer-basierte Large Language Models verstehen
+    url: https://ki-campus.org/
+    anbieter: KI-Campus
+    hinweis: Deutschsprachiger Leistungsnachweis. Inhaltlich Grundlagen, nicht Agentic Coding. Für deutsche Kundenunterlagen nützlich.

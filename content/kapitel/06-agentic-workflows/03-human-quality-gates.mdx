@@ -1,0 +1,56 @@
+---
+titel: Human Quality Gates richtig platzieren
+dauerMinuten: 16
+zusammenfassung: Der Agent schreibt den Branch. Der Mensch entscheidet Merge, Geld und Irreversibles.
+reihenfolge: 3
+---
+
+OneCode verkauft autonome Workflows *mit* Human Quality Gates, nicht Autonomie statt Menschen. Ein Gate ist eine Stelle, an der das System ohne explizite menschliche Entscheidung nicht weiter darf. Alles andere ist ein Check (Test, Linter, Policy-as-Code) und darf automatisch sein. Wenn du beides vermischt, sitzt entweder ein Mensch in jeder Kleinigkeit oder niemand an den teuren Stellen.
+
+## Automatische Checks sind keine Gates
+
+CI, Schema-Validierung, Secret-Scan, „Evaluator“-Call gegen eine Checkliste: das sind Maschinenurteile. Sie dürfen blocken. Sie ersetzen nicht die Verantwortung für Produktverhalten, Architektur und Missbrauch. Anthropic bleibt bei Coding-Agents klar: Tests verifizieren Funktion, Menschen prüfen, ob die Lösung zur Systemanforderung passt.
+
+## Wo das Gate hingehört
+
+Platziere Menschen, wo Rücknahme teuer oder unmöglich ist.
+
+1. **Merge nach `main`.** Der Agent öffnet den PR, darf nicht selbst mergen, auch nicht mit Admin-Token. Branch Protection, required reviews, required status checks. Copilot als Reviewer zählt als zusätzliches Signal, nicht als der eine erforderliche Mensch, wenn eure Policy „zwei Augen“ heißt.
+2. **Produktion.** Deploy aus `main`, nicht aus Agent-Branches. Change an Auth, Payments, Datenlöschung, öffentliche API: zweites Gate oder explizite Owner-Freigabe.
+3. **Destruktive MCP-Tools.** Datenbank-Drop, Massenmail, Secret rotieren. Volle Parameter in der UI, Bestätigung, die das Modell nicht erzeugen kann.
+4. **Scope-Änderung.** Ticket sagt „Buttonfarbe“, Diff fasst Billing an: Mensch muss den Auftrag erweitern, nicht der Agent.
+
+Nicht jedes Issue braucht alle vier. Ein Typo in der README braucht Review-light, aber immer noch keinen Push auf `main` durch den Bot.
+
+## Wo das Gate *nicht* hingehört
+
+Nicht nach jeder Tool-Call in einer 40-Schritte-Sitzung. Dann kaufst du dir keine Qualität, sondern Warteschlangen. Nicht vor dem ersten Compile: der Agent soll in der Sandbox scheitern dürfen. Nicht „irgendwann im Chat“, ohne Artefakt. Ein Gate ohne Diff, ohne Checkliste, ohne Owner ist ein Nicken.
+
+Gute Gates sind **asynchron und artefaktgebunden**: PR, Preview-Deploy, Runbook-Checkbox. Der Mensch kommt, wenn die Maschine fertig ist, nicht während sie tippt. Genau das ist der Vorteil von Cloud Agents gegenüber IDE-Paarprogrammierung: die Arbeit liegt auf einem Branch, nachvollziehbar, reviewbar.
+
+## Formulierung im Vertrag
+
+„Autonom“ heißt: Agent darf recherchieren, branch erstellen, Tests in CI anstoßen, am Gate warten. „Human Quality Gate“ heißt: namentliche Rolle (Maintainer, Founder, Security) und ein verbales Kriterium (keine neuen öffentlichen Endpoints ohne Auth-Test). Wenn der Kunde „der Agent merget nachts“ will, ist das Angebot 3 (Quality Gate) plus bewusst akzeptiertes Risiko, nicht Default von Angebot 1.
+
+Schreib die Gates in Rules und Branch-Protection, nicht nur in den Workshop-Notes. Agents lesen `AGENTS.md`. GitHub erzwingt die Protection. Beides muss dieselbe Geschichte erzählen.
+
+<Merksatz>
+Maschinen prüfen, was maschinell prüfbar ist. Menschen stehen vor Merge, Prod und Irreversiblem. Der Agent wartet am Artefakt, er umgeht das Gate nicht mit einem überzeugenden Absatz.
+</Merksatz>
+
+<Quelle
+  url="https://www.anthropic.com/engineering/building-effective-agents"
+  lang="en"
+  typ="Anthropic — Agents in practice (coding, human review)"
+  dauer="15 Min"
+  account={false}
+  excerpt="Automated testing helps verify functionality; human review remains crucial for ensuring solutions align with broader system requirements."
+/>
+
+<Quelle
+  url="https://docs.github.com/de/copilot/concepts/agents/cloud-agent/about-cloud-agent"
+  lang="de"
+  typ="GitHub — Copilot Cloud Agent (Plan, Branch, dann PR)"
+  dauer="20 Min"
+  account={false}
+/>

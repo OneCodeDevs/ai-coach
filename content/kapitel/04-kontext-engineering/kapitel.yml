@@ -1,0 +1,71 @@
+slug: kontext-engineering
+nummer: 4
+titel: "Kontext-Engineering: Rules, Context Files, Skills"
+untertitel: Das technische Herz von Angebot 1 und die Übergabe in Angebot 2 — Agenten lesen das Repo, nicht euren Slack.
+dauerMinuten: 100
+lernziele:
+  - AGENTS.md als herstellerübergreifenden Standard erklären und schreiben
+  - .cursor/rules und CLAUDE.md voneinander abgrenzen und nicht verdoppeln
+  - Copilot Custom Instructions korrekt platzieren und kurz halten
+  - Skills als versionierte, on-demand geladene Workflows gegen Rules abgrenzen
+  - Businesslogik so dokumentieren, dass ein Agent sie finden und gegen Tests prüfen kann
+  - Ein Repository so übergeben, dass der nächste Agent ohne Onboarding-Call weiterbaut
+exam:
+  - id: agents-md
+    topic: AGENTS.md als Standard
+    frage: Wozu ist AGENTS.md da, und wie verhält es sich zu README und zu verschachtelten Dateien?
+    erwartet:
+      - README ist für Menschen
+      - AGENTS.md ist für Coding-Agenten
+      - offenes Markdown, keine Pflichtfelder
+      - die nächste Datei zum Edit gewinnt
+  - id: rules-vs-claude-md
+    topic: ".cursor/rules und CLAUDE.md"
+    frage: Wann schreibst du eine Cursor-Rule, wann CLAUDE.md, und was darf nicht in beide?
+    erwartet:
+      - CLAUDE.md ist immer-an und kurz
+      - .mdc-Rules können globs und Descriptions nutzen
+      - Verfahren gehören nicht in die immer-an-Datei
+      - keine widersprüchlichen Duplikate
+  - id: copilot-instructions
+    topic: Copilot Custom Instructions
+    frage: Welche Dateien steuern Copilot im Repo, und was gehört unbedingt hinein?
+    erwartet:
+      - .github/copilot-instructions.md repo-weit
+      - pfadspezifische .instructions.md mit applyTo
+      - Build- und Testbefehle hart notieren
+      - kurz, nicht task-spezifisch
+  - id: skills-vs-rules
+    topic: Skills als Workflows
+    frage: Was ist ein Skill, und warum gehört ein mehrstufiges Verfahren nicht in AGENTS.md?
+    erwartet:
+      - SKILL.md mit Name und Description
+      - Body lädt nur bei Treffer
+      - Progressive Disclosure spart Context
+      - Rules sind Fakten, Skills sind Verfahren
+  - id: businesslogik
+    topic: Businesslogik agentenlesbar
+    frage: Wie dokumentierst du Fachregeln so, dass ein Agent sie nicht erfindet?
+    erwartet:
+      - Invarianten und verbotene Zustände
+      - Zeiger in den kanonischen Code
+      - Beispiele gültig gegen ungültig
+      - Glossar der Fachbegriffe
+  - id: handover
+    topic: Repository agentenfähig übergeben
+    frage: Was muss in einem Übergabe-Paket stecken, damit Gründer und Agenten ohne euch weiterbauen?
+    erwartet:
+      - AGENTS.md plus Tool-Dateien
+      - mindestens ein Skill für den Hauptworkflow
+      - Test- und CI-Gate dokumentiert
+      - Probe-Lauf mit frischem Agenten
+zertifikate:
+  - title: Claude Code in Action
+    url: https://academy.claude.com/courses/claude-code-in-action
+    anbieter: Anthropic Academy
+    hinweis: Kostenloses Badge über Quizzes, öffentlicher Verifizierungslink.
+  - title: Introduction to agent skills
+    url: https://academy.claude.com/courses/introduction-to-agent-skills
+    anbieter: Anthropic Academy
+    hinweis: Passt zur Skills-Lektion.
+artefakt: Übergabe-Paket (AGENTS.md, Rules, Skills, Testgate, Glossar)

@@ -1,0 +1,76 @@
+slug: quality-gates
+nummer: 8
+titel: Qualitäts- und Sicherheitsgate für KI-Code
+untertitel: Evals, Guardrails, PR-Gates und Observability — damit Agent-Code messbar und mergebar wird.
+dauerMinuten: 110
+lernziele:
+  - Evals von Bauchgefühl unterscheiden und ein minimales Eval-Set für Agent-Code beschreiben können
+  - LLM-as-a-Judge mit Rubrics einsetzen und die Kalibrierung gegen Menschen erklären
+  - Guardrails mit Tripwires von Prompt-Appellen unterscheiden
+  - Quality Gates im Pull Request so schneiden, dass ein Mensch nur noch Risiko entscheidet
+  - Prompt Injection, Excessive Agency und Hidden Context Exposure aus der OWASP GenAI LLM Top 10 2026 im Kundengespräch zuordnen
+  - Tracing, Token- und Kostenkontrolle mit Langfuse und OpenTelemetry GenAI skizzieren
+  - Fallbacks und Human-in-the-Loop als Produktionsdesign, nicht als Notnagel, verkaufen
+exam:
+  - id: evals
+    topic: Evals statt Bauchgefühl
+    frage: Ein CTO sagt „Unser Agent fühlt sich besser an.“ Warum reicht das nicht, und was ist die kleinste Eval, die du morgen in CI legen würdest?
+    erwartet:
+      - Bauchgefühl skaliert nicht und erkennt keine stillen Regressionen
+      - Eval ist Input plus Grader plus Erfolgskriterium
+      - für Coding-Agents zuerst deterministische Tests (fail-to-pass)
+      - Capability-Evals klettern, Regression-Evals sollen fast 100 Prozent halten
+  - id: llm-judge
+    topic: LLM-as-a-Judge und Rubrics
+    frage: Wann ist ein LLM-Judge legitim, und woran merkst du, dass die Rubric wertlos ist?
+    erwartet:
+      - Judge für Nuance, Stil, Instruction-Following — nicht für „Tests grün“
+      - Rubric mit konkreten Kriterien statt „guter Code“
+      - Kalibrierung gegen menschliche Gold-Labels
+      - ohne Kalibrierung misst du den Judge, nicht den Agenten
+  - id: guardrails
+    topic: Guardrails und Tripwires
+    frage: Was ist ein Tripwire, und warum reicht ein höflicher System-Prompt als Guardrail nicht?
+    erwartet:
+      - Tripwire stoppt den Lauf (Exception), Prompt bittet nur
+      - Input-, Output- und Tool-Guardrails an unterschiedlichen Stellen
+      - blocking vor teuren oder gefährlichen Tool-Calls
+      - deterministische Checks (Secrets, Schema) plus Modell-Checks
+  - id: pr-gates
+    topic: Quality Gates im Pull Request
+    frage: Welche Checks müssen vor dem Merge von Agent-PRs grün sein, und was bleibt bewusst menschlich?
+    erwartet:
+      - Tests, Lint, SAST, Secret-Scan als required checks
+      - Eval-Suite oder Smoke-Evals in CI
+      - Mensch entscheidet Auth, Payments, Datenmodell, destruktive Migrationen
+      - vom selben Agenten erzeugte Tests sind keine unabhängige Prüfung
+  - id: owasp
+    topic: OWASP GenAI LLM Top 10 2026
+    frage: Erkläre Prompt Injection, Excessive Agency und Hidden Context Exposure so, dass ein CTO den Blast Radius versteht.
+    erwartet:
+      - Prompt Injection steuert das Modell über untrusted Input (auch indirekt, auch multimodal)
+      - Excessive Agency ist zu viel Werkzeug- und Privilegienumfang
+      - Hidden Context Exposure leakt mehr als den System-Prompt (Tools, RAG, Memory)
+      - Mitigation im System (Least Privilege, Gates), nicht „das Modell nicht täuschen“
+  - id: observability
+    topic: Observability, Tracing, Kosten
+    frage: Was muss in einem Trace eines Agent-Laufs stehen, damit du Kosten und Fehler am Montag erklären kannst?
+    erwartet:
+      - Prompt, Tool-Calls, Antwort, Token, Latenz, Modellname
+      - gen_ai.usage.input_tokens und output_tokens bzw. Langfuse Cost Tracking
+      - keine Secrets und keine ungeschwärzten PII in Traces
+      - Kosten pro Task, nicht nur pro API-Call
+  - id: fallbacks
+    topic: Fallbacks und Human-in-the-Loop
+    frage: Der Agent ist unsicher oder das Budget ist leer. Was ist ein Fallback, und wann muss ein Mensch entscheiden?
+    erwartet:
+      - Fallback ist ein geplanter Abstieg (anderes Modell, Cache, Queue), kein Crash
+      - Human-in-the-Loop vor destruktiven oder irreversiblen Aktionen
+      - Circuit Breaker bei Fehler- oder Kostenrate
+      - Approval ist ein Gate, kein Chat-Kommentar nach dem Merge
+zertifikate:
+  - title: Secure AI solutions in the cloud (APL5009)
+    url: https://learn.microsoft.com/en-us/credentials/applied-skills/secure-ai-solutions-in-the-cloud
+    anbieter: Microsoft Applied Skills
+    hinweis: Kostenloses Lab zu Guardrails und Härtung. Hoch wertvoll gegenüber unsicheren Kunden.
+artefakt: Skizziere für ein Kundenrepo drei konkrete Gates (Eval in CI, Tool-Tripwire, Human-Approval für einen Pfad) und nenne die Metrik, an der jedes Gate scheitert.

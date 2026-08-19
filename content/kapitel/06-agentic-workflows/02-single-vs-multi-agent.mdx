@@ -1,0 +1,64 @@
+---
+titel: Single-Agent vs Multi-Agent
+dauerMinuten: 15
+zusammenfassung: Ein Agent mit guten Tools schlägt drei Agenten ohne Vertrag — Komplexität nur bei nachgewiesenem Nutzen.
+reihenfolge: 2
+---
+
+„Multi-Agent“ verkauft sich gut. Im Repo eines CTO bedeutet es meist: mehr Fenster, mehr Übergaben, mehr Gelegenheit, dass Agent B die Annahme von Agent A nicht mehr sieht. Microsofts Einführung sagt dasselbe in der Klassik: hierarchische Agenten und MAS existieren, du nimmst sie, wenn die Teilaufgaben echte Schnittstellen haben. Anthropic sagt: erst der einzelne augmentierte Loop.
+
+## Was Single-Agent hier heißt
+
+Ein Modell, eine Tool-Menge, eine Schleife: lesen, ändern, testen, wiederholen, bis Stopp oder Gate. Context Engineering (Compaction, gezieltes Retrieval, Sub-Agent nur als *Recherche mit Rückgabe*) bleibt intern. Der Sub-Agent, der einen Report zurückgibt und stirbt, ist kein Multi-Agent-System. Er ist ein Worker mit eigenem Fenster, genau weil Context ein Budget ist.
+
+Das ist der Default für Bugfixes, kleine Features, Testlücken. OneCode-Angebot 1 startet hier: Rules im Repo, MCP-Tools, CI als Wahrheitsquelle, Mensch am Merge.
+
+## Wann ein zweiter Agent sich lohnt
+
+Nur wenn mindestens eines gilt:
+
+- **Eigene Ground Truth.** Reviewer-Agent sieht den Diff und die Policy, Implementierer sieht Working Tree und Tests. Unterschiedliche Tools, unterschiedliche Erfolgsdefinition.
+- **Hart getrennte Rechte.** Der Agent, der Prod-Logs liest, darf nicht committen. Der Commit-Agent darf keine Prod-Credentials haben. Das ist Isolation, nicht „Team-Simulation“.
+- **Teilaufgaben, die du nicht vorab listen kannst**, und ein Orchestrator, der Worker mit *kleinen* Briefings schickt. Klassiker: große Migration über viele Pakete.
+
+Wenn du dieselben Dateien, dieselben Tests und denselben Prompt nur auf drei Personas aufteilst („Architect“, „Coder“, „Critic“), hast du Evaluator-Optimizer oder Voting nachgebaut, plus Koordinationsmüll. Bau das Pattern explizit, nicht als Rollenspiel.
+
+## Was Komplexität kostet
+
+Jeder Hopping: Latenz, Token, Verlust an Kontext, neue Halluzinationskante („Worker hat gesagt, die API heißt X“). Fehler verstärken sich, Anthropic warnt davor explizit. Debugging wird zum verteilten System: du brauchst Traces, welche Teilaufgabe welches Tool mit welchem Argument aufgerufen hat.
+
+Frameworks (Agent SDK, Foundry, LangGraph-Klasse) verbergen genau diese Hops. Wenn du sie nutzt, musst du die darunterliegenden Calls lesen können. Falsche Annahmen über das Framework sind laut Anthropic eine häufige Kundenfehlerquelle.
+
+## Entscheidungsregel für das Angebot
+
+Zeichne den Happy Path auf ein Blatt. Wenn er eine Linie mit zwei programmatischen Gates ist, lieferst du Chaining. Wenn er „Copilot, mach das Issue“ ist, plus CI und Review, lieferst du Single-Agent. Wenn der Kunde „ein Schwarm“ will, fragst du, welche Teilaufgabe welchen *anderen* Erfolg hat. Kann er das nicht sagen, bleibst du bei einem Agenten und besseren Tools.
+
+<Merksatz>
+Ein zweiter Agent ist ein zweites Context-Fenster mit eigener Berechtigung — oder er ist Theater. Komplexität nur, wenn Isolation oder unbekannte Teilaufgaben es erzwingen.
+</Merksatz>
+
+<Quelle
+  url="https://www.anthropic.com/engineering/building-effective-agents"
+  lang="en"
+  typ="Anthropic — When (and when not) to use agents"
+  dauer="20 Min"
+  account={false}
+  excerpt="Agentic systems trade latency and cost for better task performance. For many applications, optimizing a single LLM call with retrieval and in-context examples is enough."
+/>
+
+<Quelle
+  url="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
+  lang="en"
+  typ="Anthropic — Effective context engineering for AI agents"
+  dauer="35 Min"
+  account={false}
+  excerpt="Context is a finite resource with diminishing returns. Sub-agents should return condensed results instead of shipping their entire trajectory back to the parent."
+/>
+
+<Quelle
+  url="https://microsoft.github.io/ai-agents-for-beginners/translations/de/01-intro-to-ai-agents/"
+  lang="de"
+  typ="Microsoft — Agententypen und wann einsetzen"
+  dauer="25 Min"
+  account={false}
+/>

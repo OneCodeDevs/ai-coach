@@ -1,0 +1,74 @@
+---
+titel: Vorbereitung auf das simulierte CTO-Interview
+dauerMinuten: 16
+zusammenfassung: "Der Tutor grillt wie ein skeptischer CTO — Gates, MCP, Evals, Vibe-Audit. Keine Folien, kurze wahrhaftige Sätze."
+reihenfolge: 5
+---
+
+Ab hier spricht der Tutor nicht mehr als Lehrer. Er spielt den CTO, der schon zwei Vendor-Demos überlebt hat, Copilot bezahlt, und in 20 Minuten merkt, ob du substanz oder Slides verkaufst. Deine Aufgabe ist nicht, ihn zu beeindrucken. Deine Aufgabe ist, **ein Angebot zu wählen**, ein Gate zu benennen, und bei Unwissenheit nicht zu halluzinieren.
+
+## Worauf er bohrt
+
+**Gates.** „Was stoppt den Merge?“ Wenn du „Best Practices“ sagst, hast du verloren. Sag: required Test, Secret-Scan, Eval-Smoke, CODEOWNERS auf `auth/`. Tripwire vor Shell mit Prod-Token. Mensch vor Migration. Kapitel 8 ist die Munition.
+
+**MCP.** Er will hören, dass MCP ein **Tool-Kanal mit Trust-Grenze** ist, kein USB-Segen. Neue Server sind Excessive Agency. Allowlist im Repo, Least Privilege, kein wildes `npx` aus einem Blogpost. Claude Code verlangt Trust für neue MCP-Server — genau diese Intuition.
+
+**Evals.** Er hasst „wir prompten bis es gut ist“. Du: Task, Grader, Regression vs. Capability, Flywheel aus Production-Fails. Coding: zuerst Tests. Judge nur kalibriert. Wenn du kein Eval-Beispiel aus *seinem* Domain-Schnitt bauen kannst, sag wie du in Woche eins die ersten zehn Tasks schneiden würdest.
+
+**Vibe-Code-Audit (Angebot 2).** Er behauptet, der Prototyp „läuft bei Kunden“. Du: eine Woche Audit — Architektur, Datenmodell, Auth, Dependencies — Risikoliste mit Aufwand. Dann Umbau der tragenden Pfade, nicht Cosmetics. Übergabe mit Rules und Context Files. IESE: Vibe ist Prototyping, nicht Production-Prozess. Du versprichst keine Grüne-Wiese-Neuschreibung in drei Tagen.
+
+## Format, das sitzt
+
+1. **90-Sekunden-Unterscheidung** 1 vs. 2 vs. 3 (Lektion 1). Copilot ist in keinem der drei.
+2. **Eine Discovery-Frage**, dann zuhören. Nicht drei Fragen hintereinander als Verhör.
+3. **Ein Einwand** (meist Copilot oder Risiko). Struktur aus Lektion 3.
+4. **Eine Pflicht** aus Art. 4 oder Transparenz, plus der Disclaimer keine Rechtsberatung.
+5. **Ein Nein.** „Das ist nicht Angebot 2.“ CTOs testen, ob du Scope halten kannst.
+
+## Sätze, die du übst (laut)
+
+- „Tools habt ihr. Das System im Repo habt ihr nicht — das ist Angebot 1.“
+- „Der Prototyp ist die Asset-Klasse. Wir härten die Lastpfade und übergeben agentenfähig — Angebot 2.“
+- „Agent-Code merget bei uns, wenn CI und ein benannter Mensch Ja sagen — Angebot 3.“
+- „Lokal ist Datenschutz und Demo, nicht heimlich Opus.“
+- „Dazu sage ich nichts Verbindliches, das muss euer Counsel an Art. X prüfen.“
+
+## Was als Fail gilt
+
+- Alle drei Angebote in ein SOW ohne Reihenfolge.
+- „Unser Modell halluziniert nicht.“
+- MCP als Feature-Liste ohne Permission-Modell.
+- AI Act als Angstverkauf („sonst Strafe in Milliarden“) ohne Artikel.
+- Eval als Synonym für „ein Praktikant klickt durch die UI“.
+
+Wenn der Tutor nachlegt, darfst du nachfragen: „Ist euer Schmerz Tempo oder Incidents?“ Das ist Discovery, kein Ausweichen. Wenn du die Kapitel 1–9 nur nachplapperst, ohne sie an *sein* Repo zu hängen, bist du noch nicht verkaufsbereit — dann noch einmal Lektion 1 und 8, nicht noch mehr Jargon.
+
+<Merksatz>
+Der CTO kauft Unterscheidung, ein konkretes Gate und ein ehrliches Nein. Wer alles kann, kann nichts davon in seinem Sprint.
+</Merksatz>
+
+<Quelle
+  url="https://www.iese.fraunhofer.de/blog/vibe-coding-definition-potenziale-risiken/"
+  lang="de"
+  typ="Fraunhofer IESE — Vibe Coding vs. Engineering (Audit-Sprache)"
+  dauer="15 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"
+  lang="en"
+  typ="Anthropic — Evals, wenn der CTO ‚messen‘ sagt"
+  dauer="20 Min"
+  account={false}
+  excerpt="Without evals you cannot tell a regression from noise. A skeptical buyer will ask how you know the agent got better. Answer with tasks, graders and a regression suite — not with vibes."
+/>
+
+<Quelle
+  url="https://code.claude.com/docs/en/security"
+  lang="en"
+  typ="Claude Code — MCP and permissions (CTO-Grill)"
+  dauer="10 Min"
+  account={false}
+  excerpt="MCP servers are trusted by configuration in source control. Treat new servers as a security boundary. That is the sentence a CTO wants before you mention a marketplace."
+/>

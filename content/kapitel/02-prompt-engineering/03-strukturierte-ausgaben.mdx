@@ -1,0 +1,83 @@
+---
+titel: Strukturierte Ausgaben und XML-Tags
+dauerMinuten: 16
+zusammenfassung: Tags trennen Auftrag von Material, ein Schema macht die Antwort prüfbar.
+reihenfolge: 3
+---
+
+Prosa ist für Menschen. Agent-Pipelines, Evals und der nächste Tool-Schritt brauchen Grenzen. Zwei Mechaniken lösen dasselbe Problem auf verschiedenen Ebenen: **XML-Tags im Prompt** (wo ist was) und **strukturierte Ausgabe** (wie darf die Antwort aussehen).
+
+## XML-Tags: der Prompt als Dokument
+
+Claude ist darauf trainiert, XML-ähnliche Tags als Struktur zu lesen. Das ist kein XML-Parser im Compiler-Sinn, sondern eine starke Konvention: Inhalt in einem `instructions`-Tag ist Auftrag, Inhalt in `code` ist Material, Inhalt in `examples` ist Kalibrierung.
+
+Ohne Tags klebt alles aneinander. Eine Fehlermeldung in der Instruktion wird als Regel gelesen, eine Regel im Stacktrace als Symptom. Mit Tags senkst du diese Verwechslung.
+
+Ein minimales Gerüst für Coding-Tasks:
+
+```
+<instructions>
+Ändere nur Dateien unter src/billing.
+Schreibe keinen neuen Endpunkt.
+Nach der Änderung: npm test -- billing
+</instructions>
+
+<context>
+<file path="src/billing/invoice.ts">
+...Ausschnitt...
+</file>
+<error>
+FAIL invoice.test.ts: expected status 409
+</error>
+</context>
+
+<output_format>
+Zuerst ein kurzes <plan>, dann der Patch, dann <test_output>.
+Keine Erklärung außerhalb dieser Tags.
+</output_format>
+```
+
+OpenAI und Gemini erreichen denselben Effekt mit Markdown-Überschriften oder JSON-Blöcken. Der Name der Klammer ist egal. Die **Trennung** ist es nicht. Im Kundengespräch: „Wir strukturieren den Prompt wie eine API, nicht wie eine E-Mail.“
+
+## Strukturierte Ausgabe: der Vertrag nach außen
+
+Tags im Prompt helfen dem Modell beim Lesen. Strukturierte Ausgabe hilft dir beim **Weiterverarbeiten**:
+
+- JSON mit festem Schema (Feld `verdict`, `files[]`, `risk`)
+- Tool-/Function-Calling statt Freitext („lege Finding an“)
+- Prefill der Assistenten-Antwort mit einer öffnenden JSON-Klammer, damit JSON wahrscheinlicher startet (Claude)
+
+Was du parsen musst, darf nicht in einer Anekdote versteckt sein. „Sieht gut aus, ich würde noch X tun“ ist in einem Chat nett und in einer Pipeline ein Parse-Error.
+
+Zwei Härtegrade:
+
+1. **Weich:** „Antworte nur als JSON mit diesen Keys.“ Gut für interne Tools, bricht gelegentlich.
+2. **Hart:** JSON-Schema / constrained decoding / Tool-Parameter. Der Provider erzwingt die Form. Das ist der Default, sobald ein zweites System die Antwort schluckt.
+
+Für OneCode-Evals (Angebot 3) ist hart Pflicht. Für einen einmaligen Agent-Lauf im Repo reicht oft weich plus ein Parser, der bei Bruch den Lauf abbricht statt zu improvisieren.
+
+## Erfolgskriterien in die Struktur legen
+
+Struktur ohne Gate ist nur Pretty-Print. Pack das Done-Kriterium in dasselbe Schema: `tests: pass | fail`, `command`, `excerpt`. Anthropic sagt es für Agenten klar: gib Claude einen Check, den es selbst ausführen kann. Derselbe Satz gilt für Prompts ohne Agent. Wenn „fertig“ nicht maschinenlesbar ist, ist es Verhandlung.
+
+<Merksatz>
+XML-Tags (oder gleichwertige Klammern) trennen Auftrag, Material und Beispiele. Ein Schema macht die Antwort zum Datensatz. Ohne beides mischt das Modell Dokumentation, Code und Hoffnung in einem Absatz.
+</Merksatz>
+
+<Quelle
+  url="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+  lang="en"
+  typ="Anthropic — Prompting best practices"
+  dauer="40 Min"
+  account={false}
+  excerpt="Use XML tags to separate instructions, documents and examples. Be explicit about the output format. Prefill or constrain the reply when a parser consumes it."
+/>
+
+<Quelle
+  url="https://developers.openai.com/api/docs/guides/prompt-engineering"
+  lang="en"
+  typ="OpenAI — Prompt engineering (output and tools)"
+  dauer="20 Min"
+  account={false}
+  excerpt="Specify the desired output format. For applications, prefer structured outputs or tool calls over free-form prose that a downstream system has to interpret."
+/>

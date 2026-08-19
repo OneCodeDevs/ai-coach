@@ -1,0 +1,73 @@
+---
+titel: Ein Repository agentenfähig übergeben
+dauerMinuten: 18
+zusammenfassung: "Die Checkliste von Angebot 2: Dateien, Gates, Probe-Lauf — danach bauen Gründer und Agenten ohne Onboarding-Call weiter."
+reihenfolge: 6
+---
+
+Angebot 1 verdrahtet Agents in Repo, Tickets, Tests, CI. Angebot 2 endet mit einer **Übergabe, die Agenten lesen können**, nicht mit einem Slide „so arbeitet ihr jetzt“. Wenn der Gründer am Montag Cursor oder Claude Code auf das Repo setzt und der Agent als Erstes `npm` in einem `pnpm`-Repo erfindet, habt ihr nicht übergeben. Ihr habt deployt und gehofft.
+
+## Das Paket, das im Repo liegen muss
+
+Pflicht, versioniert, ohne Secrets:
+
+1. **`AGENTS.md` im Root** mit Bootstrap, Test, Lint, Verbote. Nested-Dateien in den heißen Packages.
+2. **Tool-Delta, dünn:** `.github/copilot-instructions.md` und/oder `CLAUDE.md` und/oder `.cursor/rules`, die auf AGENTS.md zeigen statt sie zu kopieren.
+3. **Mindestens ein Skill** für den Haupt-Workflow des Kunden (Feature-Schnitt, Hotfix, Migration). Description so, dass `/skill` und Autoload greifen.
+4. **Domain-Index:** Glossar plus Invarianten neben dem kanonischen Code.
+5. **CI-Gate:** derselbe Testbefehl wie in AGENTS.md, Required auf `main`. Der Cloud-Agent darf ohne grün nicht mergen, auch der Mensch nicht stillschweigend.
+6. **Ignore-Regeln:** `CLAUDE.local.md`, `.env`, lokale Skills mit URLs bleiben privat. Die Übergabe erklärt das in einer Zeile im README (menschlich) und in AGENTS.md (maschinell).
+
+Optional, oft wertvoll: Hook oder Check, der Secrets-Scan oder „nicht in `dist/` schreiben“ erzwingt. Bitte in Markdown ist keine Enforcement.
+
+## Der Probe-Lauf ist Teil der Abnahme
+
+Übergabe heißt nicht „Dateien existieren“. Übergabe heißt: **ein frischer Agent in einem frischen Clone** schafft einen vereinbarten Mini-Auftrag ohne Slack.
+
+Protokoll, das ihr intern so fahrt:
+
+- neues Worktree oder frischer Clone, keine lokalen User-Rules, die das Ergebnis schönen
+- Auftrag aus einer Zeile, der den Skill oder die Domain trifft („füge Feld X hinzu, Tests grün“)
+- ihr messt: hat er AGENTS.md gelesen, den richtigen Package-Manager, den Testfilter, die Invariante?
+- Failures werden zur Patch-Liste an euren Kontext, nicht zum „nimm Opus“.
+
+Wenn der Agent die Invariante bricht, ist das Paket nicht fertig. Punkt. Das ist dasselbe Qualitätsverständnis wie ein roter Build.
+
+## Was ihr dem Gründer sagt, und was nicht
+
+Sagt: hier startest du den Agenten, hier liegt der Skill, hier ist der Check, hier stoppst du bei Konflikt mit der Tabelle in `transitions.ts`. Sagt nicht: 40 Folien Tool-Vergleich. Der Gründer soll *weiterbauen*, nicht eure Tool-Religion übernehmen. AGENTS.md hält die Tür für Codex, Copilot, Cursor, Claude Code offen.
+
+Risiken, die ihr beim Namen nennt: Context-Drift (Dateien veralten), doppelte Wahrheiten, Skills die niemand triggert, Gates die in CI anders heißen als lokal. Gegenmittel ist Ownership: eine Person, ein PR-Label `context`, Review wie bei Code.
+
+Damit schließt sich der Bogen. Kapitel 2 spezifiziert den einzelnen Prompt. Kapitel 3 wählt den Modus und die Schleife. Kapitel 4 macht beides zum **Repo-Bestandteil**. Das ist das Produkt, das OneCode verkauft.
+
+<Merksatz>
+Übergabe ist ein Probe-Lauf mit leerem Gedächtnis: Clone, Agent, Mini-Auftrag, grüner Check, getroffene Invariante. Dateien ohne diesen Lauf sind Dekoration.
+</Merksatz>
+
+<Quelle
+  url="https://code.claude.com/docs/en/best-practices.md"
+  lang="en"
+  typ="Anthropic — Verify unsupervised work"
+  dauer="15 Min"
+  account={false}
+  excerpt="Give Claude a check it can run. For work you did not watch, review evidence (test output, diff) in proportion to how unsupervised the run was. Package a setup you trust so the next session starts from it."
+/>
+
+<Quelle
+  url="https://agents.md/"
+  lang="en"
+  typ="AGENTS.md — How to use"
+  dauer="5 Min"
+  account={false}
+  excerpt="Add AGENTS.md, cover build and test commands, treat it as living documentation, and nest files in large repos so the next teammate — human or agent — can work without a call."
+/>
+
+<Quelle
+  url="https://academy.claude.com/courses/claude-code-in-action"
+  lang="en"
+  typ="Anthropic Academy — Claude Code in Action"
+  dauer="60 Min"
+  account={true}
+  excerpt="Steer long sessions, write CLAUDE.md that is actually followed, package repeated procedures as skills, and verify work you did not watch. That is the operational core of a handover."
+/>

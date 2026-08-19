@@ -1,0 +1,58 @@
+---
+titel: Cursor in der Praxis
+dauerMinuten: 16
+zusammenfassung: Rules, gezielter Context und Plan-Modus — Cursor wird brauchbar, wenn der Agent nicht raten muss, wo er ist.
+reihenfolge: 2
+---
+
+Cursor ist für viele OneCode-Entwickler das Alltags-IDE. Der Agent ist gut, wenn du ihn wie einen Kollegen onboardingst, der jedes Mal das Gedächtnis verliert. Genau das tun Rules: sie legen persistente Anweisungen in den Prompt, weil das Modell zwischen Completions nichts behält.
+
+## Die Hebel, die zählen
+
+1. **Project Rules** in `.cursor/rules` als `.mdc`. Frontmatter steuert, *wann* sie geladen werden: immer, per Glob, per Beschreibung (Agent entscheidet), oder nur per `@`.
+2. **AGENTS.md** als schlichte Markdown-Alternative ohne Metadaten. Gut für herstellerübergreifende Basics, schlechter für pfad-spezifisches Splitting.
+3. **User Rules** in den Cursor-Einstellungen: dein Ton, deine persönlichen Verbote. Die gehören nicht ins Kundenrepo.
+4. **Team Rules** (Team/Enterprise): org-weit, können erzwungen werden. Precedence: Team vor Project vor User.
+
+Eine Rule, die immer gilt, kostet Token **in jedem** Agent-Turn. Deshalb: immer-an nur für echte Invarianten. UI-Konventionen an `src/components/**`. API-Konventionen an `src/server/**`. Lange Verfahren nicht in Rules (das werden Skills).
+
+Cursor selbst sagt: unter 500 Zeilen, splitten, auf kanonische Dateien zeigen statt sie zu kopieren. Style-Guides gehören in den Linter, nicht in den Prompt.
+
+## Context gezielt setzen
+
+Der Agent findet Dateien über Suche. Er findet sie schneller, wenn du sie ihm gibst. Praxis, die in Demos sitzt:
+
+- `@` auf die zwei Dateien plus den Test, nicht auf den Monorepo-Root
+- Tickettext und reproduzierbarer Fehler in die erste Message
+- nicht die Build-Logs der letzten Stunde, außer der Auftrag ist der Build
+
+Je mehr irrelevanter Context, desto eher „vergisst“ er die Rule aus Turn 1. Das ist Kapitel 1, nur mit UI.
+
+Plan-Modus (bzw. erst lesen, dann vorschlagen, dann editieren) ist Pflicht bei allem, was mehr als eine Datei oder eine unklare Ursache hat. Du reviewst den Plan wie ein Design-Doc in fünf Stichpunkten. Erst danach Auto-Run.
+
+## Was in der Praxis schiefgeht
+
+- Rules als Weltanschauung: Seiten über Clean Code, null Repo-Fakten. Der Agent braucht `pnpm test --filter billing`, nicht deine Werte.
+- Widerspruch zwischen User Rule („immer TypeScript strict“) und Projekt-JS. Dann gewinnt Zufall.
+- Agent anwerfen, weggehen, PR mergen. Cursor macht das einfach. OneCode tut das nicht ohne Gate.
+
+Im Kundengespräch: Cursor ist die Werkbank. Das Lieferversprechen sitzt in den versionierten Rules und in den Checks, nicht im Abo-Tier.
+
+<Merksatz>
+Cursor-Agent ohne Rules ist ein talentierter Praktikant ohne Einarbeitung. Rules kurz und pfadscharf, Context per @ statt per Hoffnung, Plan vor Flächenbrand.
+</Merksatz>
+
+<Zitat
+  lang="en"
+  quelle="Cursor"
+  text="Large language models don't retain memory between completions. Rules provide persistent, reusable context at the prompt level."
+/>
+
+<Quelle
+  url="https://cursor.com/docs/rules"
+  lang="en"
+  typ="Cursor — Rules"
+  dauer="20 Min"
+  account={false}
+  excerpt="Project rules live in .cursor/rules as .mdc files. alwaysApply, globs and description control when a rule is included. AGENTS.md is the simple markdown alternative. Keep rules focused; they do not affect Tab."
+/>

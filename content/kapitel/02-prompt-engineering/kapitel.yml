@@ -1,0 +1,53 @@
+slug: prompt-engineering
+nummer: 2
+titel: Prompt Engineering für Entwickler
+untertitel: Rolle, Instruktion, Kontext und Format so setzen, dass ein Modell lieferbar arbeitet — nicht rätselt.
+dauerMinuten: 75
+lernziele:
+  - Die vier Teile eines Prompts (Rolle, Instruktion, Kontext, Format) bewusst setzen
+  - Few-Shot und Chain-of-Thought begründet einsetzen, nicht als Ritual
+  - Strukturierte Ausgaben mit XML-Tags, Schemas und Erfolgskriterien erzwingen
+  - System-Prompts und Custom Instructions von Task-Prompts trennen
+  - Typische Anti-Patterns (zu vage, zu lang, widersprüchlich, ohne Gate) im Review benennen
+exam:
+  - id: anatomie-prompt
+    topic: Anatomie eines Prompts
+    frage: Welche vier Teile hat ein belastbarer Prompt, und warum reicht „sei ein Senior-Entwickler“ allein nicht?
+    erwartet:
+      - Rolle ist Policy, kein Theater
+      - Instruktion ist der konkrete Auftrag
+      - Kontext ist Grounding, nicht die ganze Codebasis
+      - Format ist der Vertrag über die Ausgabe
+  - id: few-shot-cot
+    topic: Few-Shot und Chain-of-Thought
+    frage: Wann setzt du Few-Shot ein, wann Chain-of-Thought, und wann schadet beides?
+    erwartet:
+      - Few-Shot zeigt das gewünschte Muster
+      - Chain-of-Thought für mehrstufige Schlüsse
+      - Beispiele schlagen Adjektive
+      - CoT ist bei trivialem Code oft Lärm
+  - id: strukturierte-ausgaben
+    topic: Strukturierte Ausgaben und XML-Tags
+    frage: Warum trennst du Instruktion, Dokumente und Ausgabe mit XML-Tags oder einem Schema?
+    erwartet:
+      - Tags trennen Auftrag von Material
+      - Schema oder festes Format macht die Ausgabe prüfbar
+      - Parsing schlägt Prosa
+      - Tools und JSON-Schema sind die härtere Variante
+  - id: system-prompts
+    topic: System-Prompts und Custom Instructions
+    frage: Was gehört in den System-Prompt oder in Custom Instructions, und was bleibt im Task?
+    erwartet:
+      - System ist dauerhafte Policy
+      - Custom Instructions sind der Produkt-Spiegel davon
+      - Task enthält den aktuellen Auftrag
+      - langes System frisst Context in jedem Turn
+  - id: anti-patterns
+    topic: Prompt-Anti-Patterns
+    frage: Nenne vier Prompt-Anti-Patterns, die in Agent-Setups teuer werden, und sag jeweils das Gegenmittel.
+    erwartet:
+      - zu vage ohne Erfolgskriterium
+      - zu lang und verdrängt die Aufgabe
+      - widersprüchliche Anweisungen
+      - kein prüfbares Done
+artefakt: Ein Prompt-Review-Raster für Kundenrepos (vier Teile, Beispiele, Gates)

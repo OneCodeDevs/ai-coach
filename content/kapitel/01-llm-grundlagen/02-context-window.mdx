@@ -1,0 +1,50 @@
+---
+titel: Context Window als endliches Budget
+dauerMinuten: 15
+zusammenfassung: Warum lange Chats schlechter werden und was Compaction damit zu tun hat.
+reihenfolge: 2
+---
+
+Das Context Window ist kein Gedächtnis. Es ist ein Hartes Limit: so viele Token dürfen in einem Request stecken — System-Prompt, Historie, Dateien, Tool-Outputs, die aktuelle Frage. Was nicht hineinpasst, existiert für diesen Schritt nicht.
+
+## Was das Fenster wirklich füllt
+
+In einem Coding-Agent füllen nicht deine zwei Sätze das Fenster, sondern:
+
+- der System-Prompt und die Rules
+- der bisherige Chat
+- gelesene Dateien
+- Diffs und Testergebnisse
+- MCP-Tool-Antworten (Logs sind berüchtigt)
+
+Deshalb kippt die Qualität in langen Sessions: frühe Entscheidungen rutschen raus oder werden zu einer verlustbehafteten Zusammenfassung. Das Modell „vergisst“ nicht emotional. Es sieht den Anfang schlicht nicht mehr, oder nur noch als Komprimat.
+
+## Gegenmaßnahmen, die du Kunden erklären kannst
+
+1. **Rules kurz halten.** Jedes überflüssige Manifesto kostet Budget in *jedem* Turn.
+2. **Nicht die ganze Repo-History in den Prompt kippen.** Gezielt Dateien holen.
+3. **Compaction.** Lange Verläufe zusammenfassen, Fakten in strukturierte Notizen legen.
+4. **Sub-Agents.** Eine teure Recherche in einem eigenen Fenster machen und nur das Ergebnis zurückgeben.
+
+Anthropic beschreibt Context als endliches Budget. Das ist die Formulierung, die im Kundengespräch sitzt: mehr Kontext ist nicht linear besser. Ab einem Punkt verdrängt Lärm die Aufgabe.
+
+<Merksatz>
+Ein Agent wird bei langen Sessions schlechter, weil das Fenster voll ist — nicht weil er „müde“ ist. Budgetieren wie RAM, nicht wie eine Festplatte.
+</Merksatz>
+
+<Quelle
+  url="https://learn.microsoft.com/de-de/agent-framework/journey/llm-fundamentals"
+  lang="de"
+  typ="Microsoft Learn — Context Window im Agent-Kontext"
+  dauer="15 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
+  lang="en"
+  typ="Anthropic — Effective context engineering for AI agents"
+  dauer="40 Min"
+  account={false}
+  excerpt="Context is a finite resource with diminishing returns. Treating it as a budget changes how you design agent loops, memory and sub-agent retrieval."
+/>

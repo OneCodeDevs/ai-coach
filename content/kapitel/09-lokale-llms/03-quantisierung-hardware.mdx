@@ -1,0 +1,59 @@
+---
+titel: Quantisierung und GGUF, realistische Hardware
+dauerMinuten: 18
+zusammenfassung: Bits pro Gewicht, KV-Cache und warum eine CPU-NAS kein Chat-Gerät ist.
+reihenfolge: 3
+---
+
+Ein „70B-Modell“ auf der Festplatte ist keine Aussage über Chat-Qualität. Die Datei ist fast immer **quantisiert**: Gewichte mit weniger Bits, damit sie in VRAM oder RAM passen. **GGUF** (GPT-Generated Unified Format) ist das Containerformat, mit dem llama.cpp, Ollama und LM Studio dieselbe Datei fressen. Ohne diese zwei Sätze klingst du im Hardware-Gespräch wie Marketing.
+
+## Was Q4_K_M bedeutet
+
+Namen wie `Q4_K_M` kodieren grob: etwa 4 Bit pro Gewicht, K-Quant (gruppierte Skalen, CPU-freundlich), M = Medium-Kompromiss. fp16 wäre ~2 Byte pro Parameter — ein 8B-Modell schon ~16 GB nur für Gewichte. Q4 drückt dasselbe in den Bereich von ~4,5–6 GB. Deshalb ist Q4_K_M der Community-Default: spürbarer Qualitätsverlust gegenüber fp16, meist akzeptabel; Q2 ist aggressiv und für Coding oft zu dumm; Q8 ist näher am Original und frisst VRAM.
+
+Faustformel für **Gewichte**:
+
+`VRAM_Gewichte ≈ Parameter × (Bits/8)` plus Overlay für Tokenizer und Runtime.
+
+8B × 4 Bit ≈ 4 GB. 14B Q4 ≈ 8 GB. 32B Q4 ≈ 18–20 GB. 70B Q4 ≈ 35–40 GB. Das ist die untere Schranke, nicht das Budget.
+
+## Der KV-Cache ist der stille zweite Mieter
+
+Jedes Token im Context legt Keys/Values ab. Der Cache skaliert mit **Context-Länge × Lagen × Breite**, oft *nicht* mit derselben Quantisierung wie die Gewichte. Ein Modell, das „in 8 GB passt“, erstickt bei 32k Context oder zwei parallelen Sessions. Deshalb ist die ehrliche Formel:
+
+`VRAM ≈ Gewichte + KV_pro_Request × Concurrency + Fragmentierung`
+
+Wer nur die GGUF-Dateigröße zitiert, unterschlägt den Context. Genau das passiert, wenn Demos mit 2k Fenster flüssig sind und Aider mit Repo-Context in Swap fällt.
+
+## Hardware, die du empfehlen darfst
+
+- **Laptop-Dev:** 12–16 GB VRAM (oder unified memory in der Größenordnung) → 7B–14B Q4, kurzer Context. Ehrlicher Coding-Assistent für Datei-Scope, kein Repo-Agent.
+- **Workstation 24 GB:** 32B Q4 mit moderatem Context oder 14B mit Luft für KV.
+- **24–48 GB:** 70B Q4 wird denkbar, trotzdem kein magisches Cloud-Opus.
+- **CPU-only, NAS, Mini-PC ohne GPU:** llama.cpp *startet*. Interaktives Chat und Agent-Schleifen sterben an Tokens/s. Prompt-Processing auf CPU ist spürbar, Generation für Pair-Programming unbrauchbar. Eine Synology, die nachts Batches schiebt, ist ein anderes Produkt als ein Coding-Buddy. Sag das, bevor jemand „wir legen das Modell auf die NAS“ in das Protokoll schreibt.
+
+Apple Silicon mit viel Unified Memory ist ein Sonderfall: mehr RAM hilft, die Bandbreite bleibt der Flaschenhals. Immer mit einem Prompt messen, nie mit der Marketing-RAM-Zahl.
+
+Im Artefakt dieses Kapitels stehen vier Felder: Modellname, Quantisierung, Gerät/VRAM, gemessene tok/s plus Qualität gegen *denselben* Prompt in der Cloud. Ohne die letzte Spalte ist es eine Inventarliste.
+
+<Merksatz>
+Q4_K_M ist der Default-Kompromiss, GGUF die Datei, VRAM = Gewichte + KV-Cache. CPU-NAS kann rechnen — nicht chatten.
+</Merksatz>
+
+<Quelle
+  url="https://github.com/ggml-org/llama.cpp"
+  lang="en"
+  typ="llama.cpp — GGUF-Inferenz und Quantisierung"
+  dauer="25 Min"
+  account={false}
+  excerpt="GGUF quantization formats (Q4_K_M and friends) trade bits per weight for VRAM. The engine runs on CPU or GPU; interactive quality depends on tokens per second, not on whether the process starts."
+/>
+
+<Quelle
+  url="https://docs.ollama.com/"
+  lang="en"
+  typ="Ollama — Modelle und lokale Hardware"
+  dauer="10 Min"
+  account={false}
+  excerpt="Pick a model that fits the machine. Pulling a 70B onto a CPU NAS is possible in the same sense that compiling Chromium on a toaster is possible."
+/>

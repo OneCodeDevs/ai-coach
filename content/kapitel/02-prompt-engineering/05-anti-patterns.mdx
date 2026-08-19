@@ -1,0 +1,65 @@
+---
+titel: Anti-Patterns
+dauerMinuten: 14
+zusammenfassung: Zu vage, zu lang, widersprüchlich, ohne Erfolgskriterium — die vier Fehler, die Agent-Läufe teuer machen.
+reihenfolge: 5
+---
+
+Gute Prompts sind langweilig: Auftrag, Material, Format, Gate. Schlechte Prompts sind literarisch. In Reviews von Kundenrepos tauchen dieselben vier Muster auf. Du musst sie benennen können, bevor jemand „wir brauchen ein besseres Modell“ sagt.
+
+## 1. Zu vage
+
+„Mach das cleaner.“ „Handle Errors richtig.“ „Schreib Tests wo sinnvoll.“ Das Modell hat keine private Definition von *cleaner*. Es sampelt die häufigste Fortsetzung, oft Cosmetik: Rename, mehr `try/catch`, ein Kommentar.
+
+Gegenmittel: beobachtbares Verhalten. „Wenn `user` fehlt, 401 und kein Stacktrace im Response. Bestehende `HttpError` nutzen. Test in `auth.test.ts`.“ Vagheit ist fehlende Akzeptanzkriterien, nicht fehlende Freundlichkeit.
+
+## 2. Zu lang
+
+Ein Prompt, der Style-Guide, Architekturtraktat, zwölf Randfälle und das Ticket mischt, verdrängt das Ticket. Das Context Window ist endlich. Was früh steht, kann später rausfallen oder in der Attention untergehen.
+
+Gegenmittel: schneiden. Policy in Rules/System (kurz). Verfahren in eine Datei, die bei Bedarf gelesen wird. Im Task nur das, was diesen Lauf ändert. Die Kaggle-Whitepaper und die Hersteller-Guides sind sich einig: iterativ spezifizieren, nicht einmal alles kippen.
+
+Ein Warnsignal: der System-Prompt ist länger als der Diff, den du erwartet.
+
+## 3. Widersprüchlich
+
+„Sei vollständig und maximal knapp.“ „Ändere nichts an der API und füge das Feld in der Response hinzu.“ „Keine neuen Dateien“ plus „lege eine Util-Library an.“ Modelle lösen Widerspruch nicht moralisch. Sie folgen dem lautesten oder letzten Satz.
+
+Gegenmittel: eine Prioritätenzeile. „Bei Konflikt: öffentliches API-Verhalten vor DRY vor lokaler Eleganz.“ Und dann den Prompt gegenlesen wie einen Vertrag. Anthropics Kollegen-Test gilt hier doppelt.
+
+## 4. Keine Erfolgskriterien
+
+Ohne Gate endet der Lauf, wenn der Text selbstbewusst klingt. Genau das ist Halluzination plus Delivery. Anthropic für Agenten: gib einen Check, den das Modell selbst ausführen kann. Dasselbe Anti-Pattern sitzt schon im Prompt, bevor ein Agent Tools hat.
+
+Gegenmittel, das du in jedes Coding-Prompt schreiben kannst:
+
+- Befehl, der grün oder rot ist (`npm test -- filter`, `./gradlew :app:testDebug`)
+- explizites Stopp-Kriterium („nicht fertig, solange der Befehl nicht 0 zurückgibt“)
+- Evidenz statt Behauptung (Ausgabe einfügen, nicht „tests pass“)
+
+KI-Campus („Crafting Precision Prompts“) drillt denselben Punkt didaktisch: Präzision ist messbar, nicht poetisch.
+
+## Was du im Review sagst
+
+Nicht: „Der Prompt ist unfreundlich.“ Sondern: „Hier fehlt ein Gate, hier widerspricht Satz 2 Satz 7, hier sind 400 Zeilen Style-Guide im Task.“ Das ist die Sprache, mit der OneCode Prompt-Arbeit als Engineering verkauft, nicht als Wortmagie.
+
+<Merksatz>
+Vier Defekte: unscharf, aufgebläht, intern im Streit, ohne Done. Das Gegenmittel ist immer Spezifikation plus Check, nie ein längeres Adjektiv.
+</Merksatz>
+
+<Quelle
+  url="https://ki-campus.org/lernangebote/kurse/crafting-precision-prompts-genai"
+  lang="de"
+  typ="KI-Campus — Crafting Precision Prompts"
+  dauer="Kurs"
+  account={true}
+/>
+
+<Quelle
+  url="https://www.kaggle.com/whitepaper-prompt-engineering"
+  lang="en"
+  typ="Kaggle — Prompt Engineering whitepaper"
+  dauer="30 Min"
+  account={false}
+  excerpt="Vague prompts produce generic output. Overlong prompts dilute the task. Conflicting instructions make the model pick an arbitrary clause. Specify success criteria and iterate with evaluations."
+/>

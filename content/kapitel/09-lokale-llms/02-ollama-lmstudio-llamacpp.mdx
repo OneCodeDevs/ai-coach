@@ -1,0 +1,77 @@
+---
+titel: Ollama, LM Studio, llama.cpp — Wer macht was
+dauerMinuten: 15
+zusammenfassung: Engine, Runtime, GUI. Drei Schichten, ein Dateiformat — und ein Default für Dev-Teams.
+reihenfolge: 2
+---
+
+Im Kundengespräch fallen die Namen durcheinander. Jemand „hat LM Studio installiert“, jemand „macht Ollama“, jemand zitiert llama.cpp wie ein Produkt. Es sind Schichten. Wenn du die nicht trennst, empfiehlst du Tools, die dasselbe Problem zweimal lösen oder keins.
+
+## Die drei Rollen
+
+**llama.cpp** ist die Engine: C/C++-Inferenz für GGUF-Modelle, CPU und GPU, der Unterbau, den fast alle Desktop-Runtimes am Ende rufen. Du fasst sie an, wenn du Flags, Server-Modus, ungewöhnliche Backends oder reproduzierbare Pipelines brauchst. Du fasst sie nicht an, wenn ein Dev nur chatten will.
+
+**Ollama** ist die Runtime, die ihr Teams empfehlt: Modell pullen, REST-API auf `127.0.0.1:11434`, OpenAI-kompatible Endpunkte, Integration in Apps, Aider, eigene Scripts. Wenig GUI, viel „läuft als Dienst“. Für Agent-Verdrahtung ist eine HTTP-API Gold. Ollama kann inzwischen auch Cloud-Modelle anbieten — das ist ein anderes Produktversprechen; für *dieses* Kapitel zählt der lokale Pfad.
+
+**LM Studio** ist die Desktop-GUI: Modelle browsen, Chat, Server mit einem Klick, gut für Ausprobieren und für Stakeholder, die kein Terminal wollen. Für CI und Headless-Agents ist sie die zweite Wahl. Für den CTO-Laptop am Freitagnachmittag die erste.
+
+Grobe Landkarte:
+
+| Bedürfnis | Werkzeug |
+| --- | --- |
+| Verstehen, was Inferenz wirklich tut | llama.cpp |
+| Team-Default, API, Aider, Scripts | Ollama |
+| Klicken, vergleichen, Demo | LM Studio |
+| Dieselbe `.gguf` Datei | alle drei, wenn die Quantisierung passt |
+
+## Was du nicht vermischt
+
+- Ein Modell aus Hugging Face als ganzes fp16-Safetensors-Repo ist nicht automatisch in Ollama. Irgendwer hat quantisiert und in GGUF (oder Ollamas Bibliothek) gebracht.
+- „Wir hosten Llama 70B“ ohne GPU-Klasse ist eine Lüge in Zeitlupe. Die Engine startet vielleicht auf CPU — die UX stirbt.
+- Zwei Runtimes parallel auf denselben Ports sind ein Samstagabend. Ein Default pro Maschine.
+
+Im Gespräch mit Admins taucht oft Docker auf. Ollama im Container ist legitim, solange GPU-Passthrough wirklich sitzt — sonst habt ihr eine CPU-NAS im Frack. LM Studio auf einem Shared-CI-Runner ist meist die falsche Abstraktion: headless Ollama oder llama.cpp-server, Modellversion gepinnt, Quantisierung im Artefakt.
+
+Lizenz und Herkunft: ein gepulltes Modell ist nicht „open“, nur weil es lokal läuft. Gewichte haben eigene Terms (Llama, Qwen, Mistral). Für Kunden-Demos die Model Card lesen, bevor jemand den Namen auf eine Folie druckt. Das ist Supply Chain aus der OWASP-Liste, nur ohne Cloud-Vendor dazwischen.
+
+Empfehlung für OneCode-Demos: Ollama als Daemon, ein Coder-Modell das auf die VRAM-Lage des Laptops passt, LM Studio nur wenn der Kunde GUI verlangt. llama.cpp dann, wenn ihr reproduzierbare Server-Flags oder spezielle Backends braucht. Im Artefakt dieses Kapitels steht genau ein Stack, nicht drei konkurrierende.
+
+<Merksatz>
+llama.cpp rechnet, Ollama liefert die API, LM Studio zeigt eine Oberfläche. Teams brauchen eine Runtime — nicht drei Religionen.
+</Merksatz>
+
+<Quelle
+  url="https://docs.ollama.com/"
+  lang="en"
+  typ="Ollama Docs"
+  dauer="15 Min"
+  account={false}
+  excerpt="Quickstart, then pick a model and an integration. Ollama is the local (or cloud) runtime with an API — the piece you wire into tools."
+/>
+
+<Quelle
+  url="https://ollama.readthedocs.io/en/quickstart/"
+  lang="en"
+  typ="Ollama — Quickstart"
+  dauer="10 Min"
+  account={false}
+  excerpt="Install, pull a model, run it. The loop is short on purpose: local models should be operationally boring."
+/>
+
+<Quelle
+  url="https://lmstudio.ai/docs"
+  lang="en"
+  typ="LM Studio Docs"
+  dauer="15 Min"
+  account={false}
+  excerpt="Desktop app to download, run and chat with local models, and to expose a local server. Useful for exploration; not the default headless agent runtime."
+/>
+
+<Quelle
+  url="https://github.com/ggml-org/llama.cpp"
+  lang="en"
+  typ="llama.cpp — LLM inference in C/C++"
+  dauer="20 Min"
+  account={false}
+  excerpt="The engine behind GGUF inference on CPU and GPU. Everything friendly you click or curl is, at bottom, this class of runtime."
+/>

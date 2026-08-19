@@ -1,0 +1,70 @@
+slug: agentic-workflows
+nummer: 6
+titel: Agentic Workflows entwerfen
+untertitel: Das einfachste Pattern, das funktioniert — plus Human Quality Gates in Tickets und CI.
+dauerMinuten: 95
+lernziele:
+  - Die Anthropic-Patterns (Chaining, Routing, Parallel, Orchestrator-Worker, Evaluator-Optimizer) konkret zuordnen können
+  - Single-Agent gegen Multi-Agent begründen und Komplexität nur bei nachgewiesenem Nutzen erhöhen
+  - Human Quality Gates an Stellen platzieren, an denen Rücknahme teuer ist
+  - Agents in Issues und in GitHub Actions bzw. Copilot Cloud Agent einordnen
+  - Erfolg in Durchsatz, Qualität und Kosten messen statt in Demo-Wow
+exam:
+  - id: patterns
+    topic: Anthropic-Patterns
+    frage: Nenne die fünf Workflow-Patterns aus Building effective agents und je ein sinnvolles Einsatzbeispiel im Engineering.
+    erwartet:
+      - Chaining für zerlegbare Sequenz
+      - Routing nach Aufgabentyp oder Modellgröße
+      - Parallel für unabhängige Checks oder Voting
+      - Orchestrator-Worker bei unbekannter Teilaufgabenmenge
+      - Evaluator-Optimizer bei klaren Bewertungskriterien
+  - id: simplest-pattern
+    topic: Einfachstes Pattern, das funktioniert
+    frage: Wann baust du keinen Agenten, und was ist das einfachste Pattern, das bei einem klaren Bugfix greift?
+    erwartet:
+      - Einzelner LLM-Call mit Tools kann reichen
+      - Komplexität nur bei nachgewiesenem Nutzen
+      - Workflow vor autonomem Agent
+      - Chaining oder Single-Agent-Schleife für Bugfix
+  - id: single-vs-multi
+    topic: Single-Agent vs Multi-Agent
+    frage: Wann lohnt ein zweiter Agent, und welches Risiko kaufst du dir damit ein?
+    erwartet:
+      - Mehrere Agenten bei echten Teilaufgaben und eigener Kontext
+      - Koordination, Latenz und Kosten steigen
+      - Fehler verstärken sich über Hoppings
+      - Orchestrator nur wenn Teilaufgaben nicht vorab feststehen
+  - id: quality-gates
+    topic: Human Quality Gates
+    frage: Wo platziert ihr Human Quality Gates in einem agentischen Delivery-System, und was darf der Agent dort nicht?
+    erwartet:
+      - Gate vor Merge und vor Prod-Deploy
+      - Gate bei Auth, Geld, Datenlöschung
+      - Agent darf vorschlagen und branch schreiben
+      - Mensch entscheidet Merge, nicht das Modell
+  - id: tickets-ci
+    topic: Agents in Tickets und CI
+    frage: Wie kommt ein Agent von einem GitHub-Issue zu einem überprüften PR, ohne die Review-Pflicht zu umgehen?
+    erwartet:
+      - Issue als Auftrag mit Akzeptanzkriterien
+      - Cloud Agent oder Actions auf einem Branch
+      - CI als automatisches Gate
+      - Menschliches Review vor Merge
+  - id: messbarkeit
+    topic: Output messbar machen
+    frage: Welche Kennzahlen zählen als Erfolg eines agentischen Workflows, und welche sind Demo-Kosmetik?
+    erwartet:
+      - Merge-Rate und Zeit bis Merge
+      - Defekte nach Merge und Rollback
+      - Token- und Actions-Kosten pro erledigtem Issue
+      - Sterne in Chat oder LOC sind keine Erfolgskriterien
+zertifikate:
+  - title: Resolve GitHub issues by using GitHub Copilot
+    url: https://learn.microsoft.com/en-us/credentials/applied-skills/resolve-github-issues-by-using-github-copilot
+    anbieter: Microsoft Applied Skills
+    hinweis: Kostenloses Lab zu Agent Mode. Hoher Kundenwert.
+  - title: Hugging Face AI Agents Course
+    url: https://huggingface.co/learn/agents-course/unit0/introduction
+    anbieter: Hugging Face
+    hinweis: Completion erfordert ein Assignment mit mindestens 30 Prozent auf einem GAIA-Subset. Anspruchsvoll, optional.

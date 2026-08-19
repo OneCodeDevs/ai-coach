@@ -1,0 +1,70 @@
+---
+titel: Lokales Modell in der IDE (Aider/Ollama)
+dauerMinuten: 16
+zusammenfassung: Aider plus Ollama funktioniert — sobald du den stillen 2k-Context abstellst und den Cloud-Abstand misst.
+reihenfolge: 4
+---
+
+Der Bonus wird konkret, wenn der Dev im Repo bleibt. **Aider** spricht Ollama über die lokale API. Das ist kein zweites Copilot-Abo, das ist ein Terminal-Agent gegen `localhost`. Genau deshalb ist die Default-Falle so gemein: sie sieht aus wie ein funktionierendes Setup und wirft den Großteil des Repos weg.
+
+## Die Verdrahtung, die ihr dokumentiert
+
+1. Ollama läuft, Modell ist gepullt (`ollama pull …`).
+2. `OLLAMA_API_BASE=http://127.0.0.1:11434` (Windows: `setx`, Shell neu).
+3. Context explizit: `OLLAMA_CONTEXT_LENGTH=8192 ollama serve` — oder höher, wenn VRAM den KV-Cache trägt.
+4. Aider mit `aider --model ollama_chat/<modell>` starten. Aider empfiehlt **`ollama_chat/`** gegenüber `ollama/`.
+
+Ohne Schritt 3 gilt Ollamas historischer Default: ein **winziges Fenster (~2k Token)**, und alles darüber wird **still verworfen**. Aider warnt genau davor: User merken nicht, dass der Agent die Datei nicht mehr sieht. Das ist schlimmer als ein hartes Limit mit Fehlermeldung. Für Coding ist 8k das absolute Minimum; 16k+ nur, wenn die Hardware den Cache hält. Aider kann den Fensterbedarf pro Request plus Kopf für die Antwort setzen — trotzdem explizit konfigurieren, nicht hoffen.
+
+Unbekannte Modelle lösen in Aider Warnings aus. Das ist kein Bug, das ist Ehrlichkeit: der Client kennt Context-Taxonomie und Quirks nicht. Euer Artefakt nennt Modell, `num_ctx`, und ob die Warning bewusst akzeptiert wurde.
+
+## Was ihr benchmarkt — gegen Cloud, nicht gegen Gefühl
+
+Ein Prompt, denselben Diff, zwei Backends:
+
+- lokal: das Ollama-Modell, festes `num_ctx`, Temperature nahe 0
+- Cloud: das Modell, das der Kunde ohnehin zahlt (Sonnet-Klasse oder vergleichbar)
+
+Bewerten: kompiliert der Vorschlag, sind die Tests grün, wie viele Turns, wie viele Halluzinationen von APIs, Sekunden bis zum ersten sinnvollen Patch. Schreibt die vier Zahlen ins Artefakt. Wenn lokal gewinnt, steht da meist Latenz oder Datenschutz, selten SWE-Qualität auf großen Repos.
+
+## Wo lokal in der IDE sinnvoll ist
+
+- Kommentare, Renames, kleine Funktionen, commit messages
+- Code, der das Gebäude nicht verlassen darf
+- Flugmodus, Kundendemohost ohne Keys
+- Offline-Red-Team gegen eigene Prompts
+
+Wo nicht: Multi-File-Refactors, unbekannte Legacy, Tool-schwere Agents, alles was Angebot 1 als System verkauft. Dort bleibt die Cloud-Spur mit Gates. Ihr könnt Aider lokal als **Pre-Commit-Helfer** und Cloud-Agents als **System** positionieren — das ist konsistent mit Kapitel 8.
+
+API-Keys: nur setzen, wenn die Ollama-Instanz wirklich eine Auth voraussetzt. Ein offener Port im Hotel-WLAN ohne Bind an localhost ist ein eigenes OWASP-Thema (Excessive Agency plus Netzwerk). Bind `127.0.0.1`, nicht `0.0.0.0`, außer ihr wisst, warum.
+
+<Merksatz>
+Aider plus Ollama ist produktiv erst mit gesetztem Context. Default 2k plus stilles Verwerfen ist Sabotage. Miss gegen Cloud — beschönige den Abstand nicht.
+</Merksatz>
+
+<Quelle
+  url="https://aider.chat/docs/llms/ollama.html"
+  lang="en"
+  typ="Aider — Ollama"
+  dauer="15 Min"
+  account={false}
+  excerpt="Ollama defaults to a 2k context and silently discards overflow. Set OLLAMA_CONTEXT_LENGTH and use ollama_chat/<model>. Aider can size the window per request; a fixed 2k window will hide most of the repo from the model."
+/>
+
+<Quelle
+  url="https://docs.ollama.com/"
+  lang="en"
+  typ="Ollama — API und Integrationen"
+  dauer="10 Min"
+  account={false}
+  excerpt="Connect Ollama to an editor or agent via the local API. The runtime is the easy part; context size and hardware are what make coding usable."
+/>
+
+<Quelle
+  url="https://ollama.readthedocs.io/en/quickstart/"
+  lang="en"
+  typ="Ollama Quickstart"
+  dauer="8 Min"
+  account={false}
+  excerpt="Pull a model, serve it, then point the client at 127.0.0.1. Keep that loop boring so the only variables you measure are model quality and context."
+/>

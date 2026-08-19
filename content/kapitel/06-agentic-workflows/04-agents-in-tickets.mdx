@@ -1,0 +1,61 @@
+---
+titel: Agents in Tickets und Issues
+dauerMinuten: 15
+zusammenfassung: Das Issue ist der Auftrag. Ohne Akzeptanzkriterien liefert der Agent eine plausible Geschichte, kein Done.
+reihenfolge: 4
+---
+
+Im IDE-Chat verschwindet die Entscheidung mit der Session. Im Issue bleibt sie. Deshalb hängt Angebot 1 Agents an Tickets: der Auftrag ist versioniert, der Output ist ein PR gegen genau dieses Issue, der Mensch reviewed das Artefakt. GitHub Copilot Cloud Agent ist das Referenzprodukt: Issue zuweisen oder `@copilot`, Recherche und Plan, Commits auf einem Branch, PR wenn ihr so weit seid.
+
+## Was ein agentenfähiges Ticket enthält
+
+Nicht „bitte Login fixen“. Sondern:
+
+- **Ist / Soll** in einer Sprache, die ein Test widerspiegeln kann.
+- **Akzeptanzkriterien** als Checkboxen, nicht als Stimmung.
+- **Out of scope.** Sonst erweitert der Agent den Auftrag, weil er hilfreich trainiert ist.
+- **Betroffene Fläche**, soweit bekannt (Dienst, Dateien, Feature-Flag).
+- **Risikoklasse:** darf der Agent allein bis zum PR, oder ist es ein Gate-Thema (Auth, Daten)?
+
+Das ist keine Bürokratie für den Agenten. Es ist Context Engineering: der Issue-Text ist der Auftragsprompt, den das ganze Team sieht. Schlechte Tickets erzeugen gute Demos und schlechte Merge-Kandidaten.
+
+## Der Lauf
+
+1. Mensch (oder Triage-Routing) hängt den Agenten ans Issue.
+2. Agent liest Repo-Instructions, MCP (Issues, Code), schreibt Plan. Beim Cloud Agent könnt ihr den Plan *vor* dem großen Diff iterieren. Das ist ein frühes, billiges Gate.
+3. Implementierung auf einem Feature-Branch, nicht auf `main`. Ein Issue, ein Branch, ein PR: die GitHub-Grenze ist hart (kein Multi-Repo in einem Lauf, 59 Minuten Timeout beim Cloud Agent). Große Themen schneidet ihr in Issues, nicht in Hoffnung.
+4. CI auf dem PR. Rot heißt zurück an den Agenten oder an den Menschen, je nach Policy.
+5. Review-Pflicht. Schließen des Issues erst nach Merge, nicht nach „Agent sagt done“.
+
+Microsoft Applied Skills *Resolve GitHub issues by using GitHub Copilot* prüft genau diese Kette in VS Code Agent Mode: Issue anlegen, untersuchen, mit Agent Mode lösen, schließen. Das Lab ist der Nachweis, den du Kunden hinlegen kannst, ohne euer internes Playbook zu leaken.
+
+## Wo Teams scheitern
+
+Agent auf 40 verwaiste Nice-to-haves gleichzeitig. Keine Definition of Done. Kein Mensch, der den PR in 24 Stunden sieht: dann verfault der Branch, und „Agents bringen nichts“ ist die Retrospektive über eure Queue, nicht über das Modell.
+
+Custom Agents (Frontend-only, Docs, Tests) lohnen, wenn die Tickets schon so geschnitten sind. Sonst ist Routing-Pattern plus ein Default-Agent ehrlicher.
+
+## Was du im Workshop zeigst
+
+Ein echtes, kleines Issue aus ihrem Backlog. Vorher die Kriterien schärfen. Nachher den PR: welche Checks grün, welche Frage der Reviewer stellen muss. Der Learning-Moment ist selten der generierte Code. Es ist, dass das Ticket zum Vertrag wurde.
+
+<Merksatz>
+Das Issue ist der Prompt mit Audit-Trail. Der Agent liefert einen Branch gegen Kriterien — Done ist Merge nach Review, nicht der letzte Chat-Satz.
+</Merksatz>
+
+<Quelle
+  url="https://docs.github.com/de/copilot/concepts/agents/cloud-agent/about-cloud-agent"
+  lang="de"
+  typ="GitHub — Cloud Agent von Issue bis Branch"
+  dauer="25 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://learn.microsoft.com/en-us/credentials/applied-skills/resolve-github-issues-by-using-github-copilot"
+  lang="en"
+  typ="Microsoft Applied Skills — Resolve GitHub issues with Copilot"
+  dauer="Lab"
+  account={true}
+  excerpt="Create an issue, investigate with Copilot, resolve it using Agent Mode, then close the issue."
+/>

@@ -1,0 +1,58 @@
+---
+titel: "Audit-Methodik: Architektur und Datenmodell"
+dauerMinuten: 16
+zusammenfassung: Eine Woche, kein Big Rewrite. Befund ist eine priorisierte Risikoliste mit Aufwand.
+reihenfolge: 2
+---
+
+Angebot 2 verspricht festen Scope, wenige Wochen: erst Audit, dann Umbau der tragenden Teile. Woche 1 ist Diagnose. Wer in Woche 1 schon Frameworks tauscht, hat das Angebot verlassen. Der Founder will hören, *was* Production blockiert und *was* es kostet. Dafür brauchst du eine Methode, die in fünf Tagen auf einem fremden Repo trägt.
+
+## Tag 1–2: die Karte, nicht die Ästhetik
+
+Ziel: ein Bild von Modulgrenzen und Datenflüssen, das ein Senior ohne den Chatverlauf versteht.
+
+- **Einstiegspunkte:** Apps, Worker, Cron, Webhooks, Agent-Tools. Alles, was von außen kommt.
+- **Schreibpfade:** welche Prozesse schreiben welche Tabellen oder Files. Vibe-MVPs haben oft eine SQLite-Datei, drei ORM-Stile und Direct-SQL in API-Routen.
+- **Modulgrenzen:** Ordnernamen lügen. Suche zyklische Imports, God-Files (`lib/utils.ts` mit Auth *und* Preislogik), Copy-Paste-Services.
+- **Single Points:** eine `admin`-Flag-Spalte, ein globaler Client, ein Secret für alles.
+- **Laufzeit:** wo läuft es wirklich (Vercel, ein VPS, der Laptop des Founders)? Backup, Migration, Wiederanlauf.
+
+Du dokumentierst Ist. Soll-Architektur nur als Skizze, wo das Risiko es erzwingt. Kein Zielbild „sauberer Hexagon“, wenn das Problem eine fehlende Transaction um Bestellung und Bestand ist.
+
+## Datenmodell
+
+Lies Schema, Migrationen (oder deren Fehlen), Seeds, „mal eben JSON in der Tabelle“. Fragen:
+
+- Gibt es eine Quelle der Wahrheit für Nutzer, Abo, Bestellung?
+- Wer darf löschen, was ist Soft-Delete, was ist Audit?
+- IDs: sequential und öffentlich? UUID gemischt mit Auto-Increment?
+- Migrationen reproduzierbar, oder Prod ist „die lokale Datei, die einmal geklappt hat“?
+
+Charakter-Tests (nächste Einheiten) brauchen dieses Modell: du testest Invarianten („eine bezahlte Order hat genau eine Invoice“), nicht UI-Farben.
+
+## Tag 3–4: Risiko mal Wahrscheinlichkeit mal Aufwand
+
+Jede Fundstelle: Auswirkung (Daten weg, Geld falsch, Account-Takeover, nicht deploybar), wie leicht ausnutzbar oder wie häufig der Pfad, wie teuer der Fix (Stunden, nicht Story-Points-Theater). Drei Körbe:
+
+1. **Blocker vor öffentlichem Traffic** (Auth, Secrets, Datenverlust).
+2. **Tragende Teile in den Umbau-Wochen** (Modulgrenzen, Tests an den Invarianten, CI).
+3. **Später / bewusst akzeptiert** (Toollast, kosmetische Duplikate).
+
+Der Freitags-Deliverable ist diese Liste plus „was wir in Woche 2–n anfassen“. Nicht ein 40-Seiten-Gutachten. Der Founder muss priorisieren können, inkl. „das lassen wir, weil wir nächste Woche pivoten“.
+
+## Was du nicht tust
+
+Kein Framework-Wechsel in der Audit-Woche. Kein „wir machen Microservices“. Kein Agent, der das Repo in einem Rutsch „aufräumt“: das ist Vibe auf dem Audit. Agents dürfen *lesen*, Diagramme vorschlagen, Dependency-Graphen bauen. Die Priorisierung ist menschlich. Das ist dasselbe Gate-Prinzip wie in [Agentic Workflows](/kapitel/agentic-workflows).
+
+<Merksatz>
+Das Audit liefert eine Karte und eine sortierte Risikoliste mit Aufwand. Umbau kommt danach, und nur an den Stellen, die Production tatsächlich tragen.
+</Merksatz>
+
+<Quelle
+  url="https://www.iese.fraunhofer.de/blog/vibe-coding-definition-potenziale-risiken/"
+  lang="de"
+  typ="Fraunhofer IESE — Prototyp vs. robustes Produkt"
+  dauer="10 Min"
+  account={false}
+  excerpt="Wie bei allen Prototypen besteht die Gefahr, dass der laufende Prototyp im finalen System landet. Entwickler müssen KI-generierten Code prüfen und in robuste Produkte überführen."
+/>

@@ -1,0 +1,64 @@
+---
+titel: Autocomplete vs Chat vs Agent
+dauerMinuten: 14
+zusammenfassung: Drei Interaktionsmodi, drei Risikoklassen — wer sie vermischt, verkauft dem Kunden das falsche Produkt.
+reihenfolge: 1
+---
+
+Kunden sagen „wir haben Copilot“ und meinen drei verschiedene Dinge. Deine Aufgabe ist, den Modus zu benennen, bevor ihr über Modelle, Lizenzen oder Magie redet. Die Achse ist nicht Intelligenz. Die Achse ist **wie weit das System allein in die Codebasis greifen darf**.
+
+## Autocomplete (Tab, Ghost Text)
+
+Das Modell sieht den Cursor, ein paar offene Dateien, oft den nahen AST. Es schlägt die nächsten Token vor. Du akzeptierst zeilenweise. Kein Plan, kein Terminal, kein Multi-File-Auftrag aus eigenem Antrieb.
+
+Das ist der niedrigste Blast Radius. Typische Fehler: veraltete APIs, falsche Imports, Pattern aus einem anderen File. Typische Stärke: Boilerplate, Tests nach einem sichtbaren Muster, das Weiterdenken einer Funktion, die du selbst angefangen hast.
+
+Wichtig für Cursor-Nutzer: **Project Rules gelten nicht für Tab.** Wer Policy über Completions erwartet, hat den falschen Kanal gewählt.
+
+## Chat
+
+Du formulierst eine Frage oder einen Auftrag. Das Modell antwortet in der Seitenleiste. Kontext kommt, weil du Dateien anhängst, `@` nutzt oder der Client ein paar Editor-Buffers mitschickt. Der Chat **schlägt vor**. Ob er schreibt, hängt vom Produkt ab: reiner Chat ändert nichts, „Apply“ oder Inline-Edit ändert genau das, was du bestätigt.
+
+Risiko: du übernimmst einen Patch, den niemand gebaut hat. Kontrolle: der Mensch ist noch der Scheduler. Ein Chat, der 400 Zeilen in die Zwischenablage legt, ist kein Agent. Er ist ein schneller Kollege ohne Checkout.
+
+## Agent
+
+Ein Agent hat Werkzeuge und eine Schleife: lesen, suchen, terminaln, patchen, Tests laufen lassen, den Output lesen, weitermachen. Er hält ein Ziel über viele Schritte. Genau deshalb skaliert er in beide Richtungen: Features in Stunden, oder ein halbes Repo in den Graben, weil ein früher Irrtum verdoppelt wurde.
+
+Drei Eigenschaften, die du im Pitch trennen musst:
+
+1. **Werkzeuge.** Dateisystem, Shell, Browser, MCP. Ohne Tool ist es Chat mit Marketing.
+2. **Autonomie.** Wie viele Schritte, bevor ein Mensch ja sagt? Cline defaultet auf Freigabe pro Aktion. Claude Code und Cursor Agent können lange laufen. Copilot Cloud Agent öffnet selbst einen PR.
+3. **Verifikation.** Ob die Schleife an Tests, Builds, Screenshots hängt oder nur am selbstbewussten „done“.
+
+## Was du verkaufst
+
+OneCode baut keine Autocomplete-Schulung. OneCode baut das System um den Agenten: Regeln, Kontext, Gates. Im Gespräch:
+
+- Autocomplete beschleunigt Tipp-Arbeit. Es ändert eure Lieferfähigkeit kaum.
+- Chat beschleunigt Verstehen und kleine Patches. Review bleibt komplett beim Menschen.
+- Agent beschleunigt Durchsatz **nur wenn** Plan, Context und Checks sitzen. Sonst beschleunigt er Defects.
+
+Wer „AI im Editor“ als eine Zahl in der Lizenzmatrix führt, hat die Risikoklassen nicht verstanden. Du führst sie.
+
+<Merksatz>
+Autocomplete vervollständigt. Chat erklärt und schlägt vor. Agent handelt über Schritte und Tools. Das Risiko folgt dem Schreib- und Terminalzugriff, nicht dem Produktnamen auf der Invoice.
+</Merksatz>
+
+<Quelle
+  url="https://code.claude.com/docs/en/best-practices.md"
+  lang="en"
+  typ="Anthropic — Claude Code best practices"
+  dauer="25 Min"
+  account={false}
+  excerpt="Claude Code is an agentic coding environment. Unlike a chatbot that answers questions and waits, it can read files, run commands, make changes, and work through problems while you watch or step away."
+/>
+
+<Quelle
+  url="https://docs.cline.bot/cline-overview"
+  lang="en"
+  typ="Cline — Overview"
+  dauer="10 Min"
+  account={false}
+  excerpt="Cline can read and write files, run terminal commands, and use a browser. Every action requires your explicit approval. You are always in control."
+/>

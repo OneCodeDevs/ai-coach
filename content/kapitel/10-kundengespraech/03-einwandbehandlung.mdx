@@ -1,0 +1,63 @@
+---
+titel: Einwandbehandlung
+dauerMinuten: 18
+zusammenfassung: Copilot, Preis, Risiko, „unsere Devs können das“ — antworten ohne zu verteidigen.
+reihenfolge: 3
+---
+
+Einwände sind selten Angriffe. Sie sind Hypothesen: „Wir haben das Problem schon gelöst“ oder „ihr seid zu teuer für den Schmerz, den ich zugebe“. Wer defensiv wird, bestätigt, dass OneCode ein Nice-to-have ist. Wer den Einwand **in ein Angebot übersetzt**, führt.
+
+Vier Klassiker. Lerne die Struktur: anerkennen, präzisieren, in Pain mappen, ein Angebot oder ein Nein.
+
+## „Wir haben doch schon Copilot“ (oder Cursor, oder ChatGPT Team)
+
+Anerkennen: Gute Tools, echte Tempo-Gewinne auf Dateiebene.
+
+Präzisieren: Copilot ist Autocomplete und Chat. Er ist kein System aus Rules, Kontextmodell, Agent-Tasks, Guardrails und Human Gates im Repo. Er sagt nicht, welcher Agent das Epic fährt. Er merget nicht mit Eval. Er stoppt nicht Excessive Agency.
+
+Map: Das ist exakt Pain von Angebot 1 — Tools da, System nicht. Wenn sie *nur* Copilot haben und ein wackliges MVP, ist es Angebot 2, nicht „mehr Lizenzen“.
+
+Satz: „Verdoppelt ihr Copilot, verdoppelt ihr Tastenanschläge. Unser Job ist der Merge, der montags noch gilt.“
+
+## „Zu teuer“
+
+Nicht über Rabatt reden, bevor der Slot klar ist. Angebot 2 hat festen, kurzen Scope — das ist der Preisanker gegen Open-End-Retainer. Angebot 1 ist ein System, das Output und Zuverlässigkeit kauft; vergleiche mit einem Senior, der drei Monate Rules in Jira-Tickets schreibt, die niemand liest. Angebot 3 gegen *eine* Production-Störung durch ungeprüften Agent-Code (plus Image).
+
+Frage zurück: „Teuer gegen was — gegen eine Lizenz, gegen einen Incident, gegen ein Quartal Feature-Pause?“ Wenn der Schmerz klein ist, ist das ehrliche Ende: nicht jedes Team braucht euch jetzt.
+
+## „Zu riskant“ (Daten, AI Act, Agents mit Shell)
+
+Hier nicht „kein Risiko“ sagen. Risiko umlegen: ohne euch mergen Agents *heute* schon, nur ohne Trace und Tripwire. Angebot 3 *ist* die Risikoreduktion. Lokal (Kapitel 9), wenn Residenz das Thema ist. AI Act: Kompetenz und Transparenz, kein Theater „wir zertifizieren euer Modell“. Human Gates sind das Kontrollnarrativ, das CTOs brauchen.
+
+Satz: „Das riskante Setup ist der Agent mit Prod-Token ohne Gate. Wir bauen das Gate.“
+
+## „Unsere Devs können das selbst“
+
+Ja. Gute Devs können Rules schreiben. Die Frage ist, ob sie es in den nächsten sechs Wochen tun, während sie Features schulden — und ob Evals, Guardrails und Observability nebenbei entstehen. OneCode ist Hands-on im *ihrem* Repo, keine Schulung, nach der das Wiki verstaubt. Wenn sie es selbst tun: gratulieren, Angebot 3 als Review/Härtung anbieten, oder gehen.
+
+Zusatz, ohne Arroganz: Selbst bauen heißt auch, den Eval-Flywheel und die OWASP-Ecke zu pflegen. Das ist ein Produkt, kein Wochenend-Hook.
+
+## Haltung
+
+Kein Feature-Pingpong. Kein „wir sind günstiger als McKinsey“. Ein sauberes „dann seid ihr nicht dran“ ist stärker als ein verwässertes Bundle. Der Tutor in diesem Kapitel spielt den CTO: er will hören, dass du Copilot nicht verteufelst und trotzdem nicht klein beigibst.
+
+<Merksatz>
+Einwand → welches Angebot (oder keines). Copilot ist ein Werkzeug. Teuer, riskant, selbst machen sind Scope-Fragen, keine Charaktertests.
+</Merksatz>
+
+<Quelle
+  url="https://www.iese.fraunhofer.de/blog/vibe-coding-definition-potenziale-risiken/"
+  lang="de"
+  typ="Fraunhofer IESE — KI beschleunigt, Engineering bleibt Pflicht"
+  dauer="10 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://code.claude.com/docs/en/security"
+  lang="en"
+  typ="Claude Code — Security (für den Risiko-Einwand)"
+  dauer="10 Min"
+  account={false}
+  excerpt="Permissions, sandbox and human approval exist because agentic tools are dangerous by default. A Copilot license does not install that architecture in your repo."
+/>

@@ -1,0 +1,53 @@
+---
+titel: Warum lokal — Datenschutz, Kosten, Offline, Demos
+dauerMinuten: 14
+zusammenfassung: Lokale Modelle lösen echte Constraints. Sie ersetzen keine Frontier-Cloud für Agent-Arbeit im großen Repo.
+reihenfolge: 1
+---
+
+Lokale LLMs sind der Bonus im OneCode-Gespräch, nicht Angebot 1. Wer sie als „wir sind genauso gut wie Claude, nur ohne Rechnung“ verkauft, verbrennt Vertrauen in den ersten fünf Minuten. Wer sie als **gezieltes Werkzeug für vier Constraints** verkauft, klingt wie jemand, der Hardware und Compliance verstanden hat.
+
+## Vier Gründe, die ein CTO unterschreibt
+
+1. **Datenschutz und Residenz.** Prompts, Diffs, Kundencode verlassen die Maschine nicht. Für Behörden, Health, Legal, Air-Gap-Zonen und paranoid regulierte Mittelständler ist das oft die *einzige* Tür, durch die ein LLM überhaupt darf. Das ist kein Lifestyle, das ist Vertrag.
+2. **Kosten bei Wiederholung.** Ein 70B-Cloud-Call für jedes interne Changelog ist Verschwendung. Kleine lokale Modelle für Klassifikation, Commit-Messages, Boilerplate, Routing sind günstig, sobald die GPU abgeschrieben ist. Die Schwelle liegt bei Volumen und Vorhersagbarkeit, nicht beim ersten PoC.
+3. **Offline und Souveränität.** Zug, Kunden-WLAN, Demo auf der Bühne, Incident während der Provider-Outage. Ein lokales Modell, das in 800 ms den nächsten Satz vorschlägt, schlägt ein Spinner-UI mit 503.
+4. **Demos und Enablement.** Founder wollen „AI“ sehen, ohne dass ihr in der Session einen API-Key des Kunden in `.env` legt. Ein Laptop mit Ollama ist eine Bühne. Die Cloud kommt, wenn der Vertrag und das Gate stehen.
+
+## Der Satz, den du nicht sagst
+
+Nicht: „Lokal ist inzwischen gleichwertig.“  
+Sondern: „Lokal ist gut genug für X. Für agentisches Refactoring über Modulgrenzen, hartes Reasoning und Tool-Use im großen Repo bleiben Frontier-Modelle in der Cloud vorn — mit euren Gates.“
+
+Der Qualitätsabstand ist 2026 kleiner als 2023 und immer noch real: Instruction-Following, lange Contexts, zuverlässige Tool-Calls, SWE-bench-ähnliche Arbeit. Ein 14B Q4 auf 12 GB VRAM ist ein nützlicher Kollege für lokale Snippets. Er ist kein Ersatz für das System aus Angebot 1.
+
+## Wie lokal ins Portfolio passt
+
+- **Angebot 1** kann eine lokale Spur enthalten: Embedding, Routing, Pre-Commit-Checks ohne Datenabfluss.
+- **Angebot 2** (Vibe → Production) ist fast immer Cloud plus Gates; lokal höchstens für den Audit-Workspace des Kunden, wenn Code die Firma nicht verlassen darf.
+- **Angebot 3** profitiert von lokalen Judges oder Red-Team-Modellen hinter der Firewall — wiederum ehrlich: der Judge ist so gut wie das Modell.
+
+Was lokal *nicht* löst, damit der Bonus nicht das Hauptangebot frisst: keine evaluierten Gates, keine MCP-Härte, keine Production-Observability. Ein Laptop-Modell ohne Trace ist dasselbe Blindflug-Problem wie Cloud ohne Langfuse — nur billiger und stiller. Deshalb bleibt Kapitel 8 die Pflicht, sobald Code merget; Kapitel 9 ist die Spur, auf der Daten nicht in die Cloud müssen.
+
+Discovery-Frage, die du mitnimmst: „Darf Quellcode und Tickettext eure VPC bzw. euren Laptop verlassen — ja, nein, nur anonymisiert?“ Die Antwort entscheidet, ob lokal Pflicht, Nice-to-have oder Zeitverschwendung ist. Eine zweite, ehrliche Frage: „Wollt ihr lokal, weil Compliance — oder weil die Cloud-Rechnung weh tut?“ Das erste ist Architektur. Das zweite ist oft ein Routing-Problem (kleine Cloud-Modelle, Cache), kein 70B auf der NAS.
+
+<Merksatz>
+Lokal löst Daten, Offline, Demo und wiederholte Billig-Tasks. Es löst nicht „wir brauchen Opus-Qualität ohne Cloud“. Wer das vermischt, verkauft Magie.
+</Merksatz>
+
+<Quelle
+  url="https://docs.ollama.com/"
+  lang="en"
+  typ="Ollama — Dokumentation"
+  dauer="20 Min"
+  account={false}
+  excerpt="Run open models locally, then connect an app or API. Local inference is a product choice for privacy and control, not an automatic upgrade over hosted frontier models."
+/>
+
+<Quelle
+  url="https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/KI/Generative_KI-Modelle.html"
+  lang="de"
+  typ="BSI — Generative KI-Modelle (Betrieb und Risiko)"
+  dauer="30 Min"
+  account={false}
+/>

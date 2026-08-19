@@ -1,0 +1,64 @@
+---
+titel: Guardrails mit Tripwires
+dauerMinuten: 14
+zusammenfassung: Ein Guardrail, der nur im Prompt steht, ist eine Bitte. Ein Tripwire ist ein Abbruch.
+reihenfolge: 3
+---
+
+Kunden verwechseln drei Dinge: Policy-Text im System-Prompt, ein Moderationsmodell und ein **Guardrail mit Tripwire**. Nur das Dritte stoppt den Lauf, bevor der teure Agent Schreibrechte ausübt oder der Output an den User geht. OpenAI’s Agents SDK macht das explizit: schlägt das Guardrail an, fliegt eine Exception, der Runner hält.
+
+## Drei Stellen, drei Fragen
+
+1. **Input-Guardrail** — Darf dieser User-Input den Agenten überhaupt starten? Typisch: Jailbreak, Prompt Injection, Out-of-Scope (Mathehausaufgaben auf dem Support-Bot), Secret-Paste. Im SDK laufen Input-Guardrails nur beim *ersten* Agenten der Kette. Parallel (Default) ist schnell, aber der teure Agent hat oft schon Tokens verbrannt. **Blocking** (`run_in_parallel=False`) ist Pflicht, wenn Tools Side Effects haben oder ihr Kosten deckeln wollt.
+2. **Output-Guardrail** — Darf diese Antwort raus? PII, erfundene Rechtsauskunft, „führe das SQL aus“. Output-Guardrails laufen nach dem finalen Output — zu spät für bereits abgeschickte Mails, deshalb gehören Side Effects nicht in denselben Schritt wie den Chat-Text.
+3. **Tool-Guardrail** — Darf *dieser* Tool-Call mit *diesen* Argumenten laufen? Das ist die Stelle, die bei Excessive Agency zählt: `rm`, Production-DB, Zahlungs-API, `git push --force`. Input-Tool-Guardrails können den Call skippen oder ersetzen; Output-Tool-Guardrails können Secrets aus der Tool-Antwort schwärzen.
+
+Ein Tripwire ist das Signal `tripwire_triggered=true`. Kein Höflichkeitssatz, keine Retry-Schleife ins Unendliche. Der Caller entscheidet: User-Fehler, Fallback-Modell, Mensch in der Queue.
+
+## Deterministisch zuerst, Modell danach
+
+Ein Guardrail darf ein kleines, billiges Modell sein — OpenAI’s Lehrbuchbeispiel prüft mit einem schnellen Agenten, ob jemand Hausaufgaben durchschleusen will, bevor das teure Modell startet. Das ist richtig für Semantik. Es ist falsch als einzige Linie für Dinge, die Regex und Parser besser können:
+
+- API-Keys und `sk-` in Tool-Argumenten
+- JSON-Schema der Function-Call-Parameter
+- Allowlist für Domains, Pfade, Git-Refs
+- Maximale Diff-Größe, maximale Tool-Calls, maximale Kosten
+
+Das Modell als Guardrail halluziniert Fails und Misses. Deterministische Checks sind langweilig und gewinnen Incidents. Die Kombination ist das Produkt, das ihr verkauft: **Schema und Policy-Code plus semantischer Check plus Tripwire.**
+
+## Was du im Kundengespräch nicht sagst
+
+Nicht: „Wir schreiben in den System-Prompt, er soll nichts Gefährliches tun.“  
+Sondern: „Unerlaubte Inputs und Tool-Calls lösen einen Tripwire aus. Der Agent merget nicht. Ein Mensch oder ein Fallback übernimmt. Das steht in CI und im Runner, nicht nur in der Rule-Datei.“
+
+Claude Code ist das Anschauungsobjekt: Permissions, Sandbox, fail-closed für unbekannte Commands, isolierter Context für Web-Fetch. Das ist Guardrail-Design, nicht Prompt-Poesie. Wenn der Kunde Copilot hat, hat er Autocomplete — kein Tripwire vor `apply_patch` auf `/auth`.
+
+<Merksatz>
+Ein Guardrail ohne Tripwire ist ein Kommentar. Tripwires gehören vor Side Effects; Prompts gehören in die Dokumentation des gewünschten Verhaltens.
+</Merksatz>
+
+<Quelle
+  url="https://openai.github.io/openai-agents-python/guardrails/"
+  lang="en"
+  typ="OpenAI Agents SDK — Guardrails"
+  dauer="20 Min"
+  account={false}
+  excerpt="Input, output and tool guardrails return a tripwire. If tripwire_triggered is true, the runner raises and halts. Blocking execution prevents the expensive model and its tools from starting."
+/>
+
+<Quelle
+  url="https://code.claude.com/docs/en/security"
+  lang="en"
+  typ="Claude Code — Security"
+  dauer="25 Min"
+  account={false}
+  excerpt="Permission-based architecture, sandboxing, fail-closed matching and isolated context for web fetch. Prompt injection is mitigated by the permission system, not by hoping the model ignores hostile text."
+/>
+
+<Quelle
+  url="https://www.bsi.bund.de/DE/Service-Navi/Presse/Alle-Meldungen-News/Meldungen/Evasion-Attacks-LLM_251110.html"
+  lang="de"
+  typ="BSI — Evasion Attacks auf LLMs, Gegenmaßnahmen"
+  dauer="20 Min"
+  account={false}
+/>

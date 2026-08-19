@@ -1,0 +1,73 @@
+---
+titel: Plan- und Review-Schleifen
+dauerMinuten: 16
+zusammenfassung: Zuerst der Plan, dann der Patch, dann der Diff und der Check — Kontext nur für den aktuellen Schritt.
+reihenfolge: 6
+---
+
+Agenten scheitern selten an Syntax. Sie scheitern an der falschen Aufgabe, am vollen Fenster und am Merge ohne Gate. Die Gegenmechanik ist langweilig und verkaufbar: eine **Plan-Schleife**, eine **Review-Schleife**, und Context als Budget (Kapitel 1), das du pro Schritt neu schneidest.
+
+## Plan, bevor Bytes fallen
+
+Große oder unklare Arbeit startet read-only. Der Agent nennt:
+
+- betroffene Dateien und warum
+- Annahmen, die falsch sein können
+- was bewusst *nicht* geändert wird
+- welcher Befehl hinterher grün sein muss
+
+Du streichst. Erst dann Schreibrechte. Claude Code nennt das Plan Mode, Cursor hat denselben Rhythmus, Aider trennt Architect und Code. Der Name ist egal. Der Stopp vor dem ersten Patch ist es nicht.
+
+Wenn der Plan schon drei unzusammenhängende Refactors enthält, ist der Auftrag zu groß. Schneiden wie ein Ticket: ein Invariant, ein PR.
+
+## Review am Diff, nicht am Geschwätz
+
+Der Chat erzählt, dass alles sicher sei. Du liest `git diff` und die Tesausgabe. Punkt. Findings kommen in die nächste Message als Liste, nicht als Stimmung. Ein zweiter Agent (Review-Subagent, Copilot Code Review) darf denselben Diff sehen. Er darf nicht denselben verseuchten Chat-Verlauf sehen, sonst bestätigt er die eigene Geschichte.
+
+Human Quality Gate, OneCode-Sprache: der Mensch gibt nicht „LGTM auf den Roman“ sondern Merge-Recht auf einen Diff plus grüne Checks. Angebot 1 verdrahtet das in CI. Angebot 3 misst es.
+
+## Kontext gezielt setzen, nicht horten
+
+Pro Schritt nur das Material dieses Schritts:
+
+1. Plan: Architektur-Skizze, zwei Einstiegsdateien, das Ticket
+2. Implementierung: die Dateien aus dem Plan, nicht den Nachbar-Service
+3. Review: der Diff, die Testlogs, die Invariante
+
+Was du nicht tust: Session 4 Stunden am Leben halten und hoffen. Compaction, neuer Chat, Sub-Agent mit eigenem Fenster. Rules und AGENTS.md bleiben die Konstante, der Chat ist Wegwerf.
+
+Wenn der Agent sucht, gib ihm den Suchbegriff und den Teilbaum. „Lies das Repo“ ist eine Aufforderung, das Budget zu verbrennen.
+
+## Das Standard-Skript für Kunden
+
+So sieht der Arbeitstag aus, den ihr verkauft:
+
+1. Ticket mit Akzeptanz und Testbefehl
+2. Agent plant, Mensch bestätigt
+3. Agent implementiert gegen den Check
+4. Mensch oder zweiter Agent reviewt den Diff
+5. CI ist die letzte Wahrheit, nicht der Chat
+
+Wer Schritt 2 und 4 streicht, hat Vibe Coding. Wer sie versioniert in Rules und CI legt, hat ein Delivery-System. Das ist die Brücke in Kapitel 4.
+
+<Merksatz>
+Plan bestätigen, dann patchen. Review am Diff und am Check, nicht am Selbstlob. Context pro Phase neu schneiden. Der Mensch mergt, der Agent schlägt vor.
+</Merksatz>
+
+<Quelle
+  url="https://code.claude.com/docs/en/best-practices.md"
+  lang="en"
+  typ="Anthropic — Explore, plan, then code"
+  dauer="20 Min"
+  account={false}
+  excerpt="Separate research and planning from implementation. Use plan mode so Claude reads and asks before it edits. Verification closes the loop; review the evidence, not the claim."
+/>
+
+<Quelle
+  url="https://cursor.com/docs/rules"
+  lang="en"
+  typ="Cursor — Rules as persistent context"
+  dauer="10 Min"
+  account={false}
+  excerpt="Rules are included at the start of model context. Keep them small so the actual task still fits. They do not replace reviewing the diff the agent produces."
+/>

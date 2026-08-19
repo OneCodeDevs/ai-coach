@@ -1,0 +1,75 @@
+---
+titel: Einen eigenen Server bauen
+dauerMinuten: 15
+zusammenfassung: Wann ein eigener Server lohnt — und welche Verantwortung du mit jeder Tool-Description übernimmst.
+reihenfolge: 3
+---
+
+Einen eigenen MCP-Server baust du, wenn das Kundenrepo eine Fähigkeit braucht, die kein vertrauenswürdiger Server sauber abdeckt: interne Billing-API, fachliches Glossar als Resource, ein Deploy-Hook hinter einem menschlichen Gate. Du baust ihn nicht, weil „wir MCP können müssen“. Das Tutorial steht in der Spezifikation und im Microsoft-Kurs. Hier geht es um die Entscheidung und die Haftung.
+
+## Die Entscheidung
+
+Frag in dieser Reihenfolge:
+
+1. Reicht ein bestehender Server mit enger Config?
+2. Reicht ein dünner Wrapper um eine vorhandene HTTP-API, den *ein* Team pflegt?
+3. Erst dann: eigener Server im Kundenrepo oder als internes Paket.
+
+Ein Server, der `curl` gegen dieselbe API schickt, die das Backend schon hat, spart dem Agenten Halluzinationen. Ein Server, der „alles kann“, verdoppelt eure Angriffsfläche. Anthropic sagt in *Writing tools for agents* dasselbe in anderem Gewand: die Tool-Oberfläche ist so wichtig wie der Prompt. Bei MCP *ist* die Tool-Oberfläche der Prompt.
+
+## Was du entwirfst, bevor du SDK anfasst
+
+**Vertrag, nicht Framework.** Jedes Tool braucht: Namen, der eine Aktion beschreibt (`create_draft_invoice`, nicht `do_stuff`); JSON-Schema mit `additionalProperties: false`; Beschreibung, die sagt, *wann* man es nicht benutzen soll; Rückgabe, die strukturierte Daten liefert, kein HTML, keine Instruktionen.
+
+**Weniger Tools schlagen mehr.** Zwei klare Tools (`get_schema`, `run_readonly_query`) sind für das Modell leichter als zwölf überlappende. Absolute Pfade statt relativer, Enums statt freier Strings, Timeouts und Limits serverseitig: das ist Poka-Yoke für den Agenten, nicht Mikromanagement.
+
+**Resources für statischen Kontext.** Das ER-Diagramm, die erlaubten Statuswerte, die Deploy-Policy: Resource. Dann muss das Modell sie nicht aus Issues rekonstruieren.
+
+**Prompts für wiederholte Rituale.** „Incident-Triage in diesem Dienst“ als Prompt-Template, nicht als 40-Zeilen-Chat, den jeder neu erfindet.
+
+## Verantwortung, die du im Angebot stehen hast
+
+Du lieferst nicht „ein Python-Skript, das MCP spricht“. Du lieferst:
+
+- Validierung aller Inputs, als kämen sie von einem Angreifer (sie kommen vom LLM, beeinflusst durch fremden Kontext).
+- Keine Shell, keine freien URLs, keine Tokens in Rückgaben.
+- Least Privilege gegen das Downstream-System: der Server bekommt ein eigenes Service-Konto, nicht den Admin des Founders.
+- Logging jeder `tools/call` mit Parameter (redaktionell bereinigt) und Ausgang.
+- Explizite Human-Bestätigung für destruktive oder geldnahe Tools. Elicitation existiert genau dafür.
+- Versionierung der Tool-Definitionen. Eine Description, die sich nach dem Audit ändert, ist ein Rug Pull, auch wenn ihr den Server selbst betreibt.
+
+Sampling über MCP, damit der Server „mal eben das Modell fragt“, ist deprecated. Der Server bleibt modellagnostisch. Reasoning liegt im Host.
+
+## Was du dem Kunden *nicht* versprichst
+
+Kein „wir bauen euch den MCP-Server in zwei Stunden und dann ist der Agent produktiv“. Der Server ist die ACI (Agent-Computer-Interface). Schlechte Descriptions erzeugen falsche Calls, die wie kompetente Arbeit aussehen. Die Pflege der Beschreibungen ist Prompt-Arbeit mit Sicherheitswirkung. Das gehört in den Wartungsvertrag, nicht in eine Demo.
+
+<Merksatz>
+Ein eigener Server ist ein Produkt mit Vertrag, Schema und Haftung. Du baust ihn, wenn die Schnittstelle einzigartig ist — und du behandelst jede Tool-Description als ausführbaren Prompt.
+</Merksatz>
+
+<Quelle
+  url="https://modelcontextprotocol.io/specification/2026-07-28"
+  lang="en"
+  typ="MCP Specification — Tools, Resources, Prompts, Security principles"
+  dauer="Nachschlagewerk"
+  account={false}
+  excerpt="Tool descriptions and annotations should be considered untrusted unless obtained from a trusted server. Hosts must obtain explicit user consent before invoking any tool."
+/>
+
+<Quelle
+  url="https://www.anthropic.com/engineering/writing-tools-for-agents"
+  lang="en"
+  typ="Anthropic — Writing tools for agents"
+  dauer="30 Min"
+  account={false}
+  excerpt="Invest as much in the agent-computer interface as you would in a human-computer interface. Tool names, schemas and descriptions are prompt engineering."
+/>
+
+<Quelle
+  url="https://github.com/microsoft/mcp-for-beginners/blob/main/translations/de/README.md"
+  lang="de"
+  typ="Microsoft — MCP für Anfänger (Server bauen)"
+  dauer="Kursmodule"
+  account={false}
+/>

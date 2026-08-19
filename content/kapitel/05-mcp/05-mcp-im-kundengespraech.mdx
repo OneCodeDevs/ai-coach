@@ -1,0 +1,71 @@
+---
+titel: MCP im Kundengespräch
+dauerMinuten: 16
+zusammenfassung: Warum MCP der Hebel für Agenten im Repo ist — und welche Sätze du einem Founder oder CTO nicht sagst.
+reihenfolge: 5
+---
+
+OneCode-Angebot 1 hängt nicht an einem Chatfenster. Es hängt daran, dass Agents im *Repository* arbeiten: Tickets, Tests, CI, Code. MCP ist die Schicht, die dem Agenten dafür echte Werkzeuge gibt, statt ihn APIs erfinden zu lassen. Das musst du verkaufen können, ohne USB-C-Poesie.
+
+## Der Satz, der sitzt
+
+„Euer Agent kann nur so gut handeln, wie die Tools, die ihr ihm gebt. MCP ist der Standard, mit dem wir dieselben Tools in Cursor, VS Code und später in CI anschließen — einmal bauen, nicht pro IDE neu kleben.“
+
+Danach die Schmerzpunkte aus dem Angebot, in MCP-Sprache:
+
+- **Kein Kontextmodell.** Resources und eng geführte Tools ersetzen den 80k-Token-Paste.
+- **Unklar, welcher Agent was darf.** Server-Allowlist plus Scopes *sind* die Berechtigungsmatrix.
+- **Keine Validierung.** Tests und CI bleiben Gates. MCP liefert den Zugriff, nicht das Merge-Recht.
+
+## Was du nicht sagst
+
+Nicht: „MCP macht eure Agents autonom und sicher.“ Autonomie kommt aus der Schleife im Host, Sicherheit aus Least Privilege und Reviews. MCP macht beides *anschließbar*.
+
+Nicht: „Wir schreiben euch einen Megaprompt, dann braucht ihr keine Tools.“ Das ist das Anti-Pattern aus Kapitel 1: Halluzination ohne Grounding. Tools, Compiler, Ticketsystemsind die Wahrheitsquelle.
+
+Nicht: „Wir installieren den Marktplatz.“ Das ist die Demo, nach der Security den Stecker zieht. Du verkaufst drei geprüfte Server und einen Fahrplan für den vierten (den eigenen, interne API).
+
+## Demo-Skript für den Workshop
+
+1. Host ohne MCP: Agent behauptet einen GitHub-Endpoint, der so nicht existiert.
+2. Denselben Host mit GitHub-MCP, read-scope: Agent listet das echte Issue.
+3. Filesystem-Server mit Root = Repo, Schreibtool hinter Bestätigung: eine Datei, ein Diff, kein Merge.
+4. Zeigen, was *nicht* angebunden ist: Prod-DB, Secrets, Deploy.
+
+Der Kontrast „halluziniert vs. Tool-Ergebnis“ ist die Folie. Danach die Gate-Frage: „Wer darf mergen?“ Die Antwort ist nie der Server.
+
+## Einwandbehandlung
+
+**„Ist das nicht Vendor-Lock-in?“** MCP ist der Ausweg aus Lock-in. Der Server ist austauschbar, der Host auch. Lock-in entsteht, wenn ihr nur die Copilot-Bordmittel ohne Vertrag nutzt.
+
+**„Unsere Daten dürfen nicht in die Cloud.“** Lokaler stdio-Server, Daten verlassen den Rechner nur, wenn ein Tool das explizit tut. Remote-HTTP ist eine bewusste Entscheidung mit OAuth, nicht der Default.
+
+**„Wir haben schon Plugins.“** Plugins sind Host-spezifisch. MCP ist die gemeinsame Steckdose. OneCode pflegt die Server im Repo, nicht fünf IDE-Einstellungen.
+
+**„Sicherheit?“** Spezifikation erzwingt nichts. Ihr bekommt Allowlist, Pinning, getrennte Tokens, HITL für destruktive Calls, Logs. Das ist Teil des Lieferumfangs, kein Add-on.
+
+## Brücke zum nächsten Kapitel
+
+MCP allein ist keine Delivery. Agentic Workflows sagen, *wann* welches Tool in welcher Schleife läuft und wo der Mensch steht. Ohne MCP redet der Agent. Mit MCP kann er im Repo handeln. Mit Gates darf er das in Produktion.
+
+<Merksatz>
+Im Kundengespräch ist MCP die standardisierte Werkzeugwand im Repository. Du verkaufst Grounding und eine Allowlist, nicht Autonomie und nicht den Marktplatz.
+</Merksatz>
+
+<Quelle
+  url="https://modelcontextprotocol.io/docs/2026-07-28/getting-started/intro"
+  lang="en"
+  typ="MCP — Why it matters for developers and agents"
+  dauer="10 Min"
+  account={false}
+  excerpt="MCP reduces development time when integrating with an AI application. Agents get access to an ecosystem of data sources and tools instead of one-off connectors."
+/>
+
+<Quelle
+  url="https://learn.microsoft.com/en-us/credentials/applied-skills/integrate-model-context-protocol-tools-with-agents-in-microsoft-foundry"
+  lang="en"
+  typ="Microsoft Applied Skills — Integrate MCP tools with agents (APL-3034)"
+  dauer="Lab"
+  account={true}
+  excerpt="Connect an agent to an MCP server using an MCP tool, then monitor agent and MCP tool usage."
+/>

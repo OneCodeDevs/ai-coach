@@ -1,0 +1,65 @@
+---
+titel: Claude Code
+dauerMinuten: 16
+zusammenfassung: Terminal-Agent mit CLAUDE.md, Plan-Modus und einem Check, den das Modell selbst ausführen kann.
+reihenfolge: 3
+---
+
+Claude Code ist kein Chat in der Sidebar. Es ist ein Agent im Terminal (und in IDEs), der Dateien liest, Befehle fährt und patches schreibt, während du zusiehst oder weggehst. Anthropic intern und die Public Docs ziehen daraus eine andere Arbeitsweise: du beschreibst das Ziel, Claude exploriert und baut. Das funktioniert nur, wenn du die zwei Engpässe ernst nimmst: **Context** und **Verifikation**.
+
+## Context ist die knappe Ressource
+
+Jede gelesene Datei, jedes Teslog, jede Zwischenfrage liegt im Fenster. Wird es voll, sinkt die Qualität: frühe Regeln weichen, der Agent wiederholt Arbeit, er „vergisst“ das Verbot aus CLAUDE.md. Deshalb ist das wichtigste Operational-Pattern: Fenster klein halten, nicht „mehr Dateien anhängen“.
+
+Konkret:
+
+- CLAUDE.md unter etwa 200 Zeilen, Fakten statt Essays
+- `/compact` und gezieltes Neustarten statt einer Session über den ganzen Tag
+- Sub-Agenten für Recherche, nur das Ergebnis zurück in den Hauptlauf
+- nicht `find` über den ganzen Baum, wenn der Pfad bekannt ist
+
+## Die Schleife: explorieren, planen, bauen, prüfen
+
+Die Docs empfehlen Plan-Modus, bevor editiert wird. Claude darf lesen und fragen, nicht schreiben. Du lässt dir sagen, welche Dateien und welche Risiken. Dann erst Implementierung.
+
+Danach der Satz, den du auswendig können musst:
+
+<Zitat
+  lang="en"
+  quelle="Anthropic"
+  text="Give Claude a check it can run: tests, a build, a screenshot to compare. It's the difference between a session you watch and one you walk away from."
+/>
+
+Ohne Check bist *du* die Testsuite. Mit Check iteriert der Agent bis grün oder bis er ehrlich scheitert. Härtere Varianten: Stop-Hooks, die das Beenden blockieren, solange der Check rot ist; ein zweiter Agent, der das Ergebnis anzweifelt.
+
+`/init` schreibt eine erste CLAUDE.md aus dem Repo. Das ist ein Start, kein Artefakt, das du einem Kunden ungeprüft übergibst. Du ergänzt, was Claude nicht sehen kann: Invarianten, Verbote, „diese Tabelle nicht anfassen“.
+
+## Permissions, Hooks, Skills
+
+Default: der Agent fragt vor gefährlichen Schritten. Für Routine (Tests, Linter) erlaubst du mehr. Für `rm`, Production-Deploys, `.env` bleibt die Nachfrage. Hooks sind die Stelle, an der Policy nicht mehr Bitte ist, sondern Block. Skills (Kapitel 4) sind versionierte Verfahren, die nicht jede Session ins Fenster laden.
+
+Headless-Modus und GitHub Action sind relevant, sobald der Kunde „im PR“ will statt „im Laptop“. Dann gelten dieselben Regeln, nur ohne Blick über die Schulter: das Gate muss deterministisch sein.
+
+Im Angebot 1 ist Claude Code oft der Referenz-Agent im Repo, nicht weil er der einzige ist, sondern weil CLAUDE.md, Skills und Hooks ein System ergeben, das du übergeben kannst.
+
+<Merksatz>
+Claude Code skaliert mit einem Plan vor dem Patch und einem Check vor dem „done“. CLAUDE.md hält die Hausordnung klein. Das Context Window bleibt die harte Grenze, auch wenn das Modell stark ist.
+</Merksatz>
+
+<Quelle
+  url="https://code.claude.com/docs/en/best-practices.md"
+  lang="en"
+  typ="Anthropic — Claude Code best practices"
+  dauer="35 Min"
+  account={false}
+  excerpt="Explore and plan before coding. Manage the context window as the scarce resource. Give Claude a verification loop it can run. Put durable project facts in CLAUDE.md, not in every prompt."
+/>
+
+<Quelle
+  url="https://code.claude.com/docs/en"
+  lang="en"
+  typ="Anthropic — Claude Code docs"
+  dauer="Übersicht"
+  account={false}
+  excerpt="Claude Code is the terminal-native agent: tools, permissions, CLAUDE.md, skills, hooks, and headless runs for pipelines."
+/>

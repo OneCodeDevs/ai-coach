@@ -1,0 +1,45 @@
+slug: lokale-llms
+nummer: 9
+titel: Lokale LLMs für Entwickler
+untertitel: Datenschutz, Offline, Demos — und der ehrliche Qualitätsabstand zur Cloud.
+dauerMinuten: 63
+lernziele:
+  - Vier Gründe für lokale Modelle nennen und den Qualitätsabschlag gegenüber Frontier-Cloud nicht beschönigen
+  - Ollama, LM Studio und llama.cpp in je einem Satz voneinander trennen
+  - Quantisierung und GGUF so erklären, dass eine VRAM-Faustformel im Kundengespräch sitzt
+  - Ein lokales Coding-Setup (Aider plus Ollama) inklusive Context-Falle beschreiben
+exam:
+  - id: warum-lokal
+    topic: Warum lokal
+    frage: Nenne drei stichhaltige Gründe für ein lokales Modell — und einen Satz, den du niemals sagen darfst.
+    erwartet:
+      - Datenschutz / keine Cloud-Prompts
+      - Offline, Air-Gap, Demo ohne API-Key
+      - Kostenkontrolle bei hohem Volumen oder wiederholten internen Tasks
+      - niemals behaupten, lokal sei qualitativ gleichwertig zu Frontier-Cloud für Agent-Coding
+  - id: tool-stack
+    topic: Ollama, LM Studio, llama.cpp
+    frage: Wer macht was — Runtime, GUI, Engine — und was empfiehlst du einem Dev-Team als Default?
+    erwartet:
+      - llama.cpp ist die Inferenz-Engine (GGUF)
+      - Ollama ist die bequeme Runtime/API drumherum
+      - LM Studio ist die Desktop-GUI zum Ausprobieren
+      - Team-Default oft Ollama plus ein bekanntes Coder-Modell, GUI optional
+  - id: quantisierung
+    topic: Quantisierung, GGUF, Hardware
+    frage: Was bedeutet Q4_K_M grob für VRAM, und warum ist eine CPU-NAS für Chat unbrauchbar?
+    erwartet:
+      - Quantisierung senkt Bits pro Gewicht, GGUF ist das Dateiformat
+      - "Faustformel: Gewichte plus KV-Cache, nicht nur die Dateigröße"
+      - Q4_K_M ist der übliche Kompromiss
+      - "CPU ohne GPU: Tokens pro Sekunde zu niedrig für interaktives Chat/Coding"
+  - id: ide
+    topic: Lokales Modell in der IDE
+    frage: Du verdrahtest Aider mit Ollama. Welche Default-Falle killt die Session, und wie ehrlich ist der Vergleich zur Cloud?
+    erwartet:
+      - Ollama-Default-Context ist winzig (ca. 2k) und verwirft still
+      - ollama_chat/ und OLLAMA_CONTEXT_LENGTH bzw. num_ctx setzen
+      - ein Benchmark-Prompt gegen Cloud dokumentieren
+      - lokal taugt für private Snippets und Demos, nicht als heimlicher Ersatz für Opus/GPT-Klasse im großen Repo
+zertifikate: []
+artefakt: Dokumentiere ein lokales Setup (Modell, Quantisierung, Hardware, ein Benchmark-Prompt gegen Cloud) als internes Artefakt. Es gibt kein öffentliches Credential für lokale LLMs.

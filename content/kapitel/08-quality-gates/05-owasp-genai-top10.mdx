@@ -1,0 +1,65 @@
+---
+titel: OWASP GenAI LLM Top 10 2026
+dauerMinuten: 18
+zusammenfassung: Prompt Injection, Excessive Agency und Hidden Context Exposure — die drei Risiken, die ein Agent-Repo wirklich gefährlich machen.
+reihenfolge: 5
+---
+
+Die OWASP GenAI LLM Top 10 2026 ist die Liste, die du zitieren darfst, ohne esoterisch zu klingen. Neu gegenüber älteren Fassungen: sie stützt sich auf Tausende echte Incidents, und sie ist ehrlich, wo Vote und Daten divergieren. **Prompt Injection bleibt LLM01**, obwohl öffentliche Incident-Zähler sie unterschätzen — OWASP nennt das Defense Effect: Teams geben echtes Geld aus, damit erfolgreiche Angriffe selten in Datenbanken landen. **Excessive Agency** steigt auf LLM03, weil Schaden dort landet, wo Modelle Tools haben. **Hidden Context Exposure** (LLM08) ersetzt das enge „System Prompt Leakage“: alles im Fenster kann leaken.
+
+Du musst die zehn nicht auswendig aufsagen. Du musst drei so erklären, dass ein CTO den Blast Radius sieht. Die restlichen (Sensitive Information Disclosure, Supply Chain, Poisoning, Unbounded Consumption, Misinformation, Vector/Embedding, Improper Output Handling) hängst du an, wenn das Gespräch dorthin kippt.
+
+## LLM01 — Prompt Injection
+
+Angreifer steuern das Modell über Inhalt, der wie Daten aussieht: Tickettext, README, gescrapte Docs, Bild mit unsichtbarer Anweisung, Tool-Output. Direkt („ignore previous instructions“) ist die Demo. **Indirekt** ist Production: der Agent liest ein Issue, in dem steht, er solle `.env` in den PR legen. Multimodal ist 2026 explizit im Scope.
+
+BSI spricht von Evasion Attacks im laufenden Betrieb — das Modell wird nicht umtrainiert, die Eingabe biegt das Verhalten. Gegenmaßnahmen sind Systemmaßnahmen: untrusted Content isolieren (Claude Code holt Web in einem eigenen Fenster), Tool-Calls fail-closed, Mensch vor destruktiven Actions, Filter auf Third-Party-Dokumenten. „Wir haben einen robusten System-Prompt“ ist keine Mitigation, die OWASP oder BSI als ausreichend verkaufen.
+
+## LLM03 — Excessive Agency
+
+Ein Chatbot, der halluziniert, ist ein Support-Problem. Ein Agent, der `apply_patch`, Shell, MCP-Deploy und die Production-DB darf, ist ein Sicherheitsproblem mit dem Privilege des Users, der ihn gestartet hat. Excessive Agency ist zu viele Tools, zu weite Permissions, zu wenig Bestätigung. OWASP verweist hier auf die Agentic Top 10, sobald das Modell zum Akteur wird.
+
+Mitigation, die ihr implementiert (und verkauft): Least Privilege pro Task, Tool-Guardrails, Sandbox, Allowlists, Human-Gate für Geld/Daten/Prod. Der Satz im Pitch: **wir geben dem Agenten nicht Charakterstärke, wir nehmen ihm die Schrotflinte.**
+
+## LLM08 — Hidden Context Exposure
+
+Früher: jemand extrahiert den System-Prompt, peinlich. Heute: im Context liegen Tool-Schemas, RAG-Chunks mit interner Policy, Memory, User-PII, Retrieval aus Confluence, die Rule „so authentifizieren wir intern“. Wer das Fenster lesen kann — über Prompt Injection, über Logs, über einen zu gesprächigen Agenten — bekommt eine Landkarte für die nächsten Angriffe. OWASP beschreibt Exposure als Verstärker: geleakte Tool-Schemas machen Excessive Agency gezielter; Credentials im Context sind gleich LLM02.
+
+Mitigation: keine Secrets im Prompt, minimales Tool-Schema, Retrieval mit ACL, Trace-Redaction, den Agenten nicht bitten, „seine Anweisungen zu wiederholen“ in User-sichtbaren Kanälen.
+
+<Zitat
+  lang="en"
+  quelle="OWASP / Kommentierung zur Top 10 2026"
+  text="Stop engineering a model that cannot be fooled. Engineer the system around it so that when it is fooled, nothing important breaks."
+/>
+
+Das ist exakt Angebot 3. Deutsche Fassung 2025 der Top 10 bleibt als Einstieg nützlich; 2026 ist die Version, die Agentic Blast Radius ernst nimmt. BSI-Dokumente zu generativen Modellen und Evasion ergänzen die nationale Lesart, ersetzen OWASP aber nicht.
+
+<Merksatz>
+Injection täuscht das Modell, Agency macht den Schaden groß, Hidden Context liefert die Landkarte. Du härtest das System um das Modell — nicht das Modell gegen die Welt.
+</Merksatz>
+
+<Quelle
+  url="https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/"
+  lang="en"
+  typ="OWASP GenAI LLM Top 10 2026"
+  dauer="45 Min"
+  account={false}
+  excerpt="Prompt Injection remains LLM01. Excessive Agency rises to LLM03 as agents gain tools. Hidden Context Exposure (LLM08) widens System Prompt Leakage to everything in the window: tools, retrieval, memory, instructions."
+/>
+
+<Quelle
+  url="https://genai.owasp.org/resource/die-owasp-top-10-fur-llm-generative-ki-2025/"
+  lang="de"
+  typ="OWASP — Top 10 für LLM / generative KI 2025 (DE)"
+  dauer="30 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/KI/Generative_KI-Modelle.html"
+  lang="de"
+  typ="BSI — Generative KI-Modelle"
+  dauer="40 Min"
+  account={false}
+/>

@@ -1,0 +1,51 @@
+---
+titel: Dependencies und Supply Chain
+dauerMinuten: 14
+zusammenfassung: Halluzinierte Pakete, ungepinntes latest und ein Postinstall, das eure Secrets sieht.
+reihenfolge: 4
+---
+
+Fraunhofer nennt Halluzinationen inkl. erfundener Abhängigkeiten beim Namen. Im Audit ist `package.json` (und das Analogon in Python/Go) deshalb kein Nebenkriegsschauplatz. Der Agent hat „das übliche Stack“ zusammengestellt: oft fünf Libraries für dasselbe, zwei tote GitHub-User, eine SDK-Version, die das Tutorial vor einem Jahr zeigte.
+
+## Was du in vier Stunden siehst
+
+- **Lockfile existiert und ist committed.** Ohne Lockfile ist Production nicht reproduzierbar. `npm install` nächste Woche ist ein anderes Produkt.
+- **Jeder Direct Dependency ein Grund.** „Haben wir je `moment` und `dayjs` und `date-fns` gebraucht?“ Vibe stapelt, löscht selten.
+- **Typosquatting und Phantom-Packages.** Namen, die *fast* stimmen. Pakete, die nicht existieren, aber im Chat als installiert behauptet wurden; oder existieren und seit Jahren ungepflegt sind. Installiert ihr sie trotzdem, ist die Supply Chain euer Incident.
+- **Install-Skripte.** `postinstall`, die Binaries nachladen. In CI und auf Laptops der Founder.
+- **Öffentliche vs. interne Registry.** `.npmrc` mit Token im Repo ist Secret-Leak plus Supply-Chain in einem.
+- **Lizenzen.** GPL in einem SaaS-MVP, Copy-Paste aus Stack Overflow, Modell-Output ohne Herkunft. Das ist Legal, nicht Geschmack.
+- **AI-SDK und MCP-Server** als Dependencies: Version pinnen, wie in [MCP-Sicherheit](/kapitel/mcp). `@latest` in der MCP-Config ist dasselbe Problem in anderem File.
+
+## Was du tust, bevor du Features anfasst
+
+1. `npm audit` / OS-Tools als Signal, nicht als Wahrheit. Triage nach Reachability: eine vuln in einer Dev-only Linter-Chain ist nicht dasselbe wie `serialize-javascript` auf dem Checkout-Pfad.
+2. Unbenutzte Directs entfernen, Transitiven nicht von Hand anfassen außer bei Blockern.
+3. Generieren von SBOMs, wenn der Kunde Enterprise-Käufer hat. Für den Seed-Founder reicht die gekürzte Liste „diese acht Pakete berühren Auth oder Payments“.
+4. Pinning in CI: `npm ci`, nicht `npm install`. Gleiches für Actions: SHA-gepinnt, nicht `@v4` schwebend, sobald ihr hartet.
+
+## Kundengespräch
+
+„Euer MVP hängt an 40 Paketen, von denen zwölf nie importiert werden und zwei niemand mehr wartet. Bevor wir Features bauen, machen wir die Liste ehrlich, sonst bauen wir auf Sand *und* auf fremdem Code, den kein Prompt erklärt.“ Das ist Angebot 2, nicht Pedanterie. Ein Supply-Chain-Hit nach Launch ist teurer als zwei Tage Aufräumen. Derselbe Satz gilt für MCP-Server und GitHub Actions: ungeprüfte Marktplatz-Actions sind Dependencies mit CI-Rechten.
+
+Agents in der Umbau-Phase dürfen Dependabot-PRs vorbereiten. Mergen bleibt Gate. Ein Agent, der „mal alle majors bumpt“, ist Vibe auf der Supply Chain und gehört nicht in die Audit-Woche.
+
+<Merksatz>
+Die Manifest-Datei ist Teil der Architektur. Unbenutzte, ungepinnten und erfundene Pakete sind Produktionsrisiko — nicht Aufräum-Nice-to-have.
+</Merksatz>
+
+<Quelle
+  url="https://www.iese.fraunhofer.de/blog/vibe-coding-definition-potenziale-risiken/"
+  lang="de"
+  typ="Fraunhofer IESE — Halluzinierte Abhängigkeiten"
+  dauer="5 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://docs.github.com/de/actions/get-started/understand-github-actions"
+  lang="de"
+  typ="GitHub Actions — CI als reproduzierbarer Install-Ort"
+  dauer="10 Min"
+  account={false}
+/>

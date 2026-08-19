@@ -1,0 +1,64 @@
+---
+titel: Businesslogik agentenlesbar dokumentieren
+dauerMinuten: 16
+zusammenfassung: Agenten scheitern an Fachregeln, die nur in Köpfen sitzen — Invarianten, Verbote, Beispiele, Zeiger auf Code.
+reihenfolge: 5
+---
+
+Tools und Models sind selten der Engpass, den OneCode in komplexen Codebasen sieht. Der Engpass ist **Businesslogik**, die in Slack, in einem Jira-Epic von 2022 und in zwei widersprüchlichen Services lebt. Ein Agent interpoliert dann eine dritte Wahrheit. Halluzination ist hier keine Charakterfrage, sondern fehlendes Grounding (Kapitel 1).
+
+Kontext-Engineering für Fachlichkeit heißt: die Regel so hinlegen, dass ein Agent sie **findet, zitiert und gegen einen Check fährt**, ohne den CFO zu fragen.
+
+## Was „agentenlesbar“ konkret heißt
+
+Menschen lesen Prosa. Agenten brauchen zusätzlich:
+
+1. **Namen, die im Code vorkommen.** `Invoice.overdue`, nicht „die Rechnung die zu lange offen ist“.
+2. **Invarianten in einer Zeile.** „Eine Invoice geht nie von `paid` nach `draft`.“
+3. **Verbotene Zustände.** „Rabatt und Netto-Negativ gleichzeitig: illegal, 409.“
+4. **Kanonischen Ort.** „Quelle der Wahrheit: `packages/billing/src/transitions.ts`. Nicht in den Controllern duplizieren.“
+5. **Gegenbeispiele.** Gültiger Payload, ungültiger Payload. Few-Shot für die Domäne.
+
+Ein Glossar von 30 Begriffen am Repo-Root (oder `docs/domain.md`, von AGENTS.md verlinkt) verhindert, dass „Kunde“, „Account“ und „Tenant“ drei Implementierungen bekommen. Der Agent sucht sonst den häufigsten englischen Treffer im Training, nicht euren.
+
+## Wo das liegen soll
+
+Nicht als 40-Seiten-PDF im Wiki, das kein Tool indexiert. Sondern:
+
+- Kerninvarianten: `packages/billing/AGENTS.md` oder eine Rule mit Glob auf genau dieses Package
+- Übergänge und Checklisten: Skill `billing-change`, der den Testbefehl `pnpm test --filter billing` als Gate hat
+- Tabellen (Status × Event → Folge): Markdown-Tabelle neben dem State-Machine-Code, nicht statt ihm
+
+Der Code bleibt die Wahrheit. Die Doku ist der Index. Wenn Doku und Code streiten, gewinnt der Test. Dann ist euer Job, den Test zu schreiben, nicht den Agenten um Entschuldigung zu bitten.
+
+## Was ihr nicht dokumentiert
+
+- Secrets, echte Kontonummern, Kundenlisten
+- jedes private Refactor-Gelüst
+- UI-Copy, die der Designer nächste Woche ändert (außer sie ist rechtlich, z. B. Widerruf)
+
+Rechtliche und finanzielle Regeln: lieber zu explizit, mit Owner-Namen. Der Agent soll bei Konflikt **stoppen**, nicht kreativ werden. Das steht als Satz in AGENTS.md: „Wenn Invariante und Ticket streiten, nicht implementieren, Frage stellen.“
+
+Im Pitch von Angebot 1: wir machen nicht „AI schneller“. Wir machen eure Fachregeln für Maschinen adressierbar. Ohne das bleibt jeder Agent ein sehr teurer Junior, der die Buchhaltung neu erfindet.
+
+<Merksatz>
+Fachlogik für Agenten: Invariante, Verbot, Beispiel, Zeiger auf den kanonischen Code, Test als Richter. Was nur im Kopf des Gründers steht, wird im Diff zur dritten Variante.
+</Merksatz>
+
+<Quelle
+  url="https://code.claude.com/docs/en/memory"
+  lang="en"
+  typ="Claude Code — Write effective instructions"
+  dauer="10 Min"
+  account={false}
+  excerpt="Write instructions that are concrete enough to verify. Prefer 'API handlers live in src/api/handlers/' over 'keep files organized'. Inconsistent rules make the model pick arbitrarily."
+/>
+
+<Quelle
+  url="https://agents.md/"
+  lang="en"
+  typ="AGENTS.md — Cover what matters"
+  dauer="5 Min"
+  account={false}
+  excerpt="Put security considerations, conventions and the facts a new teammate would need into AGENTS.md. Nested files keep domain rules next to the code they govern."
+/>

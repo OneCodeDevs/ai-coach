@@ -1,0 +1,59 @@
+---
+titel: Modulgrenzen und Tests an den schmerzhaften Stellen
+dauerMinuten: 16
+zusammenfassung: Coverage-Theater lassen. Tests und Schnitte dort, wo ein Agent oder ein Bug euch Geld oder Daten kostet.
+reihenfolge: 5
+---
+
+„Wir haben keine Tests“ ist der Standardsatz. „Dann schreiben wir überall Tests“ ist der Standardfehler. Angebot 2 sagt: Tests *wo es weh tut*, und Modulgrenzen so, dass der Schmerz nicht in jede Datei ausläuft. Fraunhofer: ohne Tests ist nicht klar, ob funktionale und nichtfunktionale Eigenschaften stimmen. Deine Aufgabe ist, die wenigen Eigenschaften zu benennen, die Production definieren.
+
+## Grenzen zuerst, sonst testest du Pudding
+
+Eine Grenze ist eine Stelle, an der ein Modul ein Versprechen hat: „Billing ändert Kontostände nur über `ledger.post`“, „HTTP kennt keine SQL“. Im Vibe-Repo ist das Versprechen oft gebrochen: die Stripe-Webhook-Datei importiert React-State-Typen, die Preislogik sitzt in einer Server Action und nochmal im Client.
+
+Schnitt-Heuristik aus dem Audit:
+
+- Ziehe **Auth** und **Permissions** hinter eine Funktion, die jede Route benutzt. Dann testest du die Funktion hart, nicht 40 Handler oberflächlich.
+- Ziehe **Geld- und Bestandsinvarianten** hinter ein kleines Domain-Modul ohne HTTP.
+- Lass UI-Komponenten dumm. Ein Agent, der Tailwind schiebt, soll die Invariante nicht aus Versehen duplizieren.
+
+Du musst nicht das ganze Monolith in Packages sägen. Ein `src/domain/` mit drei Dateien und einem Verbot, von dort `next/headers` zu importieren, reicht als erste Grenze.
+
+## Wo Tests weh tun (und deshalb zuerst hin)
+
+1. **Permissions und IDOR** an den echten Routen, mit zwei Usern.
+2. **Zahlungs- und Abo-Pfade**, inkl. Webhook-Replay und doppelter Events.
+3. **Dateninvarianten** (keine doppelte Email, Order ohne Items).
+4. **Migrationen** auf einer wegwerfbaren DB, nicht „hoffentlich klappt prod“.
+5. **Öffentliche API-Verträge**, wenn schon Clients draußen sind.
+
+Charaktertests: das heutige Verhalten einfrieren, bevor ihr refactort. Sonst „verbessert“ ihr den Code und ändert die Preise. Der Agent darf Charaktertests *vorschlagen*; ihr prüft, ob sie das echte Soll kodieren oder die Implementation zementieren.
+
+Nicht zuerst: Snapshot-Tests jedes Buttons, 90 Prozent Coverage auf Generated-CRUD, Tests die `expect(true).toBe(true)` aus einem Chat sind. Das erhöht die Metrik und senkt das Vertrauen.
+
+## Wie Agents hier helfen, ohne Vibe zu werden
+
+Nach dem Schnitt: Skills und Rules aus [Kontext-Engineering](/kapitel/kontext-engineering) sagen dem Agenten „anfassbar ist UI und Glue, `src/domain` nur mit Test“. Evaluator-Optimizer aus [Kapitel 6](/kapitel/agentic-workflows): Patch, dann Testlauf als Ground Truth. Human Gate, wenn die Grenze selbst sich ändert.
+
+Wenn der Founder „vollständige Coverage in einer Woche“ will: ablehnen. Eine Woche ist Audit plus die ersten Invarianten. Fläche kommt in den Umbau-Wochen, priorisiert nach der Risikoliste. Ein Coverage-Badge ohne die fünf schmerzhaften Pfade ist eine Zahl, die ihr im Statusbericht nicht verwenden solltet.
+
+<Merksatz>
+Eine Modulgrenze ist ein Versprechen, ein Test ist der Beweis an der teuren Stelle. Überall ein bisschen Coverage ist Vibe mit grünem Badge.
+</Merksatz>
+
+<Quelle
+  url="https://www.iese.fraunhofer.de/blog/vibe-coding-definition-potenziale-risiken/"
+  lang="de"
+  typ="Fraunhofer IESE — Fehlende Tests, Nachvollziehbarkeit"
+  dauer="10 Min"
+  account={false}
+/>
+
+<Quelle
+  url="https://www.anthropic.com/engineering/building-effective-agents"
+  lang="en"
+  typ="Anthropic — Tests als Ground Truth für Coding-Agents"
+  dauer="10 Min"
+  account={false}
+  excerpt="Code solutions are verifiable through automated tests. Agents can iterate using test results as feedback. Human review still checks system requirements."
+/>

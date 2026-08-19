@@ -1,0 +1,79 @@
+---
+titel: LLM-as-a-Judge und Rubrics
+dauerMinuten: 16
+zusammenfassung: Wann ein zweites Modell bewerten darf — und warum eine vage Rubric teuren Zufall erzeugt.
+reihenfolge: 2
+---
+
+Deterministische Grader beantworten „laufen die Tests?“. Sie beantworten nicht „hat der Agent die Rule befolgt, den User nicht belogen und den Auth-Flow nicht ‚elegant‘ in drei Services zerlegt?“. Dafür braucht ihr einen **Judge**: ein Modell, das Transcript oder Diff gegen eine Rubric scored. Das ist legitim — und gefährlich, wenn die Rubric so weich ist wie ein Jahresgespräch.
+
+## Wann der Judge darf, wann nicht
+
+| Frage | Grader |
+| --- | --- |
+| Kompiliert es? Tests grün? Secret im Diff? JSON valide? | Code, Schema, Scanner |
+| Ton, Vollständigkeit, Instruction-Following, „nicht überengineered“ | LLM-Judge mit Rubric |
+| Ist das rechtlich oder fachlich korrekt in einer Nische? | Mensch (SME), Judge höchstens vorfiltern |
+
+Anthropic unterscheidet drei Grader-Familien: **code-based** (schnell, reproduzierbar, spröde), **model-based** (flexibel, nicht-deterministisch, kalibrierungsbedürftig) und **human** (Goldstandard, teuer). Ein Coding-Eval, das *nur* den Judge fragt „guter Code?“, ist Theater. Ein Coding-Eval, das Tests erzwingt und den Judge auf vier harte Kriterien ansetzt, ist ein Gate.
+
+Claude-Docs formulieren Erfolgskriterien als SMART: spezifisch, messbar, erreichbar, relevant. „Safe outputs“ ist kein Kriterium. „Unter 0,1 Prozent der 10.000 Trials vom Toxicity-Filter getroffen“ ist eines.
+
+## Eine Rubric, die ein CTO unterschreiben kann
+
+Schreib die Rubric so, dass zwei Senior-Devs unabhängig dieselbe Note geben würden. Schlechte Rubric: „Der Code ist sauber und sicher.“ Brauchbare Rubric, Beispiel Auth-Fix:
+
+1. **Korrektheit (blockierend):** bestehende und neue Tests grün; leeres Passwort wird abgewiesen.
+2. **Scope:** Diff rührt nur Auth und Tests an, keine Drive-by-Refactors.
+3. **Secrets:** keine Keys, keine Connection-Strings, keine Produktions-URLs.
+4. **Erklärung:** die PR-Beschreibung nennt den Failure Mode in einem Satz.
+
+Jedes Kriterium braucht eine Skala oder ein Binär-Pass. Gewichtete Summe plus Schwelle, oder „alle blockierenden Kriterien müssen sitzen“. Hybrid ist in der Praxis am ehrlichsten: Tests binär, Stil gewichtet.
+
+Techniken, die du kennen musst:
+
+- **Rubric-Scoring** — Kriterien einzeln, dann aggregieren.
+- **Natural-language assertions** — „Der Agent darf `rm -rf` nicht vorschlagen.“
+- **Pairwise** — A gegen B, wenn absolute Scores driften.
+- **Multi-Judge** — zwei Modelle, Dissens eskaliert zum Menschen.
+
+Der Judge selbst braucht Structured Output (JSON mit Feldern pro Kriterium), niedrige Temperature und denselben Prompt in CI wie lokal. Sonst vergleichst du Äpfel mit Prompt-Drift.
+
+## Kalibrierung ist das eigentliche Gate
+
+Ohne Gold-Labels misst du den Geschmack des Judges. Nimm 30 bis 50 Fälle, die ein Mensch bewertet hat — inklusive klarer Fails. Miss **Agreement** (wie oft Judge und Mensch übereinstimmen) und schau dir die False-Negatives an: ein Judge, der alles durchwinkt, ist schlimmer als keiner, weil er dem Team Sicherheit vorspielt.
+
+Kalibriere regelmäßig neu, besonders nach Modell-Upgrades des Judges. Ein smarteres Judge-Modell kann plötzlich strenger oder nachsichtiger sein. Das ist eine Regression der *Messlatte*, nicht des Agenten.
+
+Im Verkauf von Angebot 3 sagst du nicht „wir lassen GPT den Code bewerten“. Du sagst: „Tests entscheiden Korrektheit. Ein kalibrierter Judge prüft die weichen Rules. Ein Mensch bleibt auf den Pfaden, wo ein Irrtum Geld oder Vertrauen kostet.“
+
+<Merksatz>
+Ein LLM-Judge ohne Rubric und ohne menschliche Kalibrierung ist ein zweiter Vibe-Check. Die Rubric muss scheitern können — sonst ist sie Marketing.
+</Merksatz>
+
+<Quelle
+  url="https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+  lang="en"
+  typ="Claude Docs — Define success criteria and build evaluations"
+  dauer="35 Min"
+  account={false}
+  excerpt="Good success criteria are specific, measurable, achievable and relevant. Even safety can be quantified. LLM grading needs a rubric; vague goals like 'good performance' cannot be tested."
+/>
+
+<Quelle
+  url="https://developers.openai.com/api/docs/guides/evaluation-best-practices"
+  lang="en"
+  typ="OpenAI — Evaluation best practices"
+  dauer="20 Min"
+  account={false}
+  excerpt="Mix automated graders with human review. Keep evals representative of production. Version the eval, the prompt and the model together so a score change has an owner."
+/>
+
+<Quelle
+  url="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"
+  lang="en"
+  typ="Anthropic — Model-based graders and rubrics"
+  dauer="15 Min"
+  account={false}
+  excerpt="Model-based graders capture nuance but are non-deterministic and must be calibrated against human graders. For coding agents, use unit tests for correctness and an LLM rubric only for what tests cannot see."
+/>

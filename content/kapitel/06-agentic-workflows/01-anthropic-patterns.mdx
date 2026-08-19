@@ -1,0 +1,74 @@
+---
+titel: Patterns aus Building effective agents
+dauerMinuten: 18
+zusammenfassung: Chaining, Routing, Parallel, Orchestrator-Worker, Evaluator-Optimizer — und wann ein echter Agent dran ist.
+reihenfolge: 1
+---
+
+Anthropic trennt **Workflows** (feste Pfade in Code) von **Agents** (das Modell steuert Tools und nächste Schritte selbst). Beides ist „agentic“. Der Fehler im Angebot ist, dem Kunden einen autonomen Agenten zu verkaufen, wo ein Workflow mit zwei Calls reicht. Der Leitsatz aus *Building effective agents*: das einfachste System, das die Aufgabe löst. Komplexität nur, wenn sie messbar besser ist.
+
+## Baustein: das augmentierte LLM
+
+Retrieval, Tools, Memory. MCP ist in dem Text explizit als eine Art, diese Augmentation anzuschließen. Ab hier hat jeder Call Werkzeuge. Die fünf Patterns sind Orchestrierung darüber.
+
+## Prompt Chaining
+
+Die Aufgabe zerfällt in eine feste Sequenz. Call 2 sieht nur den Output von Call 1, plus programmatische Gates dazwischen (Schema valid, Tests grün, Outline erfüllt Checkliste).
+
+Im Engineering: Issue → Repro-Notiz → Patch-Plan → Patch. Jeder Schritt ist leichter als „mach das Ticket“. Du tauschst Latenz gegen Treffsicherheit. Ungeeignet, wenn du die Schritte nicht vorher kennst.
+
+## Routing
+
+Ein Klassifikator (oft ein kleines Modell) schickt die Aufgabe in spezialisierte Pfade: Bug vs. Docs vs. Dependency-Bump; Haiku-Klasse für Boilerplate, Sonnet für Businesslogik.
+
+Ohne Routing optimierst du einen Prompt auf alles und verlierst auf allem. Mit Routing brauchst du ehrliche Kategorien. „Sonstiges“ darf nicht 70 Prozent der Tickets sein.
+
+## Parallelisierung
+
+Zwei Varianten:
+
+- **Sectioning:** unabhängige Teilaufgaben gleichzeitig (Tests schreiben, während ein zweiter Call die Changelog-Zeile zieht).
+- **Voting:** dieselbe Prüfung mehrfach, z. B. Security-Review mit drei Prompts, Merge nur wenn zwei alarmieren — oder wenn einer alarmiert, je nach False-Positive-Kosten.
+
+Gut, wenn Teilaufgaben wirklich unabhängig sind. Schlecht, wenn Call B das Ergebnis von Call A braucht und du trotzdem parallel startest.
+
+## Orchestrator-Worker
+
+Ein zentrales Modell zerlegt *dynamisch*, verteilt an Worker, synthetisiert. Topologisch ähnlich zu Parallel, aber die Teilaufgaben stehen nicht vorher fest. Genau das Muster bei „ändern sich n Dateien, abhängig vom Ticket“.
+
+Das ist der Moment, an dem Kunden „Multi-Agent“ hören. Es ist oft ein Orchestrator plus stupide Worker, nicht ein Debating-Club.
+
+## Evaluator-Optimizer
+
+Ein Generator, ein Bewerter, Schleife. Lohnt, wenn du Kriterien aufschreiben kannst (Lint, Spec, „keine neuen Endpoints ohne Auth“) *und* Feedback den Output nachweislich verbessert. Literarische Übersetzung ist Anthropics Beispiel. Im Repo: Patch erzeugen, gegen Test und eine Review-Checkliste bewerten, nachziehen. Ohne Kriterien wird daraus ein teurer Ping-Pong.
+
+## Wann der autonome Agent dran ist
+
+Offenes Problem, Schrittzahl unbekannt, Ground Truth aus der Umgebung (Testlauf, Compiler, Tool-Ergebnis), Stoppbedingungen (max. Iterationen, Timeout). Höhere Kosten, Fehler ketten sich. Deshalb Sandbox und Gates. Anthropic: Frameworks helfen beim Start, in Produktion die Abstraktion verstehen oder abbauen.
+
+<Zitat
+  lang="en"
+  quelle="Anthropic — Building effective agents"
+  text="The most successful implementations use simple, composable patterns rather than complex frameworks. Find the simplest solution possible, and only increase complexity when needed."
+/>
+
+<Merksatz>
+Workflow vor Agent, Agent nur bei unbekannter Schrittzahl. Die fünf Patterns sind Legobausteine — du kombinierst sie, du stapelst sie nicht, um modern zu wirken.
+</Merksatz>
+
+<Quelle
+  url="https://www.anthropic.com/engineering/building-effective-agents"
+  lang="en"
+  typ="Anthropic — Building effective agents"
+  dauer="40 Min"
+  account={false}
+  excerpt="Workflows are predefined code paths. Agents dynamically direct their own processes and tool usage. Start simple; add complexity only when it demonstrably improves outcomes."
+/>
+
+<Quelle
+  url="https://microsoft.github.io/ai-agents-for-beginners/translations/de/01-intro-to-ai-agents/"
+  lang="de"
+  typ="Microsoft — Einführung in KI-Agenten"
+  dauer="30 Min"
+  account={false}
+/>

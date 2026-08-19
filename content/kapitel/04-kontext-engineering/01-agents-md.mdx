@@ -1,0 +1,81 @@
+---
+titel: AGENTS.md als Standard
+dauerMinuten: 16
+zusammenfassung: Eine Markdown-Datei im Repo-Root, die Coding-Agenten herstellerübergreifend lesen — README bleibt menschlich.
+reihenfolge: 1
+---
+
+Angebot 1 von OneCode heißt im Pitch „wir bauen das System in dein Repo“. Die Datei, mit der das System *sichtbar* wird, sollte nicht proprietär sein. **AGENTS.md** ist genau das: ein offenes Markdown-Dokument, das Codex, Copilot, Cursor, Gemini CLI, Aider (via Config) und andere an derselben Stelle suchen. Es wird von der Agentic AI Foundation unter der Linux Foundation betreut. Kein Pflicht-YAML, keine Pflicht-Überschriften. Der Agent parst den Text, den du schreibst.
+
+## README bleibt für Menschen
+
+README: Quickstart, Screenshot, Beitragsregeln, Link zum Slack. AGENTS.md: was ein Agent braucht, das Menschen nervt oder überfrachtet.
+
+Typischer Inhalt, der in Kundenrepos den Durchsatz hebt:
+
+- wie Bootstrap, Dev-Server, Test, Lint, Typecheck **wirklich** laufen (exakte Commands, Filter, Reihenfolge)
+- wo die Fallen liegen (`pnpm` nicht `npm`, Testdb braucht Docker, `.env.example` ist Pflicht)
+- Konventionen, die ein Linter nicht fängt (keine Business-Logik in Controllern, IDs sind ULIDs)
+- Sicherheitsgrenzen (keine Production-Secrets, `migrations/` nur mit Pair)
+- PR-Titel, was vor dem Commit laufen muss
+
+Die Official-Site sagt es unsentimental: wenn du Test-Commands hineinschreibst, wird der Agent sie ausführen und bei Rot nachbessern. Das ist gewollt. Schreib keine Commands hinein, die in CI anders heißen als lokal.
+
+## Verschachtelung statt eines Manifestos
+
+Monorepos bekommen **mehrere** AGENTS.md. Die Datei, die dem editierten File am nächsten liegt, gewinnt bei Konflikt. Der User-Prompt gewinnt über alles. OpenAI selbst hält dutzende dieser Dateien in großen Repos.
+
+Praxis:
+
+```
+AGENTS.md                  # Repo: Toolchain, CI, Secrets
+apps/web/AGENTS.md         # Next, App Router, Verbote
+packages/billing/AGENTS.md # Invarianten der Abrechnung
+```
+
+Nicht denselben Style-Guide dreimal kopieren. Root = Querschnitt. Package = Fachliches. Wiederholung erzeugt Drift.
+
+## Was AGENTS.md nicht ist
+
+Es ist keine Skill-Library, kein Ersatz für CI, keine Policy-Engine. Es ist Onboarding-Text für Maschinen. Lange Checklisten („so machst du ein Release in 40 Schritten“) gehören in einen Skill, der nur bei Releases geladen wird. Sonst zahlst du 40 Schritte in **jedem** Bugfix-Turn.
+
+Migration: alte `AGENT.md` umbenennen, Symlink halten, wenn ein Tool den Singular noch sucht. Aider: `read: AGENTS.md` in `.aider.conf.yml`. Gemini CLI: Filename in Settings. Cursor liest AGENTS.md nativ, zusätzlich zu `.cursor/rules`.
+
+Im Kundengespräch: „Eine Datei, viele Agenten. Wir locken euch nicht in unser Format ein.“ Das ist der Standard, auf den Angebot 1 und die Übergabe in Angebot 2 zeigen.
+
+<Merksatz>
+AGENTS.md ist die herstellerübergreifende Einweisung. README erklärt das Projekt Menschen, AGENTS.md erklärt den Betrieb den Agenten. Die nächste Datei zum Edit gewinnt, der Chat überschreibt beide.
+</Merksatz>
+
+<Zitat
+  lang="en"
+  quelle="AGENTS.md"
+  text="README.md files are for humans: quick starts, project descriptions, and contribution guidelines. AGENTS.md complements this by containing the extra, sometimes detailed context coding agents need."
+/>
+
+<Quelle
+  url="https://agents.md/"
+  lang="en"
+  typ="AGENTS.md — Standard"
+  dauer="15 Min"
+  account={false}
+  excerpt="A simple, open markdown file for coding agents. Nested files are allowed; the closest AGENTS.md to the edited file wins. User chat prompts override everything. Now stewarded by the Agentic AI Foundation."
+/>
+
+<Quelle
+  url="https://github.com/openai/agents.md"
+  lang="en"
+  typ="GitHub — openai/agents.md"
+  dauer="10 Min"
+  account={false}
+  excerpt="Canonical repository and examples for the AGENTS.md format, including how agents discover and apply the file."
+/>
+
+<Quelle
+  url="https://developers.openai.com/codex/guides/agents-md"
+  lang="en"
+  typ="OpenAI — AGENTS.md for Codex"
+  dauer="10 Min"
+  account={false}
+  excerpt="Codex reads AGENTS.md for build, test and convention context. Keep the file operational. Nested files tailor instructions in monorepos."
+/>

@@ -1,0 +1,74 @@
+---
+titel: Fallbacks und Human-in-the-Loop
+dauerMinuten: 15
+zusammenfassung: Der Agent darf scheitern — aber geplant. Fallbacks und Menschen sind Teil des Designs, nicht der Postmortem.
+reihenfolge: 7
+---
+
+Production-Systeme, die nur den Happy Path kennen, sind Demos. Ein Agent, der bei Unsicherheit einfach weiterschreibt, ist Angebot 3 in der schlechtesten Form: schnell, intransparent, teuer wenn es knallt. **Fallback** heißt: es gibt einen vordefinierten Abstieg, bevor ihr den Incident ausruft. **Human-in-the-Loop** heißt: an benannten Kanten entscheidet ein Mensch *bevor* die Welt sich ändert — nicht im Slack danach.
+
+## Fallbacks, die ihr vorab festlegt
+
+Sortiert nach Blast Radius, nicht nach Eleganz:
+
+1. **Anderes Modell / kürzerer Context.** Der teure Reasoning-Call scheitert oder timeoutet → kleineres Modell, weniger Tools, gleiche Task mit hartem Token-Cap.
+2. **Cache / letzte bekannte gute Antwort** nur wo Idempotenz gilt (Doku-Zusammenfassung, Klassifikation). Nie bei Zahlungen.
+3. **Deterministische Vorlage.** „Ich kann das nicht sicher automatisch schließen“ plus Link zum Ticket ist ein valider Output. Leeres Halluzinat ist keiner.
+4. **Queue an Menschen.** Der Trace bleibt stehen, der User sieht Status, niemand merget.
+5. **Circuit Breaker.** Fehlerquote, Tripwire-Rate oder Kosten/Minute über Schwelle → Agent-Pfade aus, nur noch klassische CI. Das ist dasselbe Muster wie bei Downstream-HTTP, nur mit Token als Währung.
+
+Ein Fallback, der heimlich dasselbe Tool mit denselben Rechten nochmal feuert, ist ein Retry, kein Fallback. Retries brauchen Idempotenz und ein Budget (max Turns, max Dollar).
+
+## Human-in-the-Loop ist ein Gate, kein Chat
+
+Claude Code startet in Manual Mode read-only und fragt vor Schreib- und Shell-Eingriffen. Auto Mode delegiert an einen Classifier, nicht an Gottvertrauen; Ask/Deny-Rules bleiben. Genau diese Semantik übersetzt ihr in Kunden-Repos:
+
+- **Approval-Tools** für Deploy, Migration, Prod-Daten, Zahlungen, neue MCP-Server.
+- **Pre-approval Guardrails**, wo ihr schon vor der Pending-Unterbrechung Secrets in Argumenten blockt.
+- **Rollen:** Wer darf Auth-PRs mergen? Das steht in CODEOWNERS, nicht im Prompt.
+
+HITL, das nach dem `git push` in einem Review-Kommentar stattfindet, ist zu spät für Excessive Agency. HITL, das den Tool-Call nicht startet, ist das Gate aus Angebot 1 und 3.
+
+## Unsicherheit sichtbar machen
+
+Der Agent soll *sagen*, wenn Tests fehlen, wenn die Rubric unter Schwelle liegt, wenn der Judge dissentiert, wenn das Schema nicht parsebar ist. Das ist kein Charakter („sei demütig“), das ist ein Zweig im Graph: `if score < threshold → escalate`. Observability aus der vorigen Lektion liefert die Zahlen; dieses Kapitel liefert die Kante im Workflow.
+
+Drei Patterns, die in Kundenrepos immer wieder fehlen und die du explizit einbaust:
+
+- **Timeout ist ein Outcome.** Ein Agent, der 8 Minuten tool-looped, braucht denselben Breaker wie ein HTTP-Client: max Turns, max Wallclock, dann Queue. Sonst zahlt der Kunde das Schweigen in Token.
+- **Partial success.** Tests grün, Secret-Scan rot → nicht mergen und „fast fertig“ in den Chat schreiben. Der Fallback ist der Draft-PR ohne Auto-Merge, nicht ein grüner Haken mit Footnote.
+- **On-call ist HITL.** Wenn nachts niemand approven kann, darf der Agent nachts nicht deployen. Das ist eine organisatorische Kante, die ins System gehört — Cron und Merge-Bot respektieren sie, der Prompt allein nicht.
+
+Gegenüber dem Kunden: „Kritische Fälle gehen nicht nach Production, weil der Agent charmant war. Sie gehen, weil Tests, Tripwire und ein Mensch an der benannten Stelle Ja gesagt haben. Wenn etwas davon fehlt, fällt das System auf den langsamen, sicheren Pfad.“
+
+Damit ist Angebot 3 rund: Evals messen, Guardrails stoppen, PR-Gates mergen, Traces erklären, Fallbacks und Menschen fangen den Rest. Das nächste Kapitel (lokal) ist Bonus. Kapitel 10 ist das Gespräch, in dem du genau diese Kette in drei Sätzen verkaufst.
+
+<Merksatz>
+Fallback ist geplanter Abstieg mit Budget. Human-in-the-Loop sitzt vor Side Effects. Beides gehört ins Repo — sonst ist es eine Betriebslegende.
+</Merksatz>
+
+<Quelle
+  url="https://openai.github.io/openai-agents-python/guardrails/"
+  lang="en"
+  typ="OpenAI Agents SDK — Tripwires and tool approval"
+  dauer="15 Min"
+  account={false}
+  excerpt="A tripwire halts execution. Tool guardrails can skip a call or reject content. If a function tool requires approval, that interruption is the human-in-the-loop primitive — use it before side effects, not after."
+/>
+
+<Quelle
+  url="https://code.claude.com/docs/en/security"
+  lang="en"
+  typ="Claude Code — Permission modes and human approval"
+  dauer="20 Min"
+  account={false}
+  excerpt="Manual mode asks before edits and mutating bash. Auto mode uses a classifier but deny rules still apply. You are responsible for reviewing proposed code before it becomes reality."
+/>
+
+<Quelle
+  url="https://www.bsi.bund.de/DE/Service-Navi/Presse/Alle-Meldungen-News/Meldungen/Evasion-Attacks-LLM_251110.html"
+  lang="de"
+  typ="BSI — Explizite Bestätigung vor Funktionsausführung"
+  dauer="10 Min"
+  account={false}
+/>

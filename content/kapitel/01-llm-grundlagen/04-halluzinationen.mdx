@@ -1,0 +1,41 @@
+---
+titel: Halluzinationen und ihre Ursachen
+dauerMinuten: 15
+zusammenfassung: Warum Modelle überzeugend falsche APIs erfinden — und was dagegen sticht.
+reihenfolge: 4
+---
+
+Halluzination ist kein Lügen. Das Modell maximiert lokale Plausibilität Token für Token. Wenn die wahrscheinlichste Fortsetzung eine Methode `UserService.findByMail()` ist, kommt sie — unabhängig davon, ob sie im Repo existiert.
+
+## Drei häufige Ursachen
+
+1. **Kein Grounding.** Die Information war nicht im Context und nicht zuverlässig im Training. Das Netz interpoliert.
+2. **Trainingsschnitt.** Framework-Versionen drehen sich schneller als Gewichte. „Klassische“ Antworten sind oft ein Jahr zu alt.
+3. **Belohnungsdruck auf Hilfsbereitschaft.** Viele Modelle sind darauf trainiert, *eine* Antwort zu geben. „Ich weiß es nicht“ ist unterrepräsentiert, außer du erzwingst es im Prompt oder per Tool.
+
+Im Agent-Setup ist das gefährlich, weil der Text selbstbewusst klingt und als Nächstes in eine Datei geschrieben wird. Deshalb sind Tests, Compiler, Retriever und MCP-Tools nicht Komfort — sie sind die Wahrheitsquelle.
+
+## Was du im Kundengespräch sagst
+
+Nicht: „Wir nehmen das beste Modell, dann halluziniert es nicht.“  
+Sondern: „Wir geben dem Agenten Werkzeuge und Gates, die Falschbehauptungen auffangen. Das Modell darf vorschlagen, das System darf mergen.“
+
+<Merksatz>
+Halluzination ist das Default-Verhalten eines Next-Token-Samplers ohne Grounding. Du bekämpfst sie mit Kontext, Tools und Tests, nicht mit Appellen an die Ehrlichkeit.
+</Merksatz>
+
+<Quelle
+  url="https://open.hpi.de/courses/kianwendungen2025"
+  lang="de"
+  typ="openHPI — Chatbots leicht gemacht (Konfabulationen)"
+  dauer="Teil des Kurses"
+  account={true}
+/>
+
+<Quelle
+  url="https://ki-campus.org/lernangebote/kurse/aice-your-exams"
+  lang="de"
+  typ="KI-Campus / TUM — Grenzen generativer KI"
+  dauer="Teil des Kurses"
+  account={true}
+/>
