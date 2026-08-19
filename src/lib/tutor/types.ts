@@ -6,6 +6,8 @@ export type TranscriptTurn = {
   text: string;
   coverage?: number;
   followUp?: boolean;
+  /** Set on tutor evaluation turns when the answer was satisfactory. */
+  passed?: boolean;
 };
 
 export type Evaluation = {
@@ -44,4 +46,20 @@ export function shouldAdvance(evaluation: Evaluation, followUpCount: number): bo
   if (evaluation.abdeckung >= 0.7) return true;
   if (!evaluation.nachfrage) return true;
   return followUpCount >= 2;
+}
+
+export function turnsForQuestion(
+  transcript: TranscriptTurn[],
+  questionId: string,
+): TranscriptTurn[] {
+  return transcript.filter((turn) => turn.questionId === questionId);
+}
+
+export function isQuestionPassed(
+  transcript: TranscriptTurn[],
+  questionId: string,
+): boolean {
+  return turnsForQuestion(transcript, questionId).some(
+    (turn) => turn.role === "tutor" && turn.passed === true,
+  );
 }

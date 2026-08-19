@@ -1,6 +1,6 @@
 # 🤖 AI Coach
 
-> **Lernplattform für OneCode-Entwickler:** Agentic Coding, MCP, Quality Gates und Kundengespräche — in zehn Kapiteln vom Sprachmodell bis zum CTO-Interview.
+> **Lernplattform für OneCode-Entwickler:** Von den Grundlagen Künstlicher Intelligenz über Agentic Coding, MCP und Quality Gates bis zum Kundengespräch — in elf Kapiteln vom absoluten Null-Vorwissen bis zum CTO-Interview.
 
 ---
 
@@ -8,7 +8,7 @@
 
 | | Feature | Beschreibung |
 |---|---|---|
-| 📚 | **10 Kapitel als MDX-Lektionen** | Kurze, praxisnahe Lerneinheiten — Inhalte liegen als MDX in `content/kapitel/` und brauchen keinen Rebuild |
+| 📚 | **11 Kapitel als MDX-Lektionen** | 60 ausführliche Lerneinheiten (~26 Stunden) — Inhalte liegen als MDX in `content/kapitel/` und brauchen keinen Rebuild |
 | 🎓 | **KI-Tutor statt Multiple Choice** | Mündliche Prüfungen per AI — der Tutor bewertet Verständnis, nicht auswendig gelernte Antworten |
 | 🛠️ | **Praxis-Aufgaben** | Code-, Config-, Repo-Audit- und Freestyle-Aufgaben mit Akzeptanzkriterien und KI-Bewertung |
 | 📓 | **Lerntagebuch** | Reflexion nach jedem Kapitel — ohne Noten, für echtes Verständnis |
@@ -22,6 +22,15 @@
 ---
 
 ## 📖 Lernpfad — Kapitel & Lernziele
+
+### 🔷 Kapitel 0 — Was ist Künstliche Intelligenz?
+> Von der Idee „denkender Maschinen" bis zum heutigen Stand — Grundbegriffe, die du für alles Weitere brauchst.
+
+- Den Begriff KI definieren und von einfacher Automatisierung abgrenzen
+- Machine Learning, Deep Learning und LLMs als aufeinander aufbauende Stufen erklären
+- Die Transformer-Architektur vereinfacht beschreiben
+- Realistische Erwartungen an LLMs formulieren — was sie können und was nicht
+- Die wichtigsten Anbieter und Modelle benennen und grob einordnen
 
 ### 🔷 Kapitel 1 — Wie Sprachmodelle wirklich arbeiten
 > Tokens, Context Window, Sampling, Halluzinationen und Kosten — ohne Magie.
@@ -120,9 +129,13 @@ Externe Zertifizierungen, die den Lernpfad ergänzen — keine Pflicht, aber wer
 
 | Kapitel | Zertifikat / Nachweis | Anbieter | Hinweis |
 |---|---|---|---|
+| 1 | 🎖️ Transformer-basierte Large Language Models verstehen | KI-Campus | Deutschsprachig, Grundlagen |
 | 3 | 🎖️ Accelerate AI-assisted development using GitHub Copilot (APL-2007) | Microsoft Applied Skills | Kostenloses Lab, Englisch |
 | 4 | 🎖️ Claude Code in Action | Anthropic Academy | Kostenloses Badge über Quizzes |
 | 4 | 🎖️ Introduction to Agent Skills | Anthropic Academy | Passt zur Skills-Lektion |
+| 5 | 🎖️ Integrate MCP tools with agents in Microsoft Foundry (APL-3034) | Microsoft Applied Skills | Kostenloses Lab, MCP-spezifisch |
+| 5 | 🎖️ Hugging Face MCP Course | Hugging Face / Anthropic | Kostenlos, Fundamentals-Zertifikat |
+| 6 | 🎖️ Resolve GitHub issues by using GitHub Copilot | Microsoft Applied Skills | Kostenloses Lab zu Agent Mode |
 | 8 | 🎖️ Secure AI solutions in the cloud (APL5009) | Microsoft Applied Skills | Kostenloses Lab zu Guardrails & Härtung |
 | 9 | 📝 Internes Artefakt: Lokales Setup dokumentieren | — | Modell, Quantisierung, Hardware, Benchmark vs. Cloud |
 
@@ -156,3 +169,5 @@ Dann in `.env`: `AI_PROVIDER=ollama` und `OLLAMA_BASE_URL=http://ollama:11434/v1
 ## 📂 Inhalte
 
 Lektionen liegen in `content/kapitel/` als MDX plus `kapitel.yml`. Der Container mountet dieses Verzeichnis, Korrekturen brauchen keinen Rebuild.
+
+**Zielgruppe:** Absolut kein Vorwissen zu KI/LLMs vorausgesetzt. Jeder Fachbegriff wird bei erster Verwendung erklärt, Konzepte werden schrittweise mit Alltagsanalogien aufgebaut.

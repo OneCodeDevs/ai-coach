@@ -10,16 +10,39 @@ type TutorChatProps = {
   sessionId: number | null;
   total: number;
   questionIndex: number;
+  currentQuestionId: string;
   initialTranscript: TranscriptTurn[];
+  initialPassed: boolean;
+  isLastQuestion: boolean;
   hasCredentials: boolean;
 };
+
+function CheckIcon() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      className="size-6 shrink-0 text-neon-lime"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
 
 export function TutorChat({
   kapitelSlug,
   sessionId,
   total,
   questionIndex,
+  currentQuestionId,
   initialTranscript,
+  initialPassed,
+  isLastQuestion,
   hasCredentials,
 }: TutorChatProps) {
   const router = useRouter();
@@ -30,16 +53,19 @@ export function TutorChat({
   const [index, setIndex] = useState(questionIndex);
   const [activeSession, setActiveSession] = useState(sessionId);
   const [busy, setBusy] = useState(false);
+  const [advancing, setAdvancing] = useState(false);
+  const [questionPassed, setQuestionPassed] = useState(initialPassed);
+  const [lastQuestion, setLastQuestion] = useState(isLastQuestion);
 
   useEffect(() => {
-    if (!answer.trim()) return;
+    if (!answer.trim() || questionPassed) return;
     function onLeave(event: BeforeUnloadEvent) {
       event.preventDefault();
       event.returnValue = "";
     }
     window.addEventListener("beforeunload", onLeave);
     return () => window.removeEventListener("beforeunload", onLeave);
-  }, [answer]);
+  }, [answer, questionPassed]);
 
   if (!hasCredentials) {
     return (
@@ -68,7 +94,7 @@ export function TutorChat({
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    if (!activeSession || !answer.trim()) return;
+    if (!activeSession || !answer.trim() || questionPassed) return;
     setBusy(true);
     setError(null);
     try {
@@ -80,44 +106,76 @@ export function TutorChat({
       const payload = (await response.json()) as {
         error?: string;
         feedback?: string;
-        nextQuestionText?: string | null;
-        done?: boolean;
+        passed?: boolean;
+        isLast?: boolean;
         questionIndex?: number;
       };
       if (!response.ok) {
         throw new Error(payload.error ?? "Auswertung fehlgeschlagen.");
       }
-      setTranscript((current) => {
-        const next = [
-          ...current,
-          { role: "user" as const, questionId: "current", text: answer },
-          {
-            role: "tutor" as const,
-            questionId: "current",
-            text: payload.feedback ?? "",
-          },
-        ];
-        if (payload.nextQuestionText) {
-          next.push({
-            role: "tutor",
-            questionId: "next",
-            text: payload.nextQuestionText,
-          });
-        }
-        return next;
-      });
+      setTranscript((current) => [
+        ...current,
+        { role: "user" as const, questionId: currentQuestionId, text: answer },
+        {
+          role: "tutor" as const,
+          questionId: currentQuestionId,
+          text: payload.feedback ?? "",
+          passed: payload.passed,
+        },
+      ]);
       setAnswer("");
+      if (payload.passed) {
+        setQuestionPassed(true);
+        if (payload.isLast) {
+          setLastQuestion(true);
+        }
+      }
       if (typeof payload.questionIndex === "number") {
         setIndex(payload.questionIndex);
-      }
-      if (payload.done) {
-        router.push(`/kapitel/${kapitelSlug}/tagebuch`);
-        router.refresh();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Auswertung fehlgeschlagen.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function advance() {
+    if (!activeSession) return;
+    setAdvancing(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/tutor/advance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: activeSession }),
+      });
+      const payload = (await response.json()) as {
+        error?: string;
+        done?: boolean;
+        questionIndex?: number;
+        initialTranscript?: TranscriptTurn[];
+        total?: number;
+      };
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Weiterleitung fehlgeschlagen.");
+      }
+      if (payload.done) {
+        router.push(`/kapitel/${kapitelSlug}/tagebuch`);
+        router.refresh();
+        return;
+      }
+      setTranscript(payload.initialTranscript ?? []);
+      setQuestionPassed(false);
+      setAnswer("");
+      if (typeof payload.questionIndex === "number") {
+        setIndex(payload.questionIndex);
+        setLastQuestion(payload.questionIndex >= (payload.total ?? total) - 1);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Weiterleitung fehlgeschlagen.");
+    } finally {
+      setAdvancing(false);
     }
   }
 
@@ -180,40 +238,87 @@ export function TutorChat({
                   : "mr-4 rounded-md border border-neon-cyan/25 bg-bg-panel p-3"
               }
             >
-              <p className="font-display text-xs uppercase tracking-[0.16em] text-fg-muted">
-                {turn.role === "user" ? "Du" : "Tutor"}
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-display text-xs uppercase tracking-[0.16em] text-fg-muted">
+                  {turn.role === "user" ? "Du" : "Tutor"}
+                </p>
+                {turn.passed ? (
+                  <span
+                    className="inline-flex items-center gap-1 font-display text-xs uppercase tracking-[0.12em] text-neon-lime"
+                    title="Frage bestanden"
+                  >
+                    <CheckIcon />
+                    Bestanden
+                  </span>
+                ) : null}
+              </div>
               <p className="mt-2 whitespace-pre-wrap">{turn.text}</p>
             </li>
           ))}
         </ol>
-        <form className="mt-6" onSubmit={(event) => void submit(event)}>
-          <label htmlFor="tutor-answer" className="font-display text-sm">
-            Deine Antwort
-          </label>
-          <textarea
-            id="tutor-answer"
-            name="answer"
-            required
-            rows={5}
-            value={answer}
-            onChange={(event) => setAnswer(event.target.value)}
-            className="mt-2 w-full rounded-md border border-border-subtle bg-bg-base p-3 text-fg"
-            disabled={busy}
-            autoComplete="off"
-            placeholder="In eigenen Worten, Fachbegriffe erlaubt…"
-          />
-          <div className="mt-3 flex flex-wrap gap-3">
-            <button type="submit" className="btn btn-primary" disabled={busy} aria-busy={busy}>
-              {busy ? "Prüft…" : "Antwort senden"}
-            </button>
+
+        {questionPassed ? (
+          <div
+            className="mt-6 flex items-start gap-3 rounded-md border border-neon-lime/30 bg-neon-lime/10 p-4"
+            role="status"
+          >
+            <CheckIcon />
+            <div>
+              <p className="font-display text-neon-lime">Frage bestanden</p>
+              <p className="mt-1 text-sm text-fg-muted">
+                Deine Antwort war zufriedenstellend. Du kannst{" "}
+                {lastQuestion ? "zum Lerntagebuch wechseln" : "zur nächsten Frage gehen"}.
+              </p>
+              <button
+                type="button"
+                className="btn btn-primary mt-4 min-h-11"
+                onClick={() => void advance()}
+                disabled={advancing}
+                aria-busy={advancing}
+              >
+                {advancing
+                  ? "Lädt…"
+                  : lastQuestion
+                    ? "Zum Lerntagebuch"
+                    : "Nächste Frage"}
+              </button>
+            </div>
           </div>
-          {error ? (
-            <p className="mt-3 text-sm text-danger" role="alert">
-              {error}
-            </p>
-          ) : null}
-        </form>
+        ) : (
+          <form className="mt-6" onSubmit={(event) => void submit(event)}>
+            <label htmlFor="tutor-answer" className="font-display text-sm">
+              Deine Antwort
+            </label>
+            <textarea
+              id="tutor-answer"
+              name="answer"
+              required
+              rows={5}
+              value={answer}
+              onChange={(event) => setAnswer(event.target.value)}
+              className="mt-2 w-full rounded-md border border-border-subtle bg-bg-base p-3 text-fg"
+              disabled={busy}
+              autoComplete="off"
+              placeholder="In eigenen Worten, Fachbegriffe erlaubt…"
+            />
+            <div className="mt-3 flex flex-wrap gap-3">
+              <button
+                type="submit"
+                className="btn btn-primary min-h-11"
+                disabled={busy}
+                aria-busy={busy}
+              >
+                {busy ? "Prüft…" : "Antwort senden"}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {error ? (
+          <p className="mt-3 text-sm text-danger" role="alert">
+            {error}
+          </p>
+        ) : null}
       </div>
     </div>
   );

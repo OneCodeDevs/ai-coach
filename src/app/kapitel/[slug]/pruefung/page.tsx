@@ -4,6 +4,7 @@ import { getKapitel } from "@/lib/content/loader";
 import { getActiveExam } from "@/lib/db/queries";
 import { hasAiCredentials } from "@/lib/ai/provider";
 import { TutorChat } from "@/components/tutor/tutor-chat";
+import { isQuestionPassed, turnsForQuestion } from "@/lib/tutor/types";
 import type { TranscriptTurn } from "@/lib/tutor/types";
 
 type PageProps = {
@@ -23,6 +24,8 @@ export default async function ExamPage({ params }: PageProps) {
 
   const session = getActiveExam(slug);
   let transcript: TranscriptTurn[] = [];
+  const questionIndex = session?.questionIndex ?? 0;
+  const currentQuestion = kapitel.exam[questionIndex];
   if (session) {
     try {
       transcript = JSON.parse(session.transcript) as TranscriptTurn[];
@@ -30,6 +33,13 @@ export default async function ExamPage({ params }: PageProps) {
       transcript = [];
     }
   }
+  const displayTranscript = currentQuestion
+    ? turnsForQuestion(transcript, currentQuestion.id)
+    : [];
+  const initialPassed = currentQuestion
+    ? isQuestionPassed(transcript, currentQuestion.id)
+    : false;
+  const isLastQuestion = questionIndex >= kapitel.exam.length - 1;
 
   return (
     <div>
@@ -45,8 +55,11 @@ export default async function ExamPage({ params }: PageProps) {
           kapitelSlug={kapitel.slug}
           sessionId={session?.id ?? null}
           total={kapitel.exam.length}
-          questionIndex={session?.questionIndex ?? 0}
-          initialTranscript={transcript}
+          questionIndex={questionIndex}
+          currentQuestionId={currentQuestion?.id ?? ""}
+          initialTranscript={displayTranscript}
+          initialPassed={initialPassed}
+          isLastQuestion={isLastQuestion}
           hasCredentials={hasAiCredentials()}
         />
       </div>

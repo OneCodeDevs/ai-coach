@@ -7,7 +7,7 @@ import { getExamById } from "@/lib/db/queries";
 import { getKapitel } from "@/lib/content/loader";
 import { USER_ID } from "@/lib/constants";
 import { evaluateAnswer, writeJournal } from "./evaluate";
-import { currentQuestion, shouldAdvance } from "./types";
+import { currentQuestion, isQuestionPassed, shouldAdvance } from "./types";
 import type { TranscriptTurn } from "./types";
 
 function now() {
@@ -112,29 +112,17 @@ export async function submitAnswer(sessionId: number, answer: string, userId = U
     followUp: evaluation.nachfrage,
   };
 
-  const nextTranscript = [...transcript, userTurn, tutorTurn];
-  let questionIndex = session.questionIndex;
-  let followUpCount = session.followUpCount;
-  let status = session.status;
-  let done = false;
-  let followUpQuestion: string | null = null;
-  let nextQuestionText: string | null = null;
+  const passed = shouldAdvance(evaluation, session.followUpCount);
+  if (passed) {
+    tutorTurn.passed = true;
+  }
 
-  if (shouldAdvance(evaluation, followUpCount)) {
-    questionIndex += 1;
+  const nextTranscript = [...transcript, userTurn, tutorTurn];
+  let followUpCount = session.followUpCount;
+  let followUpQuestion: string | null = null;
+
+  if (passed) {
     followUpCount = 0;
-    const upcoming = currentQuestion(kapitel.exam, questionIndex);
-    if (!upcoming) {
-      status = "completed";
-      done = true;
-    } else {
-      nextQuestionText = upcoming.frage;
-      nextTranscript.push({
-        role: "tutor",
-        questionId: upcoming.id,
-        text: upcoming.frage,
-      });
-    }
   } else {
     followUpCount += 1;
     followUpQuestion = evaluation.feedback;
@@ -142,21 +130,62 @@ export async function submitAnswer(sessionId: number, answer: string, userId = U
 
   db.update(examSessions)
     .set({
-      questionIndex,
       followUpCount,
-      status,
       transcript: JSON.stringify(nextTranscript),
       updatedAt: now(),
     })
     .where(eq(examSessions.id, session.id))
     .run();
 
-  let journalId: number | null = null;
-  if (done) {
-    const payload = await writeJournal({
-      kapitel,
-      transcript: nextTranscript,
-    });
+  const isLast = session.questionIndex >= kapitel.exam.length - 1;
+
+  return {
+    feedback: evaluation.feedback,
+    abdeckung: evaluation.abdeckung,
+    passed,
+    isLast: passed && isLast,
+    questionIndex: session.questionIndex,
+    total: kapitel.exam.length,
+    followUpQuestion,
+  };
+}
+
+export async function advanceToNextQuestion(sessionId: number, userId = USER_ID) {
+  const session = getExamById(sessionId, userId);
+  if (!session) {
+    throw new Error("Sitzung nicht gefunden.");
+  }
+  if (session.status !== "in_progress") {
+    throw new Error("Diese Prüfung ist bereits abgeschlossen.");
+  }
+
+  const kapitel = await getKapitel(session.kapitelSlug);
+  if (!kapitel) {
+    throw new Error("Kapitel nicht gefunden.");
+  }
+
+  const question = currentQuestion(kapitel.exam, session.questionIndex);
+  if (!question) {
+    throw new Error("Keine offene Frage mehr.");
+  }
+
+  const transcript = parseTranscript(session.transcript);
+  if (!isQuestionPassed(transcript, question.id)) {
+    throw new Error("Diese Frage ist noch nicht bestanden.");
+  }
+
+  const isLast = session.questionIndex >= kapitel.exam.length - 1;
+  if (isLast) {
+    const timestamp = now();
+    db.update(examSessions)
+      .set({
+        status: "completed",
+        updatedAt: timestamp,
+      })
+      .where(eq(examSessions.id, session.id))
+      .run();
+
+    const payload = await writeJournal({ kapitel, transcript });
     const inserted = db
       .insert(journalEntries)
       .values({
@@ -167,21 +196,46 @@ export async function submitAnswer(sessionId: number, answer: string, userId = U
         luecken: JSON.stringify(payload.luecken),
         zusammenfassung: payload.zusammenfassung,
         naechsteSchritte: JSON.stringify(payload.naechsteSchritte),
-        createdAt: now(),
+        createdAt: timestamp,
       })
       .returning()
       .get();
-    journalId = inserted.id;
+
+    return {
+      done: true,
+      journalId: inserted.id,
+    };
   }
 
+  const questionIndex = session.questionIndex + 1;
+  const upcoming = currentQuestion(kapitel.exam, questionIndex);
+  if (!upcoming) {
+    throw new Error("Keine nächste Frage verfügbar.");
+  }
+
+  const nextTurn: TranscriptTurn = {
+    role: "tutor",
+    questionId: upcoming.id,
+    text: upcoming.frage,
+  };
+  const nextTranscript = [...transcript, nextTurn];
+  const timestamp = now();
+
+  db.update(examSessions)
+    .set({
+      questionIndex,
+      followUpCount: 0,
+      transcript: JSON.stringify(nextTranscript),
+      updatedAt: timestamp,
+    })
+    .where(eq(examSessions.id, session.id))
+    .run();
+
   return {
-    feedback: evaluation.feedback,
-    abdeckung: evaluation.abdeckung,
+    done: false,
     questionIndex,
+    questionId: upcoming.id,
+    initialTranscript: [nextTurn],
     total: kapitel.exam.length,
-    done,
-    followUpQuestion,
-    nextQuestionText,
-    journalId,
   };
 }
