@@ -10,16 +10,6 @@ services:
     volumes:
       - ./data:/app/data
       - ./content:/app/content
-    networks:
-      - n8n_default
+    ports:
+      - "3000:3000"
     restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.ai-coach.rule=Host(`coach.pynnie.de`)"
-      - "traefik.http.routers.ai-coach.entrypoints=websecure"
-      - "traefik.http.routers.ai-coach.tls.certresolver=mytlschallenge"
-      - "traefik.http.services.ai-coach.loadbalancer.server.port=3000"
-
-networks:
-  n8n_default:
-    external: true
